@@ -1353,7 +1353,7 @@ function renderTrips(){
   <div class="trip-card" onclick="showDetail('${t.id}')">
     <div style="display:flex;justify-content:space-between;align-items:flex-start">
       <div>
-        <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Trip #${trips.length-i} &middot; ${t.startTime||''}</div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Trip #${trips.length-i} &middot; ${t.startTime||''}${t.endTime?' - '+t.endTime:''}</div>
         <div style="display:flex;gap:6px;align-items:center">
           <span class="ppill ppill-${t.platform}">${t.platform}</span>
           <span style="font-size:10px;color:var(--muted)">${t.mode}</span>
@@ -1400,7 +1400,7 @@ function showDetail(id){
       <div class="loc-town">${t.dropoff?.town||''}</div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
-      ${[['Distance',`${(t.distanceKm||0).toFixed(1)} km`],['Duration',`${t.durationMins||0} min`],['Time',`${t.startTime||''}`]]
+      ${[['Distance',`${(t.distanceKm||0).toFixed(1)} km`],['Duration',`${t.durationMins||0} min`],['Time',`${t.startTime||''}${t.endTime?' - '+t.endTime:''}`]]
         .map(([l,v])=>`<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center">
           <div style="font-size:10px;color:var(--muted);margin-bottom:4px">${l}</div>
           <div style="font-family:'Space Mono',monospace;font-size:13px;font-weight:700">${v}</div></div>`).join('')}
