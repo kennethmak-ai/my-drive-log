@@ -1536,9 +1536,9 @@ function cancelTrip(){
   clearInterval(timerInt); timerInt=null;
   activeTrip=null; sessionStorage.removeItem('mdl_active');
   document.getElementById('cancel-confirm').style.display='none';
-  document.getElementById('active-trip').style.display='none';
-  document.getElementById('trip-summary').style.display='';
-  renderTrips();
+  document.getElementById('active-card').style.display='none';
+  closeOverlay('end-overlay');
+  go('trips', document.getElementById('nav-trips'));
   toast('Trip cancelled — not saved');
 }
 
