@@ -537,6 +537,16 @@ textarea.inp{resize:none;height:80px}
         <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
         End Trip
       </button>
+      <button class="btn btn-gray" onclick="openCancelConfirm()" style="margin-top:8px;color:var(--danger);border-color:var(--danger)">
+        Cancel Trip
+      </button>
+      <div id="cancel-confirm" style="display:none;margin-top:10px;background:var(--card);border:1px solid var(--danger);border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:13px;color:var(--text);margin-bottom:10px">Discard this trip? It will not be saved.</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-gray" onclick="closeCancelConfirm()" style="flex:1">No — Continue</button>
+          <button class="btn btn-red" onclick="cancelTrip()" style="flex:1">Confirm Cancel</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1514,6 +1524,22 @@ async function openEndSheet(){
     activeTrip._drop=null; activeTrip._dist=0;
     activeTrip._dur=Math.round((Date.now()-activeTrip.startTs)/60000);
   }
+}
+
+function openCancelConfirm(){
+  document.getElementById('cancel-confirm').style.display='block';
+}
+function closeCancelConfirm(){
+  document.getElementById('cancel-confirm').style.display='none';
+}
+function cancelTrip(){
+  clearInterval(timerInt); timerInt=null;
+  activeTrip=null; sessionStorage.removeItem('mdl_active');
+  document.getElementById('cancel-confirm').style.display='none';
+  document.getElementById('active-trip').style.display='none';
+  document.getElementById('trip-summary').style.display='';
+  renderTrips();
+  toast('Trip cancelled — not saved');
 }
 
 function toggleNote(){ document.getElementById('note-area').classList.toggle('open'); }
