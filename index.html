@@ -747,7 +747,7 @@ textarea.inp{resize:none;height:80px}
 ══════════════════════════════════════════════════ -->
 <script>
 // ── CONFIG ────────────────────────────────────────
-const MAPS_API_KEY = 'AIzaSyA7NBp93xetd7yUiCyRJNu6X7pFespVR6c';
+const MAPS_API_KEY = 'YOUR_API_KEY_HERE';
 // Inject Maps JS SDK immediately — loads in background while user reads the app
 (function(){
   const s=document.createElement('script');
@@ -868,7 +868,10 @@ async function reverseGeocode(lat,lng){
     const num=(c.find(x=>x.types.includes('street_number'))||{}).long_name||'';
     const route=(c.find(x=>x.types.includes('route'))||{}).long_name||'';
     const premise=(c.find(x=>x.types.includes('premise'))||{}).long_name||'';
-    let addr=[premise,num,route].filter(Boolean).join(' ')||result.formatted_address.split(',')[0];
+    // Deduplicate: if premise already contains the street number, don't add num separately
+    const numAlreadyInPremise = num && premise.includes(num);
+    const addrParts = numAlreadyInPremise ? [premise,route] : [premise,num,route];
+    let addr=addrParts.filter(Boolean).join(' ')||result.formatted_address.split(',')[0];
     if(postal) addr+=' S('+postal+')';
     return{addr,postal,town};
   }catch{
@@ -1352,7 +1355,7 @@ function renderTrips(){
     <div class="trip-meta">
       <span>${(t.distanceKm||0).toFixed(1)} km</span>
       <span>${t.durationMins||0} min</span>
-      <span>${t.distanceKm>0?'&#36;'+(t.fare/t.distanceKm).toFixed(2)+'/km':'—'}</span>
+      <span>${t.distanceKm>0.1?'&#36;'+(t.fare/t.distanceKm).toFixed(2)+'/km':'—'}</span>
     </div>
     ${t.note?`<div style="font-size:11px;color:var(--muted);margin-top:5px;font-style:italic">"${t.note}"</div>`:''}
   </div>`).join('');
@@ -1366,7 +1369,7 @@ function showDetail(id){
   const allToday=getTrips().filter(x=>x.date===t.date);
   const num=allToday.findIndex(x=>String(x.id)===String(id))+1;
   document.getElementById('detail-title').textContent='TRIP #'+num+' — '+t.date;
-  const perKm=t.distanceKm>0?fmtMoney(t.fare/t.distanceKm)+'/km':'—';
+  const perKm=t.distanceKm>0.1?fmtMoney(t.fare/t.distanceKm)+'/km':'—';
   document.getElementById('detail-body').innerHTML=`
     <div style="text-align:center;margin-bottom:16px">
       <div style="font-family:'Space Mono',monospace;font-size:38px;font-weight:700;color:var(--accent)">&#36;${(t.fare||0).toFixed(2)}</div>
@@ -1387,7 +1390,7 @@ function showDetail(id){
       <div class="loc-town">${t.dropoff?.town||''}</div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
-      ${[['Distance',`${(t.distanceKm||0).toFixed(1)} km`],['Duration',`${t.durationMins||0} min`],['Time',`${t.startTime||''}&#8209;${t.endTime||''}`]]
+      ${[['Distance',`${(t.distanceKm||0).toFixed(1)} km`],['Duration',`${t.durationMins||0} min`],['Time',`${t.startTime||''}`]]
         .map(([l,v])=>`<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center">
           <div style="font-size:10px;color:var(--muted);margin-bottom:4px">${l}</div>
           <div style="font-family:'Space Mono',monospace;font-size:13px;font-weight:700">${v}</div></div>`).join('')}
