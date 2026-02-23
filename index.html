@@ -1563,7 +1563,7 @@ function saveTrip(){
   activeTrip=null; sessionStorage.removeItem('mdl_active');
   closeOverlay('end-overlay');
   syncDailyEntry(trip.date);
-  toast('Trip saved! $'+fare.toFixed(2)+' ✓');
+  toast('Trip saved! $'+fare.toFixed(2)+' ✓ | end:'+trip.endTime);
   setTimeout(()=>renderTrips(),300);
 }
 
