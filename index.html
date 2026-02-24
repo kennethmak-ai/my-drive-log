@@ -689,6 +689,13 @@ textarea.inp{resize:none;height:80px}
         <button class="tog" onclick="setTripSession(3,this)">Session 3</button>
       </div>
     </div>
+    <div style="margin-bottom:14px">
+      <label class="lbl">Stops</label>
+      <div class="tog-row" id="stops-tog">
+        <button class="tog on" onclick="setTripStops(1,this)">1 Stop</button>
+        <button class="tog" onclick="setTripStops(2,this)">2 Stops</button>
+      </div>
+    </div>
     <div id="start-gps" style="display:none"></div>
     <button class="btn btn-green" id="capture-btn" onclick="captureAndStart()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
@@ -735,8 +742,14 @@ textarea.inp{resize:none;height:80px}
     <div class="sheet-handle"></div>
     <div class="sheet-title" id="detail-title">TRIP DETAIL</div>
     <div id="detail-body"></div>
+    <div id="trip-note-editor" style="display:none;margin-bottom:10px">
+      <textarea id="trip-note-input" placeholder="Add a note for this trip..." style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;resize:none;height:80px;box-sizing:border-box"></textarea>
+      <button class="btn btn-green" style="margin-top:6px" onclick="saveTripNote()">Save Note</button>
+    </div>
     <div style="height:10px"></div>
     <button class="btn btn-gray" onclick="closeOverlay('detail-overlay')">Close</button>
+    <div style="height:8px"></div>
+    <button class="btn btn-gray" style="color:var(--accent)" onclick="openTripNoteEditor()">Trip Notes</button>
     <div style="height:8px"></div>
     <button class="btn btn-gray" style="color:var(--danger)" onclick="deleteTrip()">Delete This Trip</button>
   </div>
@@ -769,7 +782,7 @@ textarea.inp{resize:none;height:80px}
 ══════════════════════════════════════════════════ -->
 <script>
 // ── CONFIG ────────────────────────────────────────
-const MAPS_API_KEY = 'AIzaSyA7NBp93xetd7yUiCyRJNu6X7pFespVR6c';
+const MAPS_API_KEY = 'YOUR_API_KEY_HERE';
 // Inject Maps JS SDK immediately — loads in background while user reads the app
 (function(){
   const s=document.createElement('script');
@@ -994,15 +1007,20 @@ function renderSessions(){
   const platVars={TADA:'tada',Grab:'grab',Gojek:'gojek',Others:'others'};
 
   for(let i=1;i<=sessCount;i++){
-    // Platform boxes — read-only auto-populated
+    // Filter trips by session number for this block
+    const sessTrips=trips.filter(t=>(t.sessionNum||1)===i);
+    const td={TADA:0,Grab:0,Gojek:0,Others:0}; let tkm=0,tmin=0;
+    sessTrips.forEach(t=>{td[t.platform]=(td[t.platform]||0)+(t.fare||0);tkm+=t.distanceKm||0;tmin+=t.durationMins||0;});
+
+    // Platform boxes — read-only auto-populated per session
     const platBoxes=['TADA','Grab','Gojek','Others'].map(p=>`
       <div class="plat-box" style="border-color:rgba(${platColors[p]},.25)">
         <div class="plat-box-name" style="color:var(--${platVars[p]})">${p}</div>
-        <div class="plat-box-val" style="color:${td[p]>0?'var(--text)':'var(--muted)'}">${td[p]>0?'$'+td[p].toFixed(2):'—'}</div>
+        <div class="plat-box-val" data-plat="${p}" style="color:${td[p]>0?'var(--text)':'var(--muted)'}">${td[p]>0?'$'+td[p].toFixed(2):'—'}</div>
       </div>`).join('');
 
-    const statsLine=trips.length>0?
-      `<div class="stats-row" style="margin-top:8px">${trips.length} trips &middot; ${tkm.toFixed(1)} km &middot; ${tmin} min</div>`:
+    const statsLine=sessTrips.length>0?
+      `<div class="stats-row" style="margin-top:8px">${sessTrips.length} trip${sessTrips.length!==1?'s':''} &middot; ${tkm.toFixed(1)} km &middot; ${tmin} min</div>`:
       `<div class="stats-row" style="margin-top:8px;color:var(--muted)">No trips recorded yet — start trips first</div>`;
 
     c.innerHTML+=`
@@ -1171,24 +1189,15 @@ function loadEntry(){
 }
 
 function refreshEntryEarnings(){
-  // Refresh earnings/platform boxes only — do NOT touch session state
+  // Refresh earnings only — do NOT rebuild session DOM (would erase unsaved times)
   const date=document.getElementById('e-date').value;
   if(!date) return;
   const trips=getTrips().filter(t=>t.date===date);
-  const td={TADA:0,Grab:0,Gojek:0,Others:0};
-  let totalFare=0,totalKm=0,totalMin=0;
-  trips.forEach(t=>{
-    td[t.platform]=(td[t.platform]||0)+(t.fare||0);
-    totalFare+=t.fare||0; totalKm+=t.distanceKm||0; totalMin+=t.durationMins||0;
-  });
+  const totalFare=trips.reduce((a,t)=>a+(t.fare||0),0);
+  const totalKm=trips.reduce((a,t)=>a+(t.distanceKm||0),0);
+  const totalMin=trips.reduce((a,t)=>a+(t.durationMins||0),0);
   document.getElementById('e-gross').textContent=fmtMoney(totalFare);
   document.getElementById('e-autofill-badge').style.display=trips.length>0?'inline-flex':'none';
-  ['TADA','Grab','Gojek','Others'].forEach(p=>{
-    const el=document.getElementById('pb-val-'+p);
-    if(!el) return;
-    if(td[p]>0){ el.textContent='$'+td[p].toFixed(2); el.style.color='var(--text)'; }
-    else        { el.textContent='—'; el.style.color='var(--muted)'; }
-  });
   const statsEl=document.getElementById('e-stats');
   if(statsEl){
     if(trips.length>0){
@@ -1197,8 +1206,18 @@ function refreshEntryEarnings(){
     } else { statsEl.textContent='No trips yet — start trips first'; }
   }
   updateNetDisplay(totalFare);
-  // Also refresh session platform boxes without rebuilding DOM
-  renderSessions();
+  // Update session platform boxes in-place without rebuilding DOM
+  for(let i=1;i<=sessCount;i++){
+    const sessTrips=trips.filter(t=>(t.sessionNum||1)===i);
+    const sd={TADA:0,Grab:0,Gojek:0,Others:0};
+    sessTrips.forEach(t=>sd[t.platform]=(sd[t.platform]||0)+(t.fare||0));
+    ['TADA','Grab','Gojek','Others'].forEach(p=>{
+      const el=document.querySelector(`#sess-container .sess-block:nth-child(${i}) .plat-box-val[data-plat="${p}"]`);
+      if(!el) return;
+      if(sd[p]>0){ el.textContent='$'+sd[p].toFixed(2); el.style.color='var(--text)'; }
+      else        { el.textContent='—'; el.style.color='var(--muted)'; }
+    });
+  }
 }
 
 function updateNet(){
@@ -1445,7 +1464,7 @@ function renderTrips(){
   <div class="trip-card" onclick="showDetail('${t.id}')">
     <div style="display:flex;justify-content:space-between;align-items:flex-start">
       <div>
-        <div style="font-size:10px;color:var(--muted);margin-bottom:2px">Trip #${trips.length-i} &middot; Sess ${t.sessionNum||1}</div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:2px">Trip #${trips.length-i} &middot; Sess ${t.sessionNum||1}${t.stops===2?' &middot; 2 Stops':''}</div>
         <div style="display:flex;gap:6px;align-items:center">
           <span class="ppill ppill-${t.platform}">${t.platform}</span>
           <span style="font-size:10px;color:var(--muted)">${t.mode}</span>
@@ -1478,9 +1497,10 @@ function showDetail(id){
       <div style="font-family:'Space Mono',monospace;font-size:38px;font-weight:700;color:var(--accent)">&#36;${(t.fare||0).toFixed(2)}</div>
       <div style="font-size:12px;color:var(--muted);margin-top:4px">${perKm}</div>
     </div>
-    <div style="display:flex;gap:6px;justify-content:center;margin-bottom:14px">
+    <div style="display:flex;gap:6px;justify-content:center;margin-bottom:14px;flex-wrap:wrap">
       <span class="ppill ppill-${t.platform}">${t.platform}</span>
       <span style="font-size:11px;color:var(--muted);display:flex;align-items:center">${t.mode}</span>
+      ${t.stops===2?'<span style="font-size:11px;background:var(--border);color:var(--text);padding:2px 8px;border-radius:10px">2 Stops</span>':''}
     </div>
     <div style="margin-bottom:10px">
       <div style="font-size:10px;color:var(--blue);font-weight:600;margin-bottom:2px">📍 Pick up</div>
@@ -1499,6 +1519,29 @@ function showDetail(id){
     </div>
     ${t.note?`<div style="font-size:12px;color:var(--muted);font-style:italic;padding:8px 0">"${t.note}"</div>`:''}`;
   document.getElementById('detail-overlay').classList.add('open');
+}
+
+function openTripNoteEditor(){
+  const editor=document.getElementById('trip-note-editor');
+  const input=document.getElementById('trip-note-input');
+  const trips=getTrips();
+  const t=trips.find(x=>String(x.id)===String(detailTripId));
+  input.value=t?.note||'';
+  editor.style.display=editor.style.display==='none'?'block':'none';
+  if(editor.style.display==='block') input.focus();
+}
+
+function saveTripNote(){
+  const input=document.getElementById('trip-note-input');
+  const note=input.value.trim();
+  const trips=getTrips();
+  const t=trips.find(x=>String(x.id)===String(detailTripId));
+  if(!t) return;
+  t.note=note;
+  saveTrips(trips);
+  document.getElementById('trip-note-editor').style.display='none';
+  showDetail(detailTripId);
+  toast('Note saved ✓');
 }
 
 function deleteTrip(){
@@ -1526,6 +1569,13 @@ function setMode(m,btn){
 }
 
 let tripSession = 1;
+let tripStops = 1;
+
+function setTripStops(n, btn){
+  tripStops = n;
+  document.querySelectorAll('#stops-tog .tog').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+}
 
 function setTripSession(n, btn){
   tripSession = n;
@@ -1559,6 +1609,8 @@ function autoDetectSession(){
 
 function openStartSheet(){
   document.getElementById('start-gps').style.display='none';
+  tripStops = 1;
+  document.querySelectorAll('#stops-tog .tog').forEach((b,i)=>b.classList.toggle('on', i===0));
   // Default to highest session that has a start time entered
   let defaultSess = 1;
   for(let i=1; i<=3; i++){ if(sessTimeVals[`${i}-start`]) defaultSess=i; }
@@ -1605,6 +1657,7 @@ async function captureAndStart(){
     id:Date.now(), date:fmtDate(new Date()), platform:tripPlatform, mode:tripMode,
     startTime:new Date().toTimeString().slice(0,5), startTs:Date.now(),
     sessionNum: tripSession,
+    stops: tripStops,
     pickup:{lat,lng,...loc}
   };
   startTimer();
@@ -1686,6 +1739,7 @@ function saveTrip(){
     mode:activeTrip.mode, startTime:activeTrip.startTime,
     endTime:new Date().toTimeString().slice(0,5),
     sessionNum: activeTrip.sessionNum||1,
+    stops: activeTrip.stops||1,
     startTs:activeTrip.startTs, endTs:Date.now(),
     durationMins:activeTrip._dur||Math.round((Date.now()-activeTrip.startTs)/60000),
     pickup:activeTrip.pickup,
