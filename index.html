@@ -558,6 +558,7 @@ textarea.inp{resize:none;height:80px}
         <span style="font-size:13px;font-weight:600;color:var(--text)" id="trip-count">0 trips</span>
         <span class="tsc-total" id="trip-total">$0.00</span>
       </div>
+      <div id="trip-sess-breakdown" style="display:none;font-size:11px;color:var(--muted);margin-bottom:6px;flex-wrap:wrap;gap:8px"></div>
       <div style="font-size:11px;color:var(--muted);display:flex;gap:14px">
         <span id="trip-km">0 km</span><span id="trip-min">0 min</span>
       </div>
@@ -677,6 +678,15 @@ textarea.inp{resize:none;height:80px}
         <button class="tog" onclick="setMode('Manual',this)">Manual</button>
       </div>
     </div>
+    <div style="margin-bottom:14px">
+      <label class="lbl">Session</label>
+      <div id="sess-auto-label" style="font-size:12px;color:var(--accent);margin-bottom:6px;display:none"></div>
+      <div class="tog-row" id="sess-tog">
+        <button class="tog on" onclick="setTripSession(1,this)">Session 1</button>
+        <button class="tog" onclick="setTripSession(2,this)">Session 2</button>
+        <button class="tog" onclick="setTripSession(3,this)">Session 3</button>
+      </div>
+    </div>
     <div id="start-gps" style="display:none"></div>
     <button class="btn btn-green" id="capture-btn" onclick="captureAndStart()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
@@ -757,7 +767,7 @@ textarea.inp{resize:none;height:80px}
 ══════════════════════════════════════════════════ -->
 <script>
 // ── CONFIG ────────────────────────────────────────
-const MAPS_API_KEY = 'AIzaSyA7NBp93xetd7yUiCyRJNu6X7pFespVR6c';
+const MAPS_API_KEY = 'YOUR_API_KEY_HERE';
 // Inject Maps JS SDK immediately — loads in background while user reads the app
 (function(){
   const s=document.createElement('script');
@@ -1342,6 +1352,17 @@ function renderTrips(){
     document.getElementById('trip-total').textContent=fmtMoney(tf);
     document.getElementById('trip-km').textContent=tk.toFixed(1)+' km';
     document.getElementById('trip-min').textContent=tm+' min';
+    // Session breakdown
+    const sessFares={};
+    trips.forEach(t=>{ const s=t.sessionNum||1; sessFares[s]=(sessFares[s]||0)+(t.fare||0); });
+    const sessKeys=Object.keys(sessFares).sort();
+    const sessEl=document.getElementById('trip-sess-breakdown');
+    if(sessEl){
+      if(sessKeys.length>1){
+        sessEl.style.display='flex';
+        sessEl.innerHTML=sessKeys.map(s=>`<span>Session ${s}: ${fmtMoney(sessFares[s])}</span>`).join('<span style="color:var(--border)"> | </span>');
+      } else { sessEl.style.display='none'; }
+    }
   } else { ts.style.display='none'; }
 
   const list=document.getElementById('trip-list');
@@ -1353,7 +1374,7 @@ function renderTrips(){
   <div class="trip-card" onclick="showDetail('${t.id}')">
     <div style="display:flex;justify-content:space-between;align-items:flex-start">
       <div>
-        <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Trip #${trips.length-i} &middot; ${t.startTime||''}${t.endTime?' - '+t.endTime:''}</div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:2px">Trip #${trips.length-i} &middot; Sess ${t.sessionNum||1}</div>
         <div style="display:flex;gap:6px;align-items:center">
           <span class="ppill ppill-${t.platform}">${t.platform}</span>
           <span style="font-size:10px;color:var(--muted)">${t.mode}</span>
@@ -1361,8 +1382,9 @@ function renderTrips(){
       </div>
       <div class="trip-fare">&#36;${(t.fare||0).toFixed(2)}</div>
     </div>
+    <div style="font-size:11px;color:var(--accent);font-family:'Space Mono',monospace;margin:4px 0 2px">${t.startTime||''}${t.endTime?' ~ '+t.endTime:''}</div>
     <div class="trip-route">${t.pickup?.town||'—'} &rarr; ${t.dropoff?.town||'—'}</div>
-    <div class="trip-meta">
+    <div class="trip-meta" style="justify-content:flex-end">
       <span>${(t.distanceKm||0).toFixed(1)} km</span>
       <span>${t.durationMins||0} min</span>
       <span>${t.distanceKm>0.1?'&#36;'+(t.fare/t.distanceKm).toFixed(2)+'/km':'—'}</span>
@@ -1389,23 +1411,22 @@ function showDetail(id){
       <span class="ppill ppill-${t.platform}">${t.platform}</span>
       <span style="font-size:11px;color:var(--muted);display:flex;align-items:center">${t.mode}</span>
     </div>
-    <div class="loc-block">
-      <div class="loc-label">📍 Pickup</div>
-      <div class="loc-addr">${t.pickup?.addr||'—'}</div>
-      <div class="loc-town">${t.pickup?.town||''}</div>
+    <div style="margin-bottom:10px">
+      <div style="font-size:10px;color:var(--blue);font-weight:600;margin-bottom:2px">📍 Pick up</div>
+      <div style="font-size:13px;color:var(--text)">${t.pickup?.addr||'—'}</div>
+      <div style="font-size:11px;color:var(--accent)">${t.pickup?.town||''}</div>
     </div>
-    <div class="loc-block">
-      <div class="loc-label">🏁 Dropoff</div>
-      <div class="loc-addr">${t.dropoff?.addr||'—'}</div>
-      <div class="loc-town">${t.dropoff?.town||''}</div>
+    <div style="margin-bottom:14px">
+      <div style="font-size:10px;color:var(--blue);font-weight:600;margin-bottom:2px">🏁 Drop off</div>
+      <div style="font-size:13px;color:var(--text)">${t.dropoff?.addr||'—'}</div>
+      <div style="font-size:11px;color:var(--accent)">${t.dropoff?.town||''}</div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
-      ${[['Distance',`${(t.distanceKm||0).toFixed(1)} km`],['Duration',`${t.durationMins||0} min`],['Time',`${t.startTime||''}${t.endTime?' - '+t.endTime:''}`]]
-        .map(([l,v])=>`<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center">
-          <div style="font-size:10px;color:var(--muted);margin-bottom:4px">${l}</div>
-          <div style="font-family:'Space Mono',monospace;font-size:13px;font-weight:700">${v}</div></div>`).join('')}
+    <div style="display:flex;gap:20px;font-size:12px;color:var(--muted);margin-bottom:14px;padding:10px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+      <div><span style="color:var(--text);font-family:'Space Mono',monospace;font-size:13px;font-weight:700">${t.startTime||''}${t.endTime?' ~ '+t.endTime:''}</span><br>Time</div>
+      <div><span style="color:var(--text);font-family:'Space Mono',monospace;font-size:13px;font-weight:700">${(t.distanceKm||0).toFixed(1)} km</span><br>Distance</div>
+      <div><span style="color:var(--text);font-family:'Space Mono',monospace;font-size:13px;font-weight:700">${t.durationMins||0} min</span><br>Duration</div>
     </div>
-    ${t.note?`<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px;color:var(--muted);font-style:italic">"${t.note}"</div>`:''}`;
+    ${t.note?`<div style="font-size:12px;color:var(--muted);font-style:italic;padding:8px 0">"${t.note}"</div>`:''}`;
   document.getElementById('detail-overlay').classList.add('open');
 }
 
@@ -1433,8 +1454,46 @@ function setMode(m,btn){
   btn.className='tog on';
 }
 
+let tripSession = 1;
+
+function setTripSession(n, btn){
+  tripSession = n;
+  document.querySelectorAll('#sess-tog .tog').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+}
+
+function autoDetectSession(){
+  const today = fmtDate(new Date());
+  const entry = getData()[today];
+  const sessions = entry?.sessions || [];
+  const now = new Date().toTimeString().slice(0,5);
+  const toMins = t => { if(!t) return -1; const [h,m]=t.split(':').map(Number); return h*60+m; };
+  const nowMins = toMins(now);
+  let detected = 0;
+  sessions.forEach((s,i) => {
+    const start = toMins(s.start);
+    const end = toMins(s.end);
+    if(start>=0 && nowMins >= start && (end<0 || nowMins <= end)) detected = i+1;
+  });
+  return detected;
+}
+
 function openStartSheet(){
   document.getElementById('start-gps').style.display='none';
+  // Auto-detect session
+  const detected = autoDetectSession();
+  const label = document.getElementById('sess-auto-label');
+  const btns = document.querySelectorAll('#sess-tog .tog');
+  if(detected > 0){
+    tripSession = detected;
+    label.textContent = `Auto-detected: Session ${detected}`;
+    label.style.display = 'block';
+    btns.forEach((b,i) => { b.classList.toggle('on', i+1 === detected); });
+  } else {
+    tripSession = 1;
+    label.style.display = 'none';
+    btns.forEach((b,i) => { b.classList.toggle('on', i === 0); });
+  }
   document.getElementById('start-overlay').classList.add('open');
 }
 
@@ -1471,6 +1530,7 @@ async function captureAndStart(){
   activeTrip={
     id:Date.now(), date:fmtDate(new Date()), platform:tripPlatform, mode:tripMode,
     startTime:new Date().toTimeString().slice(0,5), startTs:Date.now(),
+    sessionNum: tripSession,
     pickup:{lat,lng,...loc}
   };
   startTimer();
@@ -1551,6 +1611,7 @@ function saveTrip(){
     id:activeTrip.id, date:activeTrip.date, platform:activeTrip.platform,
     mode:activeTrip.mode, startTime:activeTrip.startTime,
     endTime:new Date().toTimeString().slice(0,5),
+    sessionNum: activeTrip.sessionNum||1,
     startTs:activeTrip.startTs, endTs:Date.now(),
     durationMins:activeTrip._dur||Math.round((Date.now()-activeTrip.startTs)/60000),
     pickup:activeTrip.pickup,
@@ -1563,7 +1624,7 @@ function saveTrip(){
   activeTrip=null; sessionStorage.removeItem('mdl_active');
   closeOverlay('end-overlay');
   syncDailyEntry(trip.date);
-  toast('Trip saved! $'+fare.toFixed(2)+' ✓ | end:'+trip.endTime);
+  toast('Trip saved! $'+fare.toFixed(2)+' ✓');
   setTimeout(()=>renderTrips(),300);
 }
 
