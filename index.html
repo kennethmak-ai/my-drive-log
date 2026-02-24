@@ -702,7 +702,7 @@ textarea.inp{resize:none;height:80px}
       Capture Pickup &amp; Start Trip
     </button>
     <div style="height:8px"></div>
-    <button class="btn btn-gray" onclick="closeOverlay('start-overlay')">Cancel</button>
+    <button class="btn btn-gray" onclick="resetStartSheet()">Cancel</button>
   </div>
 </div>
 
@@ -949,15 +949,17 @@ function gpsEl(state, text){
 // ══════════════════════════════════════════════════
 // ENTRY
 // ══════════════════════════════════════════════════
+let entryInitDone = false;
+
 function initEntry(){
   const today=fmtDate(new Date());
   const di=document.getElementById('e-date');
-  const firstLoad=!di.value;
-  if(firstLoad) di.value=today;
+  if(!di.value) di.value=today;
   di.max=today; di.min='2026-01-01';
   di.onchange=loadEntry;
   updateDow();
-  if(firstLoad){
+  if(!entryInitDone){
+    entryInitDone=true;
     loadEntry();
   } else {
     refreshEntryEarnings();
@@ -1607,6 +1609,13 @@ function autoDetectSession(){
   return detected;
 }
 
+function resetStartSheet(){
+  const btn=document.getElementById('capture-btn');
+  btn.disabled=false; btn.textContent='Capture Pickup & Start Trip';
+  document.getElementById('start-gps').style.display='none';
+  closeOverlay('start-overlay');
+}
+
 function openStartSheet(){
   document.getElementById('start-gps').style.display='none';
   tripStops = 1;
@@ -1629,6 +1638,8 @@ async function captureAndStart(){
   const gps=document.getElementById('start-gps');
   gps.style.display='block';
   gps.innerHTML=gpsEl('searching','Getting GPS position...');
+
+  try{
 
   let pos;
   try{
@@ -1663,6 +1674,13 @@ async function captureAndStart(){
   startTimer();
   btn.disabled=false; btn.textContent='Capture Pickup & Start Trip';
   setTimeout(()=>{ closeOverlay('start-overlay'); renderTrips(); toast('Trip started! 🚗'); },700);
+
+  }catch(err){
+    // Safety net — ensure button never stays permanently disabled
+    btn.disabled=false; btn.textContent='Capture Pickup & Start Trip';
+    gps.innerHTML=gpsEl('error','Unexpected error — please try again');
+    console.error('captureAndStart error:',err);
+  }
 }
 
 function startTimer(){
