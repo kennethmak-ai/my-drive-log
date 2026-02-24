@@ -937,10 +937,16 @@ function gpsEl(state, text){
 function initEntry(){
   const today=fmtDate(new Date());
   const di=document.getElementById('e-date');
-  if(!di.value) di.value=today;
+  const firstLoad=!di.value;
+  if(firstLoad) di.value=today;
   di.max=today; di.min='2026-01-01';
   di.onchange=loadEntry;
-  updateDow(); loadEntry();
+  updateDow();
+  if(firstLoad){
+    loadEntry();
+  } else {
+    refreshEntryEarnings();
+  }
 }
 
 function updateDow(){
@@ -1162,6 +1168,37 @@ function loadEntry(){
   }
 }
 
+function refreshEntryEarnings(){
+  // Refresh earnings/platform boxes only — do NOT touch session state
+  const date=document.getElementById('e-date').value;
+  if(!date) return;
+  const trips=getTrips().filter(t=>t.date===date);
+  const td={TADA:0,Grab:0,Gojek:0,Others:0};
+  let totalFare=0,totalKm=0,totalMin=0;
+  trips.forEach(t=>{
+    td[t.platform]=(td[t.platform]||0)+(t.fare||0);
+    totalFare+=t.fare||0; totalKm+=t.distanceKm||0; totalMin+=t.durationMins||0;
+  });
+  document.getElementById('e-gross').textContent=fmtMoney(totalFare);
+  document.getElementById('e-autofill-badge').style.display=trips.length>0?'inline-flex':'none';
+  ['TADA','Grab','Gojek','Others'].forEach(p=>{
+    const el=document.getElementById('pb-val-'+p);
+    if(!el) return;
+    if(td[p]>0){ el.textContent='$'+td[p].toFixed(2); el.style.color='var(--text)'; }
+    else        { el.textContent='—'; el.style.color='var(--muted)'; }
+  });
+  const statsEl=document.getElementById('e-stats');
+  if(statsEl){
+    if(trips.length>0){
+      const hrs=Math.floor(totalMin/60),mins=totalMin%60;
+      statsEl.textContent=trips.length+' trips · '+totalKm.toFixed(1)+' km · '+hrs+'h '+mins+'m';
+    } else { statsEl.textContent='No trips yet — start trips first'; }
+  }
+  updateNetDisplay(totalFare);
+  // Also refresh session platform boxes without rebuilding DOM
+  renderSessions();
+}
+
 function updateNet(){
   const grossText=document.getElementById('e-gross').textContent.replace(/[$,]/g,'');
   const gross=parseFloat(grossText)||0;
@@ -1316,6 +1353,13 @@ function renderHistList(){
     const platHtml=e?.driving?(['TADA','Grab','Gojek','Others'].filter(p=>(e.earnings?.[p.toLowerCase()]||0)>0)
       .map(p=>`<span class="ppill ppill-${p}">${p}</span>`).join('')):'';
 
+    // Trip stats from trip log
+    const dayTrips=getTrips().filter(t=>t.date===ds);
+    const tripCount=dayTrips.length;
+    const tripKm=dayTrips.reduce((a,t)=>a+(t.distanceKm||0),0);
+    const tripMin=dayTrips.reduce((a,t)=>a+(t.durationMins||0),0);
+    const tripHrs=Math.floor(tripMin/60), tripMins=tripMin%60;
+
     list.innerHTML+=`
     <div class="hist-card">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
@@ -1325,10 +1369,14 @@ function renderHistList(){
         </div>
         <div style="text-align:right">
           <div style="font-family:'Space Mono',monospace;font-size:14px;font-weight:700">${fmtMoney(gross)}</div>
-          <div style="font-size:11px;color:var(--muted)">Net ${fmtMoney(net)}</div>
+          <div style="font-size:11px;color:var(--muted)">Gross Earning</div>
         </div>
       </div>
-      ${e?.distance?`<div style="font-size:11px;color:var(--muted)">📍 ${e.distance} km</div>`:''}
+      ${tripCount>0?`<div style="font-size:11px;color:var(--muted);display:flex;gap:12px;margin-bottom:4px">
+        <span>🚗 ${tripCount} trip${tripCount!==1?'s':''}</span>
+        <span>📍 ${tripKm.toFixed(1)} km</span>
+        <span>⏱ ${tripHrs>0?tripHrs+'h ':''} ${tripMins}min</span>
+      </div>`:''}
       ${e?.notes?`<div style="font-size:11px;color:var(--muted);margin-top:4px;font-style:italic">"${e.notes}"</div>`:''}
     </div>`;
   }
