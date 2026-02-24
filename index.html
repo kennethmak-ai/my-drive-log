@@ -1127,11 +1127,18 @@ function loadEntry(){
   if(entry){
     setDriving(entry.driving!==false);
     if(entry.driving!==false){
-      setSessions(entry.sessions?.length||1);
+      // Find max sessions: saved entry OR unsaved sessTimeVals (keep whichever is higher)
+      const savedCount = entry.sessions?.length||1;
+      let unsavedMax = 0;
+      for(let i=1; i<=3; i++){ if(sessTimeVals[`${i}-start`]) unsavedMax=i; }
+      const totalCount = Math.max(savedCount, unsavedMax);
+      // Populate sessTimeVals from saved entry (don't overwrite unsaved data for higher sessions)
       entry.sessions?.forEach((s,i)=>{
-        if(s.start){ sessTimeVals[(i+1)+'-start']=s.start; setSessionTime(i+1,'start',s.start); }
-        if(s.end)  { sessTimeVals[(i+1)+'-end']=s.end;     setSessionTime(i+1,'end',s.end);     }
+        if(s.start) sessTimeVals[(i+1)+'-start']=s.start;
+        if(s.end)   sessTimeVals[(i+1)+'-end']=s.end;
       });
+      // Render with correct total count — setSessions restores all sessTimeVals
+      setSessions(totalCount);
       document.getElementById('e-petrol').value=entry.petrol||'';
       document.getElementById('e-notes').value=entry.notes||'';
     } else {
@@ -1361,16 +1368,14 @@ function renderTrips(){
     document.getElementById('trip-total').textContent=fmtMoney(tf);
     document.getElementById('trip-km').textContent=tk.toFixed(1)+' km';
     document.getElementById('trip-min').textContent=tm+' min';
-    // Session breakdown
+    // Session breakdown — always show
     const sessFares={};
     trips.forEach(t=>{ const s=t.sessionNum||1; sessFares[s]=(sessFares[s]||0)+(t.fare||0); });
     const sessKeys=Object.keys(sessFares).sort();
     const sessEl=document.getElementById('trip-sess-breakdown');
     if(sessEl){
-      if(sessKeys.length>1){
-        sessEl.style.display='flex';
-        sessEl.innerHTML=sessKeys.map(s=>`<span>Session ${s}: ${fmtMoney(sessFares[s])}</span>`).join('<span style="color:var(--border)"> | </span>');
-      } else { sessEl.style.display='none'; }
+      sessEl.style.display='flex';
+      sessEl.innerHTML=sessKeys.map(s=>`<span>Sess ${s}: ${fmtMoney(sessFares[s])}</span>`).join('<span style="color:var(--border)"> | </span>');
     }
   } else { ts.style.display='none'; }
 
