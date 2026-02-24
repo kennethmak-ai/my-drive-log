@@ -262,7 +262,7 @@ textarea.inp{resize:none;height:80px}
 }
 .start-btn:active{transform:scale(.97)}
 .start-btn:disabled{opacity:.35;cursor:not-allowed}
-#screen-trips{padding-bottom:calc(var(--nav-h)+90px)} #trip-start-bar{position:fixed;bottom:calc(var(--nav-h));left:0;right:0;padding:10px 16px;background:var(--bg);z-index:90;border-top:1px solid var(--border)}
+#screen-trips{padding-bottom:calc(var(--nav-h)+16px)}
 
 /* ── TODAY TRIP SUMMARY ──────────────────────────── */
 .trip-summary-card{
@@ -519,9 +519,16 @@ textarea.inp{resize:none;height:80px}
      SCREEN 4 — TRIPS
 ══════════════════════════════════════════════════ -->
 <div class="screen" id="screen-trips">
-  <div class="ph">
-    <div class="ph-title">🛣️ Trip Log</div>
-    <div class="ph-sub" id="trip-sub">Record each trip as you drive</div>
+  <div class="ph" style="display:flex;justify-content:space-between;align-items:center;padding-right:16px">
+    <div>
+      <div class="ph-title">🛣️ Trip Log</div>
+      <div class="ph-sub" id="trip-sub">Record each trip as you drive</div>
+    </div>
+    <button id="start-btn" onclick="openStartSheet()"
+      style="background:#00e5a0;color:#000;border:none;border-radius:20px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;flex-shrink:0">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      Start Trip
+    </button>
   </div>
 
   <!-- Active trip -->
@@ -572,14 +579,6 @@ textarea.inp{resize:none;height:80px}
 </div>
 
 <!-- Fixed Start Trip bar — always visible above nav -->
-<div id="trip-start-bar" style="display:none">
-  <button class="start-btn" id="start-btn" onclick="openStartSheet()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="22" height="22">
-      <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/>
-    </svg>
-    Start New Trip
-  </button>
-</div>
 
 <!-- ══════════════════════════════════════════════════
      SCREEN 5 — SETTINGS
@@ -843,8 +842,6 @@ function go(name, btn){
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
   document.getElementById('screen-'+name).classList.add('active');
   if(btn) btn.classList.add('on');
-  const bar=document.getElementById('trip-start-bar');
-  if(bar) bar.style.display=(name==='trips'?'block':'none');
   if(name==='entry')   initEntry();
   if(name==='summary') renderSummary();
   if(name==='history') renderHistory();
@@ -1103,6 +1100,8 @@ function timePromptNo(){
 function setSessionTime(sess,type,val){
   const key=`${sess}-${type}`;
   sessTimeVals[key]=val;
+  // Persist to localStorage so times survive app exit
+  try{ localStorage.setItem('mdl_sess_times', JSON.stringify(sessTimeVals)); }catch{}
   const el=document.getElementById(`s-${type}-val-${sess}`);
   const wrap=document.getElementById(`s-${type}-${sess}`);
   if(el){ el.textContent=val; el.style.color='var(--text)'; }
@@ -1292,6 +1291,8 @@ function saveEntry(){
     isHoliday:isHol,holidayName:SG_HOL[date]||''
   };
   saveData(data); toast('Entry saved ✓');
+  // Clear persisted session times — now saved in entry
+  try{ localStorage.removeItem('mdl_sess_times'); }catch{}
   setTimeout(()=>go('summary',document.getElementById('nav-summary')),900);
 }
 
@@ -1873,6 +1874,11 @@ function startShift(){
 }
 
 window.addEventListener('load',()=>{
+  // Restore session times from localStorage before initEntry runs
+  try{
+    const saved=localStorage.getItem('mdl_sess_times');
+    if(saved){ const obj=JSON.parse(saved); Object.assign(sessTimeVals,obj); }
+  }catch{}
   initEntry();
   // NOTE: renderSessions() is called inside initEntry->loadEntry->setSessions — do not call again here
 
