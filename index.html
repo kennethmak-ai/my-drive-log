@@ -1319,11 +1319,18 @@ function renderHistory(){
   const chips=document.getElementById('hist-chips');
   chips.innerHTML='';
   const now=new Date();
+  const data=getData();
+  const trips=getTrips();
   let cur=new Date(2026,0,1);
   while(cur<=now){
     const y=cur.getFullYear(),m=cur.getMonth();
-    const on=(y===histMonth.y&&m===histMonth.m)?'on':'';
-    chips.innerHTML+=`<button class="chip ${on}" onclick="setHistMonth(${y},${m})">${MONTHS[m]} ${y}</button>`;
+    const prefix=y+'-'+String(m+1).padStart(2,'0')+'-';
+    const isCurrentMonth=(y===now.getFullYear()&&m===now.getMonth());
+    const hasData=Object.keys(data).some(k=>k.startsWith(prefix))||trips.some(t=>t.date.startsWith(prefix));
+    if(hasData||isCurrentMonth){
+      const on=(y===histMonth.y&&m===histMonth.m)?'on':'';
+      chips.innerHTML+=`<button class="chip ${on}" onclick="setHistMonth(${y},${m})">${MONTHS[m]} ${y}</button>`;
+    }
     cur=new Date(y,m+1,1);
   }
   renderHistList();
@@ -1733,12 +1740,18 @@ function saveSettings(){
 }
 
 function clearMonth(){
-  if(!confirm('Clear all entries for this month?')) return;
-  const now=new Date();
-  const prefix=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-';
+  const{y,m}=histMonth;
+  const label=MONTHS[m]+' '+y;
+  if(!confirm('Clear all entries for '+label+'?')) return;
+  const prefix=y+'-'+String(m+1).padStart(2,'0')+'-';
   const data=getData();
   Object.keys(data).filter(k=>k.startsWith(prefix)).forEach(k=>delete data[k]);
-  saveData(data); toast('Month data cleared');
+  // Also clear trips for that month
+  const trips=getTrips().filter(t=>!t.date.startsWith(prefix));
+  saveTrips(trips);
+  saveData(data);
+  toast(label+' data cleared');
+  renderHistory();
 }
 
 function exportDailyCSV(){
