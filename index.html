@@ -1139,10 +1139,19 @@ function loadEntry(){
     }
     updateNet();
   } else {
-    Object.keys(sessTimeVals).forEach(k=>delete sessTimeVals[k]);
     document.getElementById('e-petrol').value='';
     document.getElementById('e-notes').value='';
-    setDriving(true); setSessions(1);
+    setDriving(true);
+    // Restore session count from sessTimeVals if data exists (not yet saved to localStorage)
+    let maxSess = 0;
+    for(let i=1; i<=3; i++){ if(sessTimeVals[`${i}-start`]) maxSess=i; }
+    setSessions(maxSess>0 ? maxSess : 1);
+    if(maxSess>0){
+      for(let i=1; i<=maxSess; i++){
+        if(sessTimeVals[`${i}-start`]) setSessionTime(i,'start',sessTimeVals[`${i}-start`]);
+        if(sessTimeVals[`${i}-end`])   setSessionTime(i,'end',  sessTimeVals[`${i}-end`]);
+      }
+    }
   }
 }
 
@@ -1463,37 +1472,40 @@ function setTripSession(n, btn){
 }
 
 function autoDetectSession(){
-  const today = fmtDate(new Date());
-  const entry = getData()[today];
-  const sessions = entry?.sessions || [];
-  const now = new Date().toTimeString().slice(0,5);
   const toMins = t => { if(!t) return -1; const [h,m]=t.split(':').map(Number); return h*60+m; };
-  const nowMins = toMins(now);
+  const nowMins = toMins(new Date().toTimeString().slice(0,5));
   let detected = 0;
-  sessions.forEach((s,i) => {
-    const start = toMins(s.start);
-    const end = toMins(s.end);
-    if(start>=0 && nowMins >= start && (end<0 || nowMins <= end)) detected = i+1;
-  });
+  for(let i=1; i<=3; i++){
+    const start = toMins(sessTimeVals[`${i}-start`]||'');
+    const end = toMins(sessTimeVals[`${i}-end`]||'');
+    if(start >= 0 && nowMins >= start && (end < 0 || nowMins <= end)){
+      detected = i;
+    }
+  }
+  // Fallback: check saved localStorage entry if sessTimeVals empty
+  if(!detected){
+    const today = fmtDate(new Date());
+    const sessions = getData()[today]?.sessions || [];
+    sessions.forEach((s,i) => {
+      const start = toMins(s.start);
+      const end = toMins(s.end);
+      if(start >= 0 && nowMins >= start && (end < 0 || nowMins <= end)) detected = i+1;
+    });
+  }
   return detected;
 }
 
 function openStartSheet(){
   document.getElementById('start-gps').style.display='none';
-  // Auto-detect session
-  const detected = autoDetectSession();
+  // Default to highest session that has a start time entered
+  let defaultSess = 1;
+  for(let i=1; i<=3; i++){ if(sessTimeVals[`${i}-start`]) defaultSess=i; }
+  tripSession = defaultSess;
   const label = document.getElementById('sess-auto-label');
-  const btns = document.querySelectorAll('#sess-tog .tog');
-  if(detected > 0){
-    tripSession = detected;
-    label.textContent = `Auto-detected: Session ${detected}`;
-    label.style.display = 'block';
-    btns.forEach((b,i) => { b.classList.toggle('on', i+1 === detected); });
-  } else {
-    tripSession = 1;
-    label.style.display = 'none';
-    btns.forEach((b,i) => { b.classList.toggle('on', i === 0); });
-  }
+  label.style.display='none';
+  document.querySelectorAll('#sess-tog .tog').forEach((b,i)=>{
+    b.classList.toggle('on', i+1 === defaultSess);
+  });
   document.getElementById('start-overlay').classList.add('open');
 }
 
