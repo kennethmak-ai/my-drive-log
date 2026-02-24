@@ -262,7 +262,7 @@ textarea.inp{resize:none;height:80px}
 }
 .start-btn:active{transform:scale(.97)}
 .start-btn:disabled{opacity:.35;cursor:not-allowed}
-#screen-trips{padding-bottom:calc(var(--nav-h)+80px)}
+#screen-trips{padding-bottom:calc(var(--nav-h)+90px)} #trip-start-bar{position:fixed;bottom:calc(var(--nav-h));left:0;right:0;padding:10px 16px;background:var(--bg);z-index:90;border-top:1px solid var(--border)}
 
 /* ── TODAY TRIP SUMMARY ──────────────────────────── */
 .trip-summary-card{
@@ -569,8 +569,10 @@ textarea.inp{resize:none;height:80px}
 
   <div id="trip-list"></div>
   <div style="height:16px"></div>
+</div>
 
-  <!-- Fixed start button -->
+<!-- Fixed Start Trip bar — always visible above nav -->
+<div id="trip-start-bar" style="display:none">
   <button class="start-btn" id="start-btn" onclick="openStartSheet()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="22" height="22">
       <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/>
@@ -841,6 +843,8 @@ function go(name, btn){
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
   document.getElementById('screen-'+name).classList.add('active');
   if(btn) btn.classList.add('on');
+  const bar=document.getElementById('trip-start-bar');
+  if(bar) bar.style.display=(name==='trips'?'block':'none');
   if(name==='entry')   initEntry();
   if(name==='summary') renderSummary();
   if(name==='history') renderHistory();
@@ -1209,17 +1213,19 @@ function refreshEntryEarnings(){
   }
   updateNetDisplay(totalFare);
   // Update session platform boxes in-place without rebuilding DOM
-  for(let i=1;i<=sessCount;i++){
+  const blocks=document.querySelectorAll('#sess-container .sess-block');
+  blocks.forEach((block,idx)=>{
+    const i=idx+1;
     const sessTrips=trips.filter(t=>(t.sessionNum||1)===i);
     const sd={TADA:0,Grab:0,Gojek:0,Others:0};
     sessTrips.forEach(t=>sd[t.platform]=(sd[t.platform]||0)+(t.fare||0));
     ['TADA','Grab','Gojek','Others'].forEach(p=>{
-      const el=document.querySelector(`#sess-container .sess-block:nth-child(${i}) .plat-box-val[data-plat="${p}"]`);
+      const el=block.querySelector(`.plat-box-val[data-plat="${p}"]`);
       if(!el) return;
       if(sd[p]>0){ el.textContent='$'+sd[p].toFixed(2); el.style.color='var(--text)'; }
       else        { el.textContent='—'; el.style.color='var(--muted)'; }
     });
-  }
+  });
 }
 
 function updateNet(){
@@ -1868,7 +1874,7 @@ function startShift(){
 
 window.addEventListener('load',()=>{
   initEntry();
-  renderSessions();
+  // NOTE: renderSessions() is called inside initEntry->loadEntry->setSessions — do not call again here
 
   // Restore active trip
   try{
