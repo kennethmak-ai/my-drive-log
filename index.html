@@ -351,9 +351,12 @@ textarea.inp{resize:none;height:80px}
      SCREEN 1 — ENTRY
 ══════════════════════════════════════════════════ -->
 <div class="screen active" id="screen-entry">
-  <div class="ph">
-    <div class="ph-title">My Drive Log</div>
-    <div class="ph-sub" id="entry-sub">Daily Entry</div>
+  <div class="ph" style="display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <div class="ph-title">My Drive Log</div>
+      <div class="ph-sub" id="entry-sub">Daily Entry</div>
+    </div>
+    <button class="theme-toggle" id="theme-btn-entry" onclick="toggleTheme()">&#9728; Light</button>
   </div>
 
   <!-- Card 1: Date / Day / Driving -->
@@ -831,8 +834,11 @@ textarea.inp{resize:none;height:80px}
     <button class="btn btn-gray" style="margin-bottom:8px" onclick="timePromptNo()">
       &#9998; No &mdash; Enter Manually
     </button>
-    <button class="btn btn-gray" style="color:var(--danger)" onclick="timePromptReset()">
+    <button class="btn btn-gray" style="color:var(--danger);margin-bottom:8px" onclick="timePromptReset()">
       &#10005; Reset Entry
+    </button>
+    <button class="btn btn-gray" onclick="closeOverlay('time-prompt-overlay')">
+      Close
     </button>
   </div>
 </div>
@@ -2025,15 +2031,19 @@ window.addEventListener('load',()=>{
 // ── ITEM 9: Theme toggle ──────────────────────────
 function toggleTheme(){
   const light=document.body.classList.toggle('light-mode');
-  document.getElementById('theme-btn').textContent=light?'\u263D Dark':'\u2600\uFE0F Light';
+  const label=light?'\u263D Dark':'\u2600 Light';
+  ['theme-btn','theme-btn-entry'].forEach(function(id){
+    const el=document.getElementById(id); if(el) el.textContent=label;
+  });
   try{ localStorage.setItem('mdl_theme',light?'light':'dark'); }catch{}
 }
 (function(){
   try{
     if(localStorage.getItem('mdl_theme')==='light'){
       document.body.classList.add('light-mode');
-      const btn=document.getElementById('theme-btn');
-      if(btn) btn.textContent='\u263D Dark';
+      ['theme-btn','theme-btn-entry'].forEach(function(id){
+        const el=document.getElementById(id); if(el) el.textContent='\u263D Dark';
+      });
     }
   }catch{}
 })();
