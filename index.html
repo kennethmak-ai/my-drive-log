@@ -31,8 +31,10 @@ function _mapsCallback(){
 body.light-mode{
   --bg:#F0F2F5; --surface:#FFFFFF; --card:#E4E7ED; --border:#C8CDD8;
   --text:#1A1F2E; --muted:#5A6480;
+  --accent:#007A5E; --warn:#B07800; --tada:#C05500; --grab:#006B30;
+  --gojek:#0070A0; --others:#6040B0;
 }
-.theme-toggle{position:fixed;top:10px;right:12px;z-index:300;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:12px;color:var(--muted);cursor:pointer;}
+.theme-toggle{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;flex-shrink:0}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.5}
@@ -267,7 +269,7 @@ textarea.inp{resize:none;height:80px}
 }
 .start-btn:active{transform:scale(.97)}
 .start-btn:disabled{opacity:.35;cursor:not-allowed}
-#screen-trips{padding-bottom:calc(var(--nav-h)+16px)}
+#screen-trips{padding-bottom:calc(var(--nav-h)+80px)}
 
 /* ── TODAY TRIP SUMMARY ──────────────────────────── */
 .trip-summary-card{
@@ -529,11 +531,14 @@ textarea.inp{resize:none;height:80px}
       <div class="ph-title">🛣️ Trip Log</div>
       <div class="ph-sub" id="trip-sub">Record each trip as you drive</div>
     </div>
-    <button id="start-btn" onclick="openStartSheet()"
-      style="background:#00e5a0;color:#000;border:none;border-radius:20px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;flex-shrink:0">
-      <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-      Start Trip
-    </button>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()">&#9728; Light</button>
+      <button id="start-btn" onclick="openStartSheet()"
+        style="background:#00e5a0;color:#000;border:none;border-radius:20px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;flex-shrink:0">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Start
+      </button>
+    </div>
   </div>
 
   <!-- Active trip -->
@@ -575,8 +580,8 @@ textarea.inp{resize:none;height:80px}
       <div id="trip-sess-breakdown" style="display:none;font-size:11px;color:var(--muted);margin-bottom:6px;flex-wrap:wrap;gap:8px"></div>
       <div style="font-size:11px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap">
         <span id="trip-km">0 km</span><span id="trip-min">0 min</span>
-        <span id="trip-dhr" style="color:var(--accent)"></span>
-        <span id="trip-dkm" style="color:var(--accent)"></span>
+        <span id="trip-dhr" style="color:var(--warn)"></span>
+        <span id="trip-dkm" style="color:var(--warn)"></span>
       </div>
     </div>
   </div>
@@ -837,7 +842,6 @@ textarea.inp{resize:none;height:80px}
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
-<button class="theme-toggle" id="theme-btn" onclick="toggleTheme()">&#9728; Light</button>
 
 <!-- ══════════════════════════════════════════════════
      JAVASCRIPT
@@ -1086,8 +1090,8 @@ function renderSessions(){
     var sessGross=Object.values(td).reduce(function(a,v){return a+v;},0);
     var sv2=sessTimeVals[i+'-start'],ev2=sessTimeVals[i+'-end'],smin2=0;
     if(sv2&&ev2){var p2=sv2.split(':'),q2=ev2.split(':');smin2=(parseInt(q2[0])*60+parseInt(q2[1]))-(parseInt(p2[0])*60+parseInt(p2[1]));if(smin2<0)smin2+=1440;}
-    var dhrStr2=smin2>0?' &middot; <span style="color:var(--accent)">$'+(sessGross/(smin2/60)).toFixed(2)+'/hr</span>':'';
-    var dkmStr2=tkm>0.1?' &middot; <span style="color:var(--accent)">$'+(sessGross/tkm).toFixed(2)+'/km</span>':'';
+    var dhrStr2=smin2>0?' &middot; <span style="color:var(--warn)">$'+(sessGross/(smin2/60)).toFixed(2)+'/hr</span>':'';
+    var dkmStr2=tkm>0.1?' &middot; <span style="color:var(--warn)">$'+(sessGross/tkm).toFixed(2)+'/km</span>':'';
     const statsLine=sessTrips.length>0?
       `<div class="stats-row" style="margin-top:8px">${sessTrips.length} trip${sessTrips.length!==1?'s':''} &middot; ${tkm.toFixed(1)} km &middot; ${tmin} min${dhrStr2}${dkmStr2}</div>`:
       `<div class="stats-row" style="margin-top:8px;color:var(--muted)">No trips recorded yet — start trips first</div>`;
@@ -1139,6 +1143,7 @@ function timePrompt(sess, type){
 
   // Store pending action
   overlay._sess=sess; overlay._type=type; overlay._nowStr=nowStr;
+  window._tpSess=sess; // track for Reset Entry
 }
 
 function timePromptYes(){
@@ -1213,8 +1218,21 @@ function loadEntry(){
   const statsEl=document.getElementById('e-stats');
   if(statsEl){
     if(trips.length>0){
-      const hrs=Math.floor(totalMin/60), mins=totalMin%60;
-      statsEl.textContent=trips.length+' trips · '+totalKm.toFixed(1)+' km · '+hrs+'h '+mins+'m';
+      // Duration from session times (end-start), not trip sum
+      const date2=document.getElementById('e-date').value;
+      const ent2=getData()[date2];
+      let sessTot=0;
+      if(ent2&&ent2.sessions&&ent2.sessions.length>0){
+        ent2.sessions.forEach(function(s){
+          if(s.start&&s.end){var p=s.start.split(':'),q=s.end.split(':');var d=(+q[0]*60+ +q[1])-(+p[0]*60+ +p[1]);if(d<0)d+=1440;sessTot+=d;}
+        });
+      }
+      const dh=sessTot>0?Math.floor(sessTot/60):Math.floor(totalMin/60);
+      const dm=sessTot>0?sessTot%60:totalMin%60;
+      const durStr2=(dh>0?dh+'hr ':'')+String(dm).padStart(2,'0')+'min';
+      const dhrV=sessTot>0?(' · $'+(totalFare/(sessTot/60)).toFixed(2)+'/hr'):(totalMin>0?' · $'+(totalFare/(totalMin/60)).toFixed(2)+'/hr':'');
+      const dkmV=totalKm>0.1?' · $'+(totalFare/totalKm).toFixed(2)+'/km':'';
+      statsEl.textContent=trips.length+' trips · '+totalKm.toFixed(1)+' km · '+durStr2+dhrV+dkmV;
     } else {
       statsEl.textContent='No trips yet — record trips first';
     }
@@ -1272,8 +1290,20 @@ function refreshEntryEarnings(){
   const statsEl=document.getElementById('e-stats');
   if(statsEl){
     if(trips.length>0){
-      const hrs=Math.floor(totalMin/60),mins=totalMin%60;
-      statsEl.textContent=trips.length+' trips · '+totalKm.toFixed(1)+' km · '+hrs+'h '+mins+'m';
+      const date3=document.getElementById('e-date').value;
+      const ent3=getData()[date3];
+      let sessTot3=0;
+      if(ent3&&ent3.sessions&&ent3.sessions.length>0){
+        ent3.sessions.forEach(function(s){
+          if(s.start&&s.end){var p=s.start.split(':'),q=s.end.split(':');var d=(+q[0]*60+ +q[1])-(+p[0]*60+ +p[1]);if(d<0)d+=1440;sessTot3+=d;}
+        });
+      }
+      const dh3=sessTot3>0?Math.floor(sessTot3/60):Math.floor(totalMin/60);
+      const dm3=sessTot3>0?sessTot3%60:totalMin%60;
+      const durStr3=(dh3>0?dh3+'hr ':'')+String(dm3).padStart(2,'0')+'min';
+      const dhrV3=sessTot3>0?(' · $'+(totalFare/(sessTot3/60)).toFixed(2)+'/hr'):(totalMin>0?' · $'+(totalFare/(totalMin/60)).toFixed(2)+'/hr':'');
+      const dkmV3=totalKm>0.1?' · $'+(totalFare/totalKm).toFixed(2)+'/km':'';
+      statsEl.textContent=trips.length+' trips · '+totalKm.toFixed(1)+' km · '+durStr3+dhrV3+dkmV3;
     } else { statsEl.textContent='No trips yet — start trips first'; }
   }
   updateNetDisplay(totalFare);
@@ -1488,8 +1518,8 @@ function renderHistList(){
         <span>🚗 ${tripCount} trip${tripCount!==1?'s':''}</span>
         <span>📍 ${tripKm.toFixed(1)} km</span>
         <span>⏱ ${tripHrs>0?tripHrs+'h ':''} ${String(tripMins).padStart(2,'0')}min</span>
-        ${sessMins>0?`<span style="color:var(--accent)">$${(gross/(sessMins/60)).toFixed(2)}/hr</span>`:''}
-        ${tripKm>0.1?`<span style="color:var(--accent)">$${(gross/tripKm).toFixed(2)}/km</span>`:''}
+        ${sessMins>0?`<span style="color:var(--warn)">$${(gross/(sessMins/60)).toFixed(2)}/hr</span>`:''}
+        ${tripKm>0.1?`<span style="color:var(--warn)">$${(gross/tripKm).toFixed(2)}/km</span>`:''}
       </div>`:''}
       ${e?.notes?`<div style="font-size:11px;color:var(--muted);margin-top:4px;font-style:italic">"${e.notes}"</div>`:''}
     </div>`;
@@ -1566,7 +1596,7 @@ function renderTrips(){
       <span>${(t.distanceKm||0).toFixed(1)} km</span>
       <span>${t.durationMins||0} min</span>
       <span>${t.distanceKm>0.1?'&#36;'+(t.fare/t.distanceKm).toFixed(2)+'/km':'—'}</span>
-      <span style="color:var(--accent)">${t.durationMins>0?'&#36;'+(t.fare/(t.durationMins/60)).toFixed(2)+'/hr':''}</span>
+      <span style="color:var(--warn)">${t.durationMins>0?'&#36;'+(t.fare/(t.durationMins/60)).toFixed(2)+'/hr':''}</span>
     </div>
     ${t.note?`<div style="font-size:11px;color:var(--muted);margin-top:5px;font-style:italic">"${t.note}"</div>`:''}
   </div>`).join('');
@@ -1969,9 +1999,15 @@ window.addEventListener('load',()=>{
     if(s){ activeTrip=JSON.parse(s); startTimer(); }
   }catch{}
 
-  window.addEventListener('beforeunload',()=>{
+  // Save active trip on ALL exit events — beforeunload alone unreliable on mobile
+  function saveActiveTrip(){
     if(activeTrip) localStorage.setItem('mdl_active',JSON.stringify(activeTrip));
     else localStorage.removeItem('mdl_active');
+  }
+  window.addEventListener('beforeunload', saveActiveTrip);
+  window.addEventListener('pagehide', saveActiveTrip);
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='hidden') saveActiveTrip();
   });
 
   // Startup shift popup — once per day
@@ -2020,12 +2056,7 @@ function timePromptReset(){
   toast('Session '+sess+' times cleared');
 }
 
-// Patch timePrompt to track current session for reset
-const _origTimePrompt=timePrompt;
-function timePrompt(sess,type){
-  window._tpSess=sess;
-  _origTimePrompt(sess,type);
-}
+// timePrompt patch removed — _tpSess now set inside original timePrompt
 
 // ── ITEM 3: Edit Trip ─────────────────────────────
 let editTripVals={};
