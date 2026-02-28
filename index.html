@@ -29,11 +29,40 @@ function _mapsCallback(){
   --r:12px;
 }
 body.light-mode{
-  --bg:#F0F2F5; --surface:#FFFFFF; --card:#E4E7ED; --border:#C8CDD8;
-  --text:#1A1F2E; --muted:#5A6480;
-  --accent:#007A5E; --warn:#B07800; --tada:#C05500; --grab:#006B30;
-  --gojek:#0070A0; --others:#6040B0;
+  --bg:#F5F0E8; --surface:#FDFAF5; --card:#EDE8DE; --border:#D4CBB8;
+  --text:#1C1A16; --muted:#7A7060;
+  --accent:#0A7160; --warn:#8A5E00; --danger:#C0392B;
+  --tada:#B84800; --grab:#1A6B35; --gojek:#1A5A8A; --others:#5A3A9A;
+  --blue:#1A5A8A;
 }
+body.light-mode .chip.on{background:rgba(10,113,96,.12);}
+body.light-mode .trip-summary-card{background:linear-gradient(135deg,rgba(10,113,96,.08),rgba(26,90,138,.06));}
+body.light-mode .active-trip-card{background:linear-gradient(135deg,rgba(10,113,96,.1),rgba(26,90,138,.07));}
+body.light-mode nav{background:var(--surface);border-top:1px solid var(--border);}
+body.light-mode .card{background:var(--surface);border:1px solid var(--border);}
+body.light-mode .sess-block{border-color:rgba(10,113,96,.3);}
+body.light-mode .plat-box{background:var(--card);}
+body.light-mode .trip-card{background:var(--surface);border:1px solid var(--border);}
+body.light-mode .hist-card{background:var(--surface);border:1px solid var(--border);}
+body.light-mode .overlay{background:rgba(28,26,22,.55);}
+body.light-mode .sheet{background:var(--surface);}
+body.light-mode .btn-gray{background:var(--card);border-color:var(--border);color:var(--text);}
+body.light-mode .tog{background:var(--card);border-color:var(--border);color:var(--muted);}
+body.light-mode .inp{background:var(--card);border-color:var(--border);color:var(--text);}
+body.light-mode .gross-number{color:var(--accent);}
+body.light-mode .tsc-total{color:var(--accent);}
+body.light-mode .timer{color:var(--accent);}
+body.light-mode .trip-fare{color:var(--accent);}
+body.light-mode .kpi-val{color:var(--accent);}
+body.light-mode .nb.on{color:var(--accent);}
+body.light-mode .ppill-TADA{background:rgba(184,72,0,.15);color:var(--tada);}
+body.light-mode .ppill-Grab{background:rgba(26,107,53,.15);color:var(--grab);}
+body.light-mode .ppill-Gojek{background:rgba(26,90,138,.15);color:var(--gojek);}
+body.light-mode .ppill-Others{background:rgba(90,58,154,.15);color:var(--others);}
+body.light-mode .theme-toggle{background:var(--card);border-color:var(--border);}
+body.light-mode .autofill-badge{background:rgba(10,113,96,.15);color:var(--accent);}
+body.light-mode .live-badge{background:rgba(10,113,96,.15);color:var(--accent);}
+body.light-mode .ph-title{color:var(--accent);}
 .theme-toggle{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;flex-shrink:0}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
@@ -517,11 +546,19 @@ textarea.inp{resize:none;height:80px}
      SCREEN 3 — HISTORY
 ══════════════════════════════════════════════════ -->
 <div class="screen" id="screen-history">
-  <div class="ph"><div class="ph-title">History</div></div>
+  <div class="ph" style="display:flex;justify-content:space-between;align-items:center">
+    <div class="ph-title">History</div>
+    <button class="theme-toggle" id="theme-btn-history" onclick="toggleTheme()">&#9728; Light</button>
+  </div>
   <div class="chips" id="hist-chips"></div>
   <div id="hist-list"></div>
-  <div style="padding:0 16px 16px">
-    <button class="btn btn-gray" style="color:var(--danger);width:100%" onclick="clearMonth()">Clear This Month's Data</button>
+  <div style="padding:0 16px 16px;display:flex;justify-content:flex-end">
+    <button id="clear-month-btn"
+      style="font-size:11px;color:var(--danger);background:transparent;border:1.5px solid var(--danger);border-radius:20px;padding:6px 14px;cursor:pointer;opacity:0.7"
+      onmousedown="startClearHold()" onmouseup="cancelClearHold()" onmouseleave="cancelClearHold()"
+      ontouchstart="startClearHold()" ontouchend="cancelClearHold()">
+      Hold to Clear Month
+    </button>
   </div>
 </div>
 
@@ -543,6 +580,9 @@ textarea.inp{resize:none;height:80px}
       </button>
     </div>
   </div>
+
+  <!-- Date selector chips -->
+  <div class="chips" id="trip-date-chips" style="padding:8px 12px 4px"></div>
 
   <!-- Active trip -->
   <div id="active-card" style="display:none">
@@ -878,6 +918,7 @@ const SG_HOL = {
 let isDriving = true, sessCount = 1, sumMonth = new Date();
 let histMonth = {y:new Date().getFullYear(), m:new Date().getMonth()};
 let activeTrip = null, timerInt = null, tripPlatform = 'TADA', tripMode = 'Manual';
+let tripViewDate = null; // null = today
 let detailTripId = null;
 
 // ── STORAGE ───────────────────────────────────────
@@ -916,7 +957,7 @@ function go(name, btn){
   if(name==='entry')   initEntry();
   if(name==='summary') renderSummary();
   if(name==='history') renderHistory();
-  if(name==='trips')   renderTrips();
+  if(name==='trips')   { tripViewDate=null; renderTrips(); }
   if(name==='settings')initSettings();
 }
 
@@ -1453,7 +1494,8 @@ function renderHistory(){
   const now=new Date();
   const data=getData();
   const trips=getTrips();
-  let cur=new Date(2026,0,1);
+  const rollStart=new Date(now.getFullYear(),now.getMonth()-11,1);
+  let cur=new Date(rollStart);
   while(cur<=now){
     const y=cur.getFullYear(),m=cur.getMonth();
     const prefix=y+'-'+String(m+1).padStart(2,'0')+'-';
@@ -1536,13 +1578,45 @@ function renderHistList(){
 // ══════════════════════════════════════════════════
 // TRIPS
 // ══════════════════════════════════════════════════
+function renderTripDateChips(){
+  const chipsEl=document.getElementById('trip-date-chips');
+  if(!chipsEl) return;
+  const allTrips=getTrips();
+  const today=fmtDate(new Date());
+  // Build last 7 days
+  const days=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const ds=fmtDate(d);
+    days.push(ds);
+  }
+  // Only show days with trips OR today
+  const shown=days.filter(ds=>ds===today||allTrips.some(t=>t.date===ds));
+  const cur=tripViewDate||today;
+  chipsEl.innerHTML=shown.map(ds=>{
+    const isToday=ds===today;
+    const d=new Date(ds+'T00:00:00');
+    const label=isToday?'Today':DAYS[d.getDay()].slice(0,3)+' '+String(d.getDate()).padStart(2,'0');
+    const on=ds===cur?'on':'';
+    return `<button class="chip ${on}" onclick="setTripDate('${ds}')">${label}</button>`;
+  }).join('');
+}
+
+function setTripDate(ds){
+  tripViewDate=ds;
+  renderTripDateChips();
+  renderTrips();
+}
+
 function renderTrips(){
   const today=fmtDate(new Date());
-  const trips=getTrips().filter(t=>t.date===today);
+  const viewDate=tripViewDate||today;
+  const trips=getTrips().filter(t=>t.date===viewDate);
   const btn=document.getElementById('start-btn');
   const ac=document.getElementById('active-card');
 
-  document.getElementById('trip-sub').textContent=today+' · '+trips.length+' trip'+(trips.length!==1?'s':'')+' recorded';
+  renderTripDateChips();
+  document.getElementById('trip-sub').textContent=viewDate+' · '+trips.length+' trip'+(trips.length!==1?'s':'')+' recorded';
 
   if(activeTrip){
     btn.disabled=true; ac.style.display='block';
@@ -1555,6 +1629,12 @@ function renderTrips(){
   } else {
     btn.disabled=false; ac.style.display='none';
   }
+  // Disable start on past dates
+  if(viewDate!==today){ btn.disabled=true; btn.style.opacity='0.4'; }
+  else { btn.style.opacity='1'; }
+
+  // Only show active-trip card when viewing today
+  if(viewDate!==today){ btn.disabled=false; ac.style.display='none'; }
 
   const ts=document.getElementById('trip-summary');
   if(trips.length>0){
@@ -1581,7 +1661,7 @@ function renderTrips(){
 
   const list=document.getElementById('trip-list');
   if(trips.length===0&&!activeTrip){
-    list.innerHTML=`<div class="empty">No trips today.<br>Tap Start New Trip when your passenger gets in.</div>`;
+    list.innerHTML=`<div class="empty">${viewDate===today?'No trips today.<br>Tap Start New Trip when your passenger gets in.':'No trips recorded on this day.'}</div>`;
     return;
   }
   list.innerHTML=[...trips].reverse().map((t,i)=>`
@@ -1937,18 +2017,47 @@ function saveSettings(){
   toast('Settings saved ✓');
 }
 
+// ── Clear month: hold 2s + tap confirm ───────────────
+let _clearHoldTimer=null, _clearReady=false;
+
+function startClearHold(){
+  _clearReady=false;
+  const btn=document.getElementById('clear-month-btn');
+  if(btn){
+    btn.style.transition='background 2s linear';
+    btn.style.background='rgba(192,57,43,0.15)';
+  }
+  _clearHoldTimer=setTimeout(function(){
+    _clearReady=true;
+    if(btn){ btn.style.background='rgba(192,57,43,0.35)'; btn.textContent='Tap to Confirm'; }
+    toast('Release then tap to confirm clear');
+  },2000);
+}
+
+function cancelClearHold(){
+  clearTimeout(_clearHoldTimer);
+  if(!_clearReady){
+    const btn=document.getElementById('clear-month-btn');
+    if(btn){ btn.style.transition=''; btn.style.background='transparent'; btn.textContent='Hold to Clear Month'; }
+  } else {
+    const btn=document.getElementById('clear-month-btn');
+    if(btn) btn.onclick=function(){ clearMonth(); btn.onclick=null; };
+  }
+}
+
 function clearMonth(){
   const{y,m}=histMonth;
   const label=MONTHS[m]+' '+y;
-  if(!confirm('Clear all entries for '+label+'?')) return;
   const prefix=y+'-'+String(m+1).padStart(2,'0')+'-';
   const data=getData();
   Object.keys(data).filter(k=>k.startsWith(prefix)).forEach(k=>delete data[k]);
-  // Also clear trips for that month
   const trips=getTrips().filter(t=>!t.date.startsWith(prefix));
   saveTrips(trips);
   saveData(data);
   toast(label+' data cleared');
+  _clearReady=false;
+  const btn=document.getElementById('clear-month-btn');
+  if(btn){ btn.style.background='transparent'; btn.textContent='Hold to Clear Month'; btn.onclick=null; }
   renderHistory();
 }
 
@@ -2032,7 +2141,7 @@ window.addEventListener('load',()=>{
 function toggleTheme(){
   const light=document.body.classList.toggle('light-mode');
   const label=light?'\u263D Dark':'\u2600 Light';
-  ['theme-btn','theme-btn-entry'].forEach(function(id){
+  ['theme-btn','theme-btn-entry','theme-btn-history'].forEach(function(id){
     const el=document.getElementById(id); if(el) el.textContent=label;
   });
   try{ localStorage.setItem('mdl_theme',light?'light':'dark'); }catch{}
@@ -2041,7 +2150,7 @@ function toggleTheme(){
   try{
     if(localStorage.getItem('mdl_theme')==='light'){
       document.body.classList.add('light-mode');
-      ['theme-btn','theme-btn-entry'].forEach(function(id){
+      ['theme-btn','theme-btn-entry','theme-btn-history'].forEach(function(id){
         const el=document.getElementById(id); if(el) el.textContent='\u263D Dark';
       });
     }
