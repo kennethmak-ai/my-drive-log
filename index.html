@@ -23,46 +23,99 @@ function _mapsCallback(){
 :root{
   --bg:#0D1117; --surface:#161B27; --card:#1C2333; --border:#252E45;
   --accent:#00D4AA; --blue:#3B82F6; --warn:#F59E0B; --danger:#EF4444;
-  --yellow:#FFD60A; --text:#E6EDF3; --muted:#6E7A99;
+  --yellow:#FFD60A; --text:#E6EDF3; --muted:#C8D0DC;
   --nav-h:62px;
   --tada:#F97316; --grab:#00B14F; --gojek:#38BDF8; --others:#A78BFA;
   --r:12px;
 }
 body.light-mode{
-  --bg:#F5F0E8; --surface:#FDFAF5; --card:#EDE8DE; --border:#D4CBB8;
-  --text:#1C1A16; --muted:#7A7060;
-  --accent:#0A7160; --warn:#8A5E00; --danger:#C0392B;
-  --tada:#B84800; --grab:#1A6B35; --gojek:#1A5A8A; --others:#5A3A9A;
+  /* Page layers — each clearly distinct */
+  --bg:#E8E2D9;       /* warm grey page backdrop */
+  --surface:#FAF7F2;  /* warm white — cards, nav, headers */
+  --card:#F0EBE2;     /* warm cream — inner boxes */
+  --border:#A89880;   /* medium warm brown — clearly visible */
+  --text:#1A1714;
+  --muted:#5C5248;
+  --accent:#0A7160;
+  --warn:#7A5000;
+  --danger:#B83030;
+  --tada:#B84800;
+  --grab:#1A6B35;
+  --gojek:#1A5A8A;
+  --others:#5A3A9A;
   --blue:#1A5A8A;
+  --yellow:#6B4E00;
 }
-body.light-mode .chip.on{background:rgba(10,113,96,.12);}
-body.light-mode .trip-summary-card{background:linear-gradient(135deg,rgba(10,113,96,.08),rgba(26,90,138,.06));}
-body.light-mode .active-trip-card{background:linear-gradient(135deg,rgba(10,113,96,.1),rgba(26,90,138,.07));}
-body.light-mode nav{background:var(--surface);border-top:1px solid var(--border);}
-body.light-mode .card{background:var(--surface);border:1px solid var(--border);}
-body.light-mode .sess-block{border-color:rgba(10,113,96,.3);}
-body.light-mode .plat-box{background:var(--card);}
-body.light-mode .trip-card{background:var(--surface);border:1px solid var(--border);}
-body.light-mode .hist-card{background:var(--surface);border:1px solid var(--border);}
-body.light-mode .overlay{background:rgba(28,26,22,.55);}
-body.light-mode .sheet{background:var(--surface);}
-body.light-mode .btn-gray{background:var(--card);border-color:var(--border);color:var(--text);}
-body.light-mode .tog{background:var(--card);border-color:var(--border);color:var(--muted);}
-body.light-mode .inp{background:var(--card);border-color:var(--border);color:var(--text);}
-body.light-mode .gross-number{color:var(--accent);}
-body.light-mode .tsc-total{color:var(--accent);}
-body.light-mode .timer{color:var(--accent);}
-body.light-mode .trip-fare{color:var(--accent);}
-body.light-mode .kpi-val{color:var(--accent);}
-body.light-mode .nb.on{color:var(--accent);}
-body.light-mode .ppill-TADA{background:rgba(184,72,0,.15);color:var(--tada);}
-body.light-mode .ppill-Grab{background:rgba(26,107,53,.15);color:var(--grab);}
-body.light-mode .ppill-Gojek{background:rgba(26,90,138,.15);color:var(--gojek);}
-body.light-mode .ppill-Others{background:rgba(90,58,154,.15);color:var(--others);}
-body.light-mode .theme-toggle{background:var(--card);border-color:var(--border);}
-body.light-mode .autofill-badge{background:rgba(10,113,96,.15);color:var(--accent);}
-body.light-mode .live-badge{background:rgba(10,113,96,.15);color:var(--accent);}
-body.light-mode .ph-title{color:var(--accent);}
+body.light-mode nav{ background:var(--surface); border-top:2px solid var(--border); box-shadow:0 -2px 8px rgba(0,0,0,.08); }
+body.light-mode .nb{ color:var(--muted); }
+body.light-mode .nb.on{ color:var(--accent); }
+body.light-mode .nb.on svg{ stroke:var(--accent); }
+body.light-mode .ph{ background:var(--surface); border-bottom:2px solid var(--border); }
+body.light-mode .ph-title{ color:var(--accent); }
+body.light-mode .ph-sub{ color:var(--muted); }
+body.light-mode .card{ background:var(--surface); border:1.5px solid var(--border); box-shadow:0 1px 4px rgba(0,0,0,.07); }
+body.light-mode .trip-card{ background:var(--surface); border:1.5px solid var(--border); box-shadow:0 1px 3px rgba(0,0,0,.06); }
+body.light-mode .hist-card{ background:var(--surface); border:1.5px solid var(--border); box-shadow:0 1px 3px rgba(0,0,0,.06); }
+body.light-mode .inp{ background:var(--surface); border:2px solid var(--border); color:var(--text); }
+body.light-mode .inp:focus{ border-color:var(--accent); }
+body.light-mode .tog{ background:var(--card); border:2px solid var(--border); color:var(--muted); font-weight:600; }
+body.light-mode .tog.on{ background:var(--accent); border-color:var(--accent); color:#FFFFFF; }
+body.light-mode .tog.on-tada{ background:var(--tada); border-color:var(--tada); color:#FFFFFF; }
+body.light-mode .tog.on-grab{ background:var(--grab); border-color:var(--grab); color:#FFFFFF; }
+body.light-mode .tog.on-gojek{ background:var(--gojek); border-color:var(--gojek); color:#FFFFFF; }
+body.light-mode .tog.on-others{ background:var(--others); border-color:var(--others); color:#FFFFFF; }
+body.light-mode .tog.on-danger{ background:var(--danger); border-color:var(--danger); color:#FFFFFF; }
+body.light-mode .btn-green{ background:var(--accent); color:#FFFFFF; }
+body.light-mode .btn-gray{ background:var(--card); border:2px solid var(--border); color:var(--text); }
+body.light-mode .btn-red{ background:var(--danger); color:#FFFFFF; }
+body.light-mode .sess-block{ background:var(--surface); border:2px solid var(--accent); }
+body.light-mode .sess-label{ color:var(--accent); }
+body.light-mode .plat-box{ background:var(--card); border:1.5px solid var(--border); }
+body.light-mode .plat-box-val{ color:var(--text); }
+body.light-mode .ppill-TADA{ background:rgba(184,72,0,.18); color:var(--tada); }
+body.light-mode .ppill-Grab{ background:rgba(26,107,53,.18); color:var(--grab); }
+body.light-mode .ppill-Gojek{ background:rgba(26,90,138,.18); color:var(--gojek); }
+body.light-mode .ppill-Others{ background:rgba(90,58,154,.18); color:var(--others); }
+body.light-mode .chip{ background:var(--card); border:2px solid var(--border); color:var(--muted); }
+body.light-mode .chip.on{ background:var(--accent); border-color:var(--accent); color:#FFFFFF; }
+body.light-mode .trip-summary-card{ background:linear-gradient(135deg,rgba(10,113,96,.1),rgba(26,90,138,.07)); border:1.5px solid rgba(10,113,96,.3); }
+body.light-mode .tsc-label{ color:var(--muted); }
+body.light-mode .tsc-total{ color:var(--accent); }
+body.light-mode .active-trip-card{ background:linear-gradient(135deg,rgba(10,113,96,.12),rgba(26,90,138,.08)); border:2px solid var(--accent); }
+body.light-mode .live-badge{ background:rgba(10,113,96,.15); color:var(--accent); }
+body.light-mode .timer{ color:var(--accent); }
+body.light-mode .gross-number{ color:var(--accent); }
+body.light-mode .trip-fare{ color:var(--accent); }
+body.light-mode .kpi-row{ background:var(--surface); border:1.5px solid var(--border); }
+body.light-mode .kpi-row.star-yellow{ border-color:rgba(107,78,0,.35); background:rgba(107,78,0,.05); }
+body.light-mode .kpi-row.star-green{ border-color:rgba(10,113,96,.35); background:rgba(10,113,96,.05); }
+body.light-mode .kpi-row.star-amber{ border-color:rgba(122,80,0,.35); background:rgba(122,80,0,.05); }
+body.light-mode .kpi-val{ color:var(--text); }
+body.light-mode .kpi-val.green{ color:var(--accent); }
+body.light-mode .kpi-val.yellow{ color:var(--yellow); }
+body.light-mode .kpi-val.amber{ color:var(--warn); }
+body.light-mode .today-banner{ background:var(--surface); border:1.5px solid var(--border); }
+body.light-mode .tb-cell:not(:last-child){ border-right:1.5px solid var(--border); }
+body.light-mode .tb-val{ color:var(--text); }
+body.light-mode .mnav{ background:var(--surface); border-bottom:2px solid var(--border); }
+body.light-mode .mnav-btn{ background:var(--card); border:1.5px solid var(--border); color:var(--text); }
+body.light-mode .mnav-title{ color:var(--text); }
+body.light-mode .overlay{ background:rgba(20,18,14,.6); }
+body.light-mode .sheet{ background:var(--surface); border-top:2px solid var(--border); }
+body.light-mode .sheet-handle{ background:var(--border); }
+body.light-mode .sheet-title{ color:var(--text); }
+body.light-mode .autofill-badge{ background:rgba(10,113,96,.15); color:var(--accent); border:1px solid rgba(10,113,96,.3); }
+body.light-mode .theme-toggle{ background:var(--card); border:1.5px solid var(--border); color:var(--muted); }
+body.light-mode .card-label{ color:var(--muted); }
+body.light-mode .lbl{ color:var(--muted); }
+body.light-mode .stats-row{ color:var(--muted); }
+body.light-mode .trip-route{ color:var(--text); }
+body.light-mode .trip-meta{ color:var(--muted); }
+body.light-mode .empty{ color:var(--muted); }
+body.light-mode .gps.ok{ background:rgba(10,113,96,.1); color:var(--accent); border-color:rgba(10,113,96,.3); }
+body.light-mode .gps.search{ background:rgba(122,80,0,.08); color:var(--warn); border-color:rgba(122,80,0,.2); }
+body.light-mode .gps.err{ background:rgba(184,48,48,.08); color:var(--danger); border-color:rgba(184,48,48,.2); }
+body.light-mode .nb.on{ color:var(--accent); }
 .theme-toggle{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;flex-shrink:0}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
@@ -298,7 +351,7 @@ textarea.inp{resize:none;height:80px}
 }
 .start-btn:active{transform:scale(.97)}
 .start-btn:disabled{opacity:.35;cursor:not-allowed}
-#screen-trips{padding-bottom:calc(var(--nav-h)+80px)}
+#screen-trips{padding-bottom:calc(var(--nav-h)+100px)}
 
 /* ── TODAY TRIP SUMMARY ──────────────────────────── */
 .trip-summary-card{
@@ -552,14 +605,6 @@ textarea.inp{resize:none;height:80px}
   </div>
   <div class="chips" id="hist-chips"></div>
   <div id="hist-list"></div>
-  <div style="padding:0 16px 16px;display:flex;justify-content:flex-end">
-    <button id="clear-month-btn"
-      style="font-size:11px;color:var(--danger);background:transparent;border:1.5px solid var(--danger);border-radius:20px;padding:6px 14px;cursor:pointer;opacity:0.7"
-      onmousedown="startClearHold()" onmouseup="cancelClearHold()" onmouseleave="cancelClearHold()"
-      ontouchstart="startClearHold()" ontouchend="cancelClearHold()">
-      Hold to Clear Month
-    </button>
-  </div>
 </div>
 
 <!-- ══════════════════════════════════════════════════
@@ -942,6 +987,52 @@ function fmtDate(d){
 }
 function fmtMoney(v){ return '$'+(Math.abs(v)).toLocaleString('en-SG',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 
+// ── SHARED DURATION HELPERS ───────────────────────
+// Total session clock minutes from saved entry (localStorage)
+function getSessMinsSaved(date){
+  var data=getData(), entry=data[date], mins=0;
+  if(entry&&entry.sessions&&entry.sessions.length>0){
+    entry.sessions.forEach(function(s){
+      if(s.start&&s.end){
+        var p=s.start.split(':'),q=s.end.split(':');
+        var d=(+q[0]*60+ +q[1])-(+p[0]*60+ +p[1]);
+        if(d<0)d+=1440; mins+=d;
+      }
+    });
+  }
+  return mins;
+}
+
+// Total session clock minutes from live unsaved sessTimeVals
+function getSessMinsLive(){
+  var mins=0;
+  for(var i=1;i<=3;i++){
+    var sv=sessTimeVals[i+'-start'],ev=sessTimeVals[i+'-end'];
+    if(sv&&ev){
+      var p=sv.split(':'),q=ev.split(':');
+      var d=(+q[0]*60+ +q[1])-(+p[0]*60+ +p[1]);
+      if(d<0)d+=1440; mins+=d;
+    }
+  }
+  return mins;
+}
+
+// Clock minutes for one specific session from live sessTimeVals
+function getSessMinsSingle(i){
+  var sv=sessTimeVals[i+'-start'],ev=sessTimeVals[i+'-end'];
+  if(!sv||!ev) return 0;
+  var p=sv.split(':'),q=ev.split(':');
+  var d=(+q[0]*60+ +q[1])-(+p[0]*60+ +p[1]);
+  if(d<0)d+=1440; return d;
+}
+
+// Format minutes as "2h 27min" or "45min"
+function fmtDur(mins){
+  if(!mins||mins<=0) return '';
+  var h=Math.floor(mins/60),m=mins%60;
+  return (h>0?h+'h ':'')+m+'min';
+}
+
 function toast(msg, dur=2200){
   const t=document.getElementById('toast');
   t.textContent=msg; t.classList.add('show');
@@ -956,7 +1047,14 @@ function go(name, btn){
   if(btn) btn.classList.add('on');
   if(name==='entry')   initEntry();
   if(name==='summary') renderSummary();
-  if(name==='history') renderHistory();
+  if(name==='history'){
+    renderHistory();
+    var cb=document.getElementById('clear-month-btn');
+    if(cb){ cb.style.display='block'; }
+  } else {
+    var cb=document.getElementById('clear-month-btn');
+    if(cb){ cb.style.display='none'; }
+  }
   if(name==='trips')   { tripViewDate=null; renderTrips(); }
   if(name==='settings')initSettings();
 }
@@ -1135,12 +1233,13 @@ function renderSessions(){
       </div>`).join('');
 
     var sessGross=Object.values(td).reduce(function(a,v){return a+v;},0);
-    var sv2=sessTimeVals[i+'-start'],ev2=sessTimeVals[i+'-end'],smin2=0;
-    if(sv2&&ev2){var p2=sv2.split(':'),q2=ev2.split(':');smin2=(parseInt(q2[0])*60+parseInt(q2[1]))-(parseInt(p2[0])*60+parseInt(p2[1]));if(smin2<0)smin2+=1440;}
+    var smin2=getSessMinsSingle(i);
+    var durStr2=fmtDur(smin2);
     var dhrStr2=smin2>0?' &middot; <span style="color:var(--warn)">$'+(sessGross/(smin2/60)).toFixed(2)+'/hr</span>':'';
     var dkmStr2=tkm>0.1?' &middot; <span style="color:var(--warn)">$'+(sessGross/tkm).toFixed(2)+'/km</span>':'';
+    var durPart=durStr2?' &middot; '+durStr2:'';
     const statsLine=sessTrips.length>0?
-      `<div class="stats-row" style="margin-top:8px">${sessTrips.length} trip${sessTrips.length!==1?'s':''} &middot; ${tkm.toFixed(1)} km &middot; ${tmin} min${dhrStr2}${dkmStr2}</div>`:
+      `<div class="stats-row" style="margin-top:8px">${sessTrips.length} trip${sessTrips.length!==1?'s':''} &middot; ${tkm.toFixed(1)} km${durPart}${dhrStr2}${dkmStr2}</div>`:
       `<div class="stats-row" style="margin-top:8px;color:var(--muted)">No trips recorded yet — start trips first</div>`;
 
     c.innerHTML+=`
@@ -1265,21 +1364,17 @@ function loadEntry(){
   const statsEl=document.getElementById('e-stats');
   if(statsEl){
     if(trips.length>0){
-      // Duration from session times (end-start), not trip sum
-      const date2=document.getElementById('e-date').value;
-      const ent2=getData()[date2];
-      let sessTot=0;
-      if(ent2&&ent2.sessions&&ent2.sessions.length>0){
-        ent2.sessions.forEach(function(s){
-          if(s.start&&s.end){var p=s.start.split(':'),q=s.end.split(':');var d=(+q[0]*60+ +q[1])-(+p[0]*60+ +p[1]);if(d<0)d+=1440;sessTot+=d;}
-        });
+      // Duration: live session times first, then saved entry times
+      var sessTot=getSessMinsLive();
+      if(sessTot===0){
+        var date2=document.getElementById('e-date').value;
+        sessTot=getSessMinsSaved(date2);
       }
-      const dh=sessTot>0?Math.floor(sessTot/60):Math.floor(totalMin/60);
-      const dm=sessTot>0?sessTot%60:totalMin%60;
-      const durStr2=(dh>0?dh+'hr ':'')+String(dm).padStart(2,'0')+'min';
-      const dhrV=sessTot>0?(' · $'+(totalFare/(sessTot/60)).toFixed(2)+'/hr'):(totalMin>0?' · $'+(totalFare/(totalMin/60)).toFixed(2)+'/hr':'');
-      const dkmV=totalKm>0.1?' · $'+(totalFare/totalKm).toFixed(2)+'/km':'';
-      statsEl.textContent=trips.length+' trips · '+totalKm.toFixed(1)+' km · '+durStr2+dhrV+dkmV;
+      var durStr2=fmtDur(sessTot);
+      var dhrV=sessTot>0?' · $'+(totalFare/(sessTot/60)).toFixed(2)+'/hr':'';
+      var dkmV=totalKm>0.1?' · $'+(totalFare/totalKm).toFixed(2)+'/km':'';
+      var durPart=durStr2?' · '+durStr2:'';
+      statsEl.textContent=trips.length+' trips · '+totalKm.toFixed(1)+' km'+durPart+dhrV+dkmV;
     } else {
       statsEl.textContent='No trips yet — record trips first';
     }
@@ -1337,20 +1432,16 @@ function refreshEntryEarnings(){
   const statsEl=document.getElementById('e-stats');
   if(statsEl){
     if(trips.length>0){
-      const date3=document.getElementById('e-date').value;
-      const ent3=getData()[date3];
-      let sessTot3=0;
-      if(ent3&&ent3.sessions&&ent3.sessions.length>0){
-        ent3.sessions.forEach(function(s){
-          if(s.start&&s.end){var p=s.start.split(':'),q=s.end.split(':');var d=(+q[0]*60+ +q[1])-(+p[0]*60+ +p[1]);if(d<0)d+=1440;sessTot3+=d;}
-        });
+      var sessTot3=getSessMinsLive();
+      if(sessTot3===0){
+        var date3=document.getElementById('e-date').value;
+        sessTot3=getSessMinsSaved(date3);
       }
-      const dh3=sessTot3>0?Math.floor(sessTot3/60):Math.floor(totalMin/60);
-      const dm3=sessTot3>0?sessTot3%60:totalMin%60;
-      const durStr3=(dh3>0?dh3+'hr ':'')+String(dm3).padStart(2,'0')+'min';
-      const dhrV3=sessTot3>0?(' · $'+(totalFare/(sessTot3/60)).toFixed(2)+'/hr'):(totalMin>0?' · $'+(totalFare/(totalMin/60)).toFixed(2)+'/hr':'');
-      const dkmV3=totalKm>0.1?' · $'+(totalFare/totalKm).toFixed(2)+'/km':'';
-      statsEl.textContent=trips.length+' trips · '+totalKm.toFixed(1)+' km · '+durStr3+dhrV3+dkmV3;
+      var durStr3=fmtDur(sessTot3);
+      var dhrV3=sessTot3>0?' · $'+(totalFare/(sessTot3/60)).toFixed(2)+'/hr':'';
+      var dkmV3=totalKm>0.1?' · $'+(totalFare/totalKm).toFixed(2)+'/km':'';
+      var durPart3=durStr3?' · '+durStr3:'';
+      statsEl.textContent=trips.length+' trips · '+totalKm.toFixed(1)+' km'+durPart3+dhrV3+dkmV3;
     } else { statsEl.textContent='No trips yet — start trips first'; }
   }
   updateNetDisplay(totalFare);
@@ -1494,19 +1585,24 @@ function renderHistory(){
   const now=new Date();
   const data=getData();
   const trips=getTrips();
+  // Build months newest-first
   const rollStart=new Date(now.getFullYear(),now.getMonth()-11,1);
+  const monthList=[];
   let cur=new Date(rollStart);
   while(cur<=now){
     const y=cur.getFullYear(),m=cur.getMonth();
     const prefix=y+'-'+String(m+1).padStart(2,'0')+'-';
     const isCurrentMonth=(y===now.getFullYear()&&m===now.getMonth());
     const hasData=Object.keys(data).some(k=>k.startsWith(prefix))||trips.some(t=>t.date.startsWith(prefix));
-    if(hasData||isCurrentMonth){
-      const on=(y===histMonth.y&&m===histMonth.m)?'on':'';
-      chips.innerHTML+=`<button class="chip ${on}" onclick="setHistMonth(${y},${m})">${MONTHS[m]} ${y}</button>`;
-    }
+    if(hasData||isCurrentMonth) monthList.push({y,m});
     cur=new Date(y,m+1,1);
   }
+  monthList.reverse(); // newest first
+  monthList.forEach(function(item){
+    const y=item.y,m=item.m;
+    const on=(y===histMonth.y&&m===histMonth.m)?'on':'';
+    chips.innerHTML+=`<button class="chip ${on}" onclick="setHistMonth(${y},${m})">${MONTHS[m]} ${y}</button>`;
+  });
   renderHistList();
 }
 
@@ -1565,7 +1661,7 @@ function renderHistList(){
       ${tripCount>0?`<div style="font-size:11px;color:var(--muted);display:flex;gap:12px;margin-bottom:4px">
         <span>🚗 ${tripCount} trip${tripCount!==1?'s':''}</span>
         <span>📍 ${tripKm.toFixed(1)} km</span>
-        <span>⏱ ${tripHrs>0?tripHrs+'h ':''} ${String(tripMins).padStart(2,'0')}min</span>
+        <span>⏱ ${fmtDur(sessMins)||'—'}</span>
         ${sessMins>0?`<span style="color:var(--warn)">$${(gross/(sessMins/60)).toFixed(2)}/hr</span>`:''}
         ${tripKm>0.1?`<span style="color:var(--warn)">$${(gross/tripKm).toFixed(2)}/km</span>`:''}
       </div>`:''}
@@ -1640,13 +1736,15 @@ function renderTrips(){
   if(trips.length>0){
     const tf=trips.reduce((a,t)=>a+(t.fare||0),0);
     const tk=trips.reduce((a,t)=>a+(t.distanceKm||0),0);
-    const tm=trips.reduce((a,t)=>a+(t.durationMins||0),0);
     ts.style.display='block';
     document.getElementById('trip-count').textContent=trips.length+' trip'+(trips.length!==1?'s':'')+' today';
     document.getElementById('trip-total').textContent=fmtMoney(tf);
     document.getElementById('trip-km').textContent=tk.toFixed(1)+' km';
-    document.getElementById('trip-min').textContent=tm+' min';
-    var thr=document.getElementById('trip-dhr'); if(thr) thr.textContent=tm>0?'$'+(tf/(tm/60)).toFixed(2)+'/hr':'';
+    // Duration = total session clock time (live unsaved first, then saved)
+    var sessMinsT=getSessMinsLive();
+    if(sessMinsT===0) sessMinsT=getSessMinsSaved(viewDate);
+    document.getElementById('trip-min').textContent=sessMinsT>0?fmtDur(sessMinsT):'';
+    var thr=document.getElementById('trip-dhr'); if(thr) thr.textContent=sessMinsT>0?'$'+(tf/(sessMinsT/60)).toFixed(2)+'/hr':'';
     var tkm2=document.getElementById('trip-dkm'); if(tkm2) tkm2.textContent=tk>0.1?'$'+(tf/tk).toFixed(2)+'/km':'';
     // Session breakdown — always show
     const sessFares={};
@@ -2133,8 +2231,18 @@ window.addEventListener('load',()=>{
   }
 });
 </script>
-</body>
-</html>
+
+<!-- Clear Month — fixed floating bottom-right, only visible on History tab -->
+<button id="clear-month-btn"
+  style="display:none;position:fixed;bottom:calc(var(--nav-h)+12px);right:14px;z-index:190;
+         font-size:11px;font-weight:600;color:var(--danger);
+         background:var(--surface);border:1.5px solid var(--danger);
+         border-radius:20px;padding:7px 16px;cursor:pointer;
+         box-shadow:0 2px 8px rgba(0,0,0,.15);transition:background .3s"
+  onmousedown="startClearHold()" onmouseup="cancelClearHold()" onmouseleave="cancelClearHold()"
+  ontouchstart="startClearHold(event)" ontouchend="cancelClearHold()">
+  Hold to Clear
+</button>
 
 <script>
 // ── ITEM 9: Theme toggle ──────────────────────────
@@ -2233,3 +2341,5 @@ function saveEditTrip(){
   toast('Trip updated \u2713');
 }
 </script>
+</body>
+</html>
