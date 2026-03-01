@@ -730,7 +730,6 @@ textarea.inp{resize:none;height:80px}
   <div style="padding:0 12px;display:flex;flex-direction:column;gap:8px">
     <button class="btn btn-outline" onclick="exportDailyCSV()">⬇ Export Daily Entries (CSV)</button>
     <button class="btn btn-gray" onclick="exportTripsCSV()">⬇ Export Trips (CSV)</button>
-    <button class="btn btn-gray" style="color:var(--danger)" onclick="clearMonth()">Clear This Month's Data</button>
   </div>
   <div style="height:20px"></div>
 </div>
@@ -1068,7 +1067,7 @@ function go(name, btn){
   if(name==='history'){
     renderHistory();
   } else {
-    resetClearBtn(); // Always reset clear button state when leaving History
+    if(typeof resetClearBtn==='function') resetClearBtn();
   }
   if(name==='trips')   { tripViewDate=null; renderTrips(); }
   if(name==='settings')initSettings();
@@ -2134,19 +2133,20 @@ function saveSettings(){
 let _clearHoldTimer=null, _clearReady=false;
 
 function resetClearBtn(){
-  // Always safe to call — resets button to original state
   clearTimeout(_clearHoldTimer);
   _clearReady=false;
-  const btn=document.getElementById('clear-month-btn');
-  const cancel=document.getElementById('clear-cancel-btn');
-  if(btn){
-    btn.style.transition='';
-    btn.style.background='transparent';
-    btn.style.color='var(--danger)';
-    btn.textContent='Hold to Clear Month's Data';
-    btn.onclick=null;
-  }
-  if(cancel) cancel.style.display='none';
+  try{
+    const btn=document.getElementById('clear-month-btn');
+    const cancel=document.getElementById('clear-cancel-btn');
+    if(btn){
+      btn.style.transition='';
+      btn.style.background='transparent';
+      btn.style.color='var(--danger)';
+      btn.textContent="Hold to Clear Month's Data";
+      btn.onclick=null;
+    }
+    if(cancel) cancel.style.display='none';
+  }catch(e){}
 }
 
 function startClearHold(){
