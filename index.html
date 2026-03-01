@@ -425,6 +425,7 @@ textarea.inp{resize:none;height:80px}
 .ai-key{color:var(--muted)}
 .ai-val{font-family:'Space Mono',monospace;color:var(--text)}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 <div id="app">
@@ -726,10 +727,14 @@ textarea.inp{resize:none;height:80px}
     <div class="ai-row"><span class="ai-key">Trips Recorded</span><span class="ai-val" id="s-trips">0</span></div>
   </div>
 
-  <div class="set-section-title" style="margin-top:18px">Data Export</div>
+  <div class="set-section-title" style="margin-top:18px">Data Backup &amp; Export</div>
   <div style="padding:0 12px;display:flex;flex-direction:column;gap:8px">
-    <button class="btn btn-outline" onclick="exportDailyCSV()">⬇ Export Daily Entries (CSV)</button>
-    <button class="btn btn-gray" onclick="exportTripsCSV()">⬇ Export Trips (CSV)</button>
+    <button class="btn btn-green" onclick="exportAll()" id="export-all-btn">
+      ⬇ Backup + Export Excel
+    </button>
+    <div style="font-size:11px;color:var(--muted);padding:0 4px">
+      Downloads two files: a JSON backup (for restoring your data) and an Excel file with all your entries and trips for analysis.
+    </div>
   </div>
   <div style="height:20px"></div>
 </div>
@@ -2190,37 +2195,147 @@ function clearMonth(){
   saveData(data);
   toast(label+' data cleared');
   resetClearBtn();
+  // Refresh all screens so deleted data is gone everywhere immediately
   renderHistory();
+  refreshEntryEarnings();
+  renderTrips();
+  renderSummary();
 }
 
-function exportDailyCSV(){
-  const data=getData();
-  const rows=[['Date','Day','Driving','TADA','Grab','Gojek','Others','Total Gross','Petrol','Est Net','Distance km','Notes']];
-  Object.values(data).sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>{
-    rows.push([e.date,e.dayOfWeek,e.driving?'Y':'N',
-      e.earnings?.tada||0,e.earnings?.grab||0,e.earnings?.gojek||0,e.earnings?.others||0,
-      e.earnings?.total||0,e.petrol||0,e.estNet||0,e.distance||0,e.notes||'']);
-  });
-  dlCSV(rows,'MyDriveLog_Daily_'+fmtDate(new Date())+'.csv');
-}
+function exportAll(){
+  const dateStr=fmtDate(new Date());
+  const btn=document.getElementById('export-all-btn');
+  if(btn){ btn.textContent='Preparing files...'; btn.disabled=true; }
 
-function exportTripsCSV(){
-  const trips=getTrips();
-  const rows=[['Date','Start','End','Platform','Mode','Pickup Town','Pickup Addr','Dropoff Town','Dropoff Addr','Distance km','Duration min','Fare','$/km','Note']];
-  trips.forEach(t=>{
-    const perKm=t.distanceKm>0?(t.fare/t.distanceKm).toFixed(2):'—';
-    rows.push([t.date,t.startTime||'',t.endTime||'',t.platform,t.mode,
-      t.pickup?.town||'',t.pickup?.addr||'',t.dropoff?.town||'',t.dropoff?.addr||'',
-      t.distanceKm||0,t.durationMins||0,t.fare||0,perKm,t.note||'']);
-  });
-  dlCSV(rows,'MyDriveLog_Trips_'+fmtDate(new Date())+'.csv');
-}
+  try{
+    // ── FILE 1: JSON Backup ──────────────────────────
+    const backup={
+      version:'1.0',
+      exported:new Date().toISOString(),
+      data:getData(),
+      trips:getTrips()
+    };
+    const jsonBlob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
+    const jsonUrl=URL.createObjectURL(jsonBlob);
+    const jsonLink=document.createElement('a');
+    jsonLink.href=jsonUrl;
+    jsonLink.download='MyDriveLog_Backup_'+dateStr+'.json';
+    jsonLink.click();
+    setTimeout(()=>URL.revokeObjectURL(jsonUrl),1000);
 
-function dlCSV(rows,filename){
-  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
-  const a=document.createElement('a');
-  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
-  a.download=filename; a.click();
+    // ── FILE 2: Excel ────────────────────────────────
+    setTimeout(function(){
+      try{
+        const wb=XLSX.utils.book_new();
+
+        // SHEET 1 — Daily Entries
+        // Row 1 blank, Col A blank, content from B2
+        const dailyData=getData();
+        const dailyRows=[
+          [null], // Row 1 blank
+          [null,'MY DRIVE LOG — Daily Entries'],
+          [null,'Date','Day','Driving?','Total Gross ($)','Petrol ($)','Est. Net ($)','Total Duration',
+           'Sess 1 Start','Sess 1 End','Sess 1 Duration',
+           'Sess 2 Start','Sess 2 End','Sess 2 Duration',
+           'Sess 3 Start','Sess 3 End','Sess 3 Duration','Daily Notes']
+        ];
+        Object.keys(dailyData).sort().forEach(function(date){
+          const e=dailyData[date];
+          if(!e) return;
+          // Calculate total duration from sessions
+          let sessMins=0;
+          if(e.sessions&&e.sessions.length>0){
+            e.sessions.forEach(function(s){
+              if(s.start&&s.end){
+                var p=s.start.split(':'),q=s.end.split(':');
+                var d=(+q[0]*60+ +q[1])-(+p[0]*60+ +p[1]);
+                if(d<0)d+=1440; sessMins+=d;
+              }
+            });
+          }
+          const totalDur=fmtDur(sessMins);
+          const s=e.sessions||[];
+          const s1=s[0]||{}, s2=s[1]||{}, s3=s[2]||{};
+          // Session durations
+          function sessDur(sess){
+            if(!sess.start||!sess.end) return '';
+            var p=sess.start.split(':'),q=sess.end.split(':');
+            var d=(+q[0]*60+ +q[1])-(+p[0]*60+ +p[1]);
+            if(d<0)d+=1440; return fmtDur(d);
+          }
+          dailyRows.push([
+            null, date,
+            e.dayOfWeek||'',
+            e.driving===false?'Rest':'Yes',
+            e.earnings?.total||0,
+            e.petrol||0,
+            e.estNet||0,
+            totalDur,
+            s1.start||'', s1.end||'', sessDur(s1),
+            s2.start||'', s2.end||'', sessDur(s2),
+            s3.start||'', s3.end||'', sessDur(s3),
+            e.notes||''
+          ]);
+        });
+        const ws1=XLSX.utils.aoa_to_sheet(dailyRows);
+        ws1['!cols']=[
+          {wch:3},  // A blank
+          {wch:12},{wch:11},{wch:9},{wch:14},{wch:10},{wch:13},{wch:14},
+          {wch:10},{wch:10},{wch:13},{wch:10},{wch:10},{wch:13},
+          {wch:10},{wch:10},{wch:13},{wch:32}
+        ];
+        XLSX.utils.book_append_sheet(wb,ws1,'Daily Entries');
+
+        // SHEET 2 — Individual Trips
+        const trips=getTrips();
+        const tripRows=[
+          [null], // Row 1 blank
+          [null,'MY DRIVE LOG — Individual Trips'],
+          [null,'Date','Trip #','Session','Platform','Mode','Fare ($)',
+           'Distance (km)','Duration','$/km','$/hr','# Stops','Pickup','Dropoff','Notes']
+        ];
+        // Group trips by date to get trip numbers
+        const byDate={};
+        trips.forEach(function(t){
+          if(!byDate[t.date]) byDate[t.date]=[];
+          byDate[t.date].push(t);
+        });
+        trips.slice().sort((a,b)=>a.date.localeCompare(b.date)||((a.startTime||'').localeCompare(b.startTime||''))).forEach(function(t){
+          const dayTrips=byDate[t.date]||[];
+          const tripNum=dayTrips.indexOf(t)+1;
+          const perKm=t.distanceKm>0.1?(t.fare/t.distanceKm).toFixed(2):'';
+          const perHr=t.durationMins>0?(t.fare/(t.durationMins/60)).toFixed(2):'';
+          tripRows.push([
+            null, t.date, tripNum,
+            t.sessionNum||1, t.platform, t.mode,
+            t.fare||0, t.distanceKm||0,
+            fmtDur(t.durationMins)||'',
+            perKm?+perKm:'', perHr?+perHr:'',
+            t.stops||1,
+            t.pickup?.town||'', t.dropoff?.town||'',
+            t.note||''
+          ]);
+        });
+        const ws2=XLSX.utils.aoa_to_sheet(tripRows);
+        ws2['!cols']=[
+          {wch:3},  // A blank
+          {wch:12},{wch:7},{wch:9},{wch:9},{wch:8},{wch:10},
+          {wch:13},{wch:10},{wch:9},{wch:9},{wch:8},{wch:22},{wch:22},{wch:25}
+        ];
+        XLSX.utils.book_append_sheet(wb,ws2,'Individual Trips');
+
+        XLSX.writeFile(wb,'MyDriveLog_Export_'+dateStr+'.xlsx');
+        toast('Backup + Excel downloaded ✓');
+      } catch(err){
+        toast('Excel export failed: '+err.message);
+      }
+      if(btn){ btn.textContent='⬇ Backup + Export Excel'; btn.disabled=false; }
+    },800); // slight delay so JSON download starts first
+
+  } catch(err){
+    toast('Backup failed: '+err.message);
+    if(btn){ btn.textContent='⬇ Backup + Export Excel'; btn.disabled=false; }
+  }
 }
 
 // ══════════════════════════════════════════════════
