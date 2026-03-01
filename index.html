@@ -613,7 +613,7 @@ textarea.inp{resize:none;height:80px}
              border:1.5px solid var(--danger);border-radius:10px;cursor:pointer;
              transition:background .3s,color .3s"
       onmousedown="startClearHold()" onmouseup="cancelClearHold()" onmouseleave="cancelClearHold()"
-      ontouchstart="startClearHold()" ontouchend="cancelClearHold()">
+      ontouchstart="event.preventDefault();startClearHold()" ontouchend="event.preventDefault();cancelClearHold()">
       Hold to Clear Month's Data
     </button>
     <button id="clear-cancel-btn"
@@ -2135,7 +2135,7 @@ function saveSettings(){
 }
 
 // ── Clear month: hold 2s + tap confirm ───────────────
-let _clearHoldTimer=null, _clearReady=false;
+let _clearHoldTimer=null, _clearReady=false, _clearTouchStart=0;
 
 function resetClearBtn(){
   clearTimeout(_clearHoldTimer);
@@ -2156,6 +2156,7 @@ function resetClearBtn(){
 
 function startClearHold(){
   _clearReady=false;
+  _clearTouchStart=Date.now();
   const btn=document.getElementById('clear-month-btn');
   if(btn){
     btn.style.transition='background 2s linear';
@@ -2176,12 +2177,14 @@ function startClearHold(){
 }
 
 function cancelClearHold(){
+  // Ignore if finger lifted within 150ms — accidental touch on mobile
+  if(Date.now()-_clearTouchStart < 150) return;
   clearTimeout(_clearHoldTimer);
   if(!_clearReady){
-    // Released before 2s — just reset quietly
+    // Released before 2s — reset quietly
     resetClearBtn();
   }
-  // If _clearReady=true, leave in confirm state — user must tap Confirm or Cancel
+  // If _clearReady=true — stay in confirm state, user must tap Confirm or Cancel
 }
 
 function clearMonth(){
