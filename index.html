@@ -351,7 +351,7 @@ textarea.inp{resize:none;height:80px}
 }
 .start-btn:active{transform:scale(.97)}
 .start-btn:disabled{opacity:.35;cursor:not-allowed}
-#screen-trips{padding-bottom:calc(var(--nav-h)+100px)}
+#screen-trips{padding-bottom:calc(var(--nav-h)+140px)}
 
 /* ── TODAY TRIP SUMMARY ──────────────────────────── */
 .trip-summary-card{
@@ -2232,17 +2232,6 @@ window.addEventListener('load',()=>{
 });
 </script>
 
-<!-- Clear Month — fixed floating bottom-right, only visible on History tab -->
-<button id="clear-month-btn"
-  style="display:none;position:fixed;bottom:calc(var(--nav-h)+12px);right:14px;z-index:190;
-         font-size:11px;font-weight:600;color:var(--danger);
-         background:var(--surface);border:1.5px solid var(--danger);
-         border-radius:20px;padding:7px 16px;cursor:pointer;
-         box-shadow:0 2px 8px rgba(0,0,0,.15);transition:background .3s"
-  onmousedown="startClearHold()" onmouseup="cancelClearHold()" onmouseleave="cancelClearHold()"
-  ontouchstart="startClearHold(event)" ontouchend="cancelClearHold()">
-  Hold to Clear
-</button>
 
 <script>
 // ── ITEM 9: Theme toggle ──────────────────────────
@@ -2340,6 +2329,22 @@ function saveEditTrip(){
   refreshEntryEarnings();
   toast('Trip updated \u2713');
 }
+</script>
+<!-- Clear Month — fixed floating bottom-right, only on History tab -->
+<button id="clear-month-btn"
+  style="display:none;position:fixed;bottom:calc(var(--nav-h)+14px);right:14px;z-index:195;
+         font-size:11px;font-weight:600;color:var(--danger);
+         background:var(--surface);border:1.5px solid var(--danger);
+         border-radius:20px;padding:7px 16px;cursor:pointer;
+         box-shadow:0 2px 10px rgba(0,0,0,.25);transition:background .3s">
+  Hold to Clear
+</button>
+<script>
+document.getElementById('clear-month-btn').addEventListener('mousedown', startClearHold);
+document.getElementById('clear-month-btn').addEventListener('mouseup', cancelClearHold);
+document.getElementById('clear-month-btn').addEventListener('mouseleave', cancelClearHold);
+document.getElementById('clear-month-btn').addEventListener('touchstart', function(e){ e.preventDefault(); startClearHold(); });
+document.getElementById('clear-month-btn').addEventListener('touchend', cancelClearHold);
 </script>
 </body>
 </html>
