@@ -126,8 +126,8 @@ input,textarea{font-family:'DM Sans',sans-serif}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
 
 /* ── LAYOUT ─────────────────────────────────────── */
-#app{height:100%;display:flex;flex-direction:column;overflow:hidden}
-.screen{display:none;flex:1;overflow-y:auto;padding-bottom:calc(var(--nav-h)+100px)}
+#app{height:100%;display:flex;flex-direction:column}
+.screen{display:none;flex:1;overflow-y:auto;padding-bottom:calc(var(--nav-h)+200px)}
 .screen.active{display:block}
 
 /* ── NAV ─────────────────────────────────────────── */
@@ -340,6 +340,17 @@ textarea.inp{resize:none;height:80px}
 .timer{font-family:'Space Mono',monospace;font-size:32px;font-weight:700;
   color:var(--accent);text-align:center;margin:6px 0;letter-spacing:3px}
 
+/* ── FIXED SAVE ENTRY BTN ───────────────────────── */
+#fixed-save-btn{
+  position:fixed;bottom:calc(var(--nav-h)+10px);left:12px;right:12px;
+  background:var(--accent);color:#0D1117;border:none;border-radius:14px;
+  padding:15px;font-size:15px;font-weight:700;
+  display:none;align-items:center;justify-content:center;gap:8px;
+  z-index:90;box-shadow:0 4px 20px rgba(0,212,170,.25);cursor:pointer;
+}
+body.light-mode #fixed-save-btn{ color:#FFFFFF; }
+#fixed-save-btn.visible{ display:flex; }
+
 /* ── START TRIP BTN ──────────────────────────────── */
 .start-btn{
   position:fixed;bottom:calc(var(--nav-h)+10px);left:12px;right:12px;
@@ -351,8 +362,9 @@ textarea.inp{resize:none;height:80px}
 }
 .start-btn:active{transform:scale(.97)}
 .start-btn:disabled{opacity:.35;cursor:not-allowed}
-#screen-trips{padding-bottom:calc(var(--nav-h)+160px)}
-#screen-entry{padding-bottom:calc(var(--nav-h)+160px)}
+#screen-trips{padding-bottom:calc(var(--nav-h)+300px)}
+#screen-entry{padding-bottom:calc(var(--nav-h)+300px)}
+#screen-history{padding-bottom:calc(var(--nav-h)+200px)}
 
 /* ── TODAY TRIP SUMMARY ──────────────────────────── */
 .trip-summary-card{
@@ -542,12 +554,6 @@ textarea.inp{resize:none;height:80px}
     </div>
   </div>
 
-  <div style="padding:12px 12px 4px">
-    <button class="btn btn-green" onclick="saveEntry()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
-      Save Entry
-    </button>
-  </div>
 </div>
 
 <!-- ══════════════════════════════════════════════════
@@ -708,8 +714,14 @@ textarea.inp{resize:none;height:80px}
   </div>
 
   <div id="trip-list" style="padding-top:4px"></div>
-  <div style="height:16px"></div>
+  <div style="height:100vh"></div>
 </div>
+
+<!-- Fixed Save Entry button — always visible above nav on Entry screen -->
+<button id="fixed-save-btn" onclick="saveEntry()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
+  Save Entry
+</button>
 
 <!-- Fixed Start Trip bar — always visible above nav -->
 
@@ -1082,7 +1094,14 @@ function go(name, btn){
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
   document.getElementById('screen-'+name).classList.add('active');
   if(btn) btn.classList.add('on');
-  if(name==='entry')   initEntry();
+  if(name==='entry'){
+    initEntry();
+    const fsb=document.getElementById('fixed-save-btn');
+    if(fsb) fsb.classList.add('visible');
+  } else {
+    const fsb=document.getElementById('fixed-save-btn');
+    if(fsb) fsb.classList.remove('visible');
+  }
   if(name==='summary') renderSummary();
   if(name==='history'){
     renderHistory();
@@ -1328,7 +1347,7 @@ function timePrompt(sess, type){
 
   // Store pending action
   overlay._sess=sess; overlay._type=type; overlay._nowStr=nowStr;
-  window._tpSess=sess; // track for Reset Entry
+  window._tpSess=sess; window._tpType=type; // track for Reset
 }
 
 function timePromptYes(){
@@ -1381,6 +1400,8 @@ function loadEntry(){
   _isLoading=true; // Prevent autoSaveEntry from firing during load
   updateDow();
   const date=document.getElementById('e-date').value; if(!date){ _isLoading=false; return; }
+  // Clear session times from memory before loading new date — prevents times from one day bleeding into another
+  for(let i=1;i<=3;i++){ delete sessTimeVals[i+'-start']; delete sessTimeVals[i+'-end']; }
   const data=getData(), entry=data[date];
   const trips=getTrips().filter(t=>t.date===date);
 
@@ -2418,6 +2439,9 @@ function startShift(){
 }
 
 window.addEventListener('load',()=>{
+  // Show fixed save button on entry screen (default screen on load)
+  const fsb=document.getElementById('fixed-save-btn');
+  if(fsb) fsb.classList.add('visible');
   // Restore session times from localStorage before initEntry runs
   try{
     const saved=localStorage.getItem('mdl_sess_times');
@@ -2477,19 +2501,30 @@ function toggleTheme(){
 // ── ITEM 1: Reset Entry from time prompt ─────────
 function timePromptReset(){
   const sess=window._tpSess||1;
-  ['start','end'].forEach(function(type){
-    const key=sess+'-'+type;
-    delete sessTimeVals[key];
-    try{ localStorage.setItem('mdl_sess_times',JSON.stringify(sessTimeVals)); }catch{}
-    const el=document.getElementById('s-'+type+'-val-'+sess);
-    const wrap=document.getElementById('s-'+type+'-'+sess);
-    if(el){ el.textContent='Tap to set'; el.style.color='var(--muted)'; }
-    if(wrap) wrap.style.color='var(--muted)';
-    const hrs=document.getElementById('s-hrs-'+sess);
-    if(hrs) hrs.textContent='';
-  });
+  const type=window._tpType||'start'; // Only reset the specific field that was tapped
+  const key=sess+'-'+type;
+  // Permanently delete — do not restore on relog
+  delete sessTimeVals[key];
+  try{ localStorage.setItem('mdl_sess_times',JSON.stringify(sessTimeVals)); }catch{}
+  // Also remove from the saved entry so it does not come back on reload
+  const date=document.getElementById('e-date')?.value;
+  if(date){
+    const data=getData();
+    if(data[date]&&data[date].sessions){
+      const s=data[date].sessions[sess-1];
+      if(s){ if(type==='start') s.start=''; else s.end=''; s.hours='0.0'; }
+      saveData(data);
+    }
+    // Also clear from dedicated petrol-style slot if exists
+    try{ localStorage.removeItem('mdl_sess_'+date+'_'+sess+'_'+type); }catch{}
+  }
+  const el=document.getElementById('s-'+type+'-val-'+sess);
+  const wrap=document.getElementById('s-'+type+'-'+sess);
+  if(el){ el.textContent='Tap to set'; el.style.color='var(--muted)'; }
+  if(wrap) wrap.style.color='var(--muted)';
+  calcHrs(sess);
   closeOverlay('time-prompt-overlay');
-  toast('Session '+sess+' times cleared');
+  toast((type==='start'?'Start':'End')+' time cleared for Session '+sess);
 }
 
 // timePrompt patch removed — _tpSess now set inside original timePrompt
