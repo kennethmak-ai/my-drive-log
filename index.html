@@ -352,6 +352,7 @@ textarea.inp{resize:none;height:80px}
 .start-btn:active{transform:scale(.97)}
 .start-btn:disabled{opacity:.35;cursor:not-allowed}
 #screen-trips{padding-bottom:calc(var(--nav-h)+180px)}
+#screen-entry{padding-bottom:calc(var(--nav-h)+180px)}
 
 /* ── TODAY TRIP SUMMARY ──────────────────────────── */
 .trip-summary-card{
@@ -706,7 +707,7 @@ textarea.inp{resize:none;height:80px}
     </div>
   </div>
 
-  <div id="trip-list"></div>
+  <div id="trip-list" style="padding-top:8px"></div>
   <div style="height:16px"></div>
 </div>
 
@@ -1020,7 +1021,7 @@ function putSettings(ym,s){ localStorage.setItem(SET_KEY(ym),JSON.stringify(s)) 
 function fmtDate(d){
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
-function fmtMoney(v){ return '$'+(Math.abs(v)).toLocaleString('en-SG',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtMoney(v){ return (v<0?'-':'')+'$'+(Math.abs(v)).toLocaleString('en-SG',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 
 // ── SHARED DURATION HELPERS ───────────────────────
 // Total session clock minutes from saved entry (localStorage)
