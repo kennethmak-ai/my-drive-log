@@ -126,8 +126,8 @@ input,textarea{font-family:'DM Sans',sans-serif}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
 
 /* ── LAYOUT ─────────────────────────────────────── */
-#app{height:100%;display:flex;flex-direction:column;overflow:hidden;padding-bottom:var(--nav-h)}
-.screen{display:none;flex:1;overflow-y:auto;padding-bottom:32px}
+#app{height:100%;display:flex;flex-direction:column;overflow:hidden}
+.screen{display:none;flex:1;overflow-y:auto;padding-bottom:calc(var(--nav-h)+100px)}
 .screen.active{display:block}
 
 /* ── NAV ─────────────────────────────────────────── */
@@ -351,8 +351,8 @@ textarea.inp{resize:none;height:80px}
 }
 .start-btn:active{transform:scale(.97)}
 .start-btn:disabled{opacity:.35;cursor:not-allowed}
-#screen-trips{padding-bottom:80px}
-#screen-entry{padding-bottom:80px}
+#screen-trips{padding-bottom:calc(var(--nav-h)+160px)}
+#screen-entry{padding-bottom:calc(var(--nav-h)+160px)}
 
 /* ── TODAY TRIP SUMMARY ──────────────────────────── */
 .trip-summary-card{
@@ -507,7 +507,7 @@ textarea.inp{resize:none;height:80px}
         <div>
           <label class="lbl">Petrol Cost ($)</label>
           <input type="number" class="inp" id="e-petrol" placeholder="0.00" step="0.01" min="0"
-            style="font-family:'Space Mono',monospace" oninput="updateNet();autoSaveEntry();" autocomplete="off" inputmode="decimal">
+            style="font-family:'Space Mono',monospace" oninput="updateNet();savePetrolNow();autoSaveEntry();" autocomplete="off" inputmode="decimal">
         </div>
       </div>
     </div>
@@ -1439,6 +1439,7 @@ function loadEntry(){
       // Render with correct total count — setSessions restores all sessTimeVals
       setSessions(totalCount);
       document.getElementById('e-petrol').value=entry.petrol||'';
+      loadPetrolNow(date); // Override with dedicated petrol slot if available
       document.getElementById('e-notes').value=entry.notes||'';
     } else {
       document.getElementById('e-rest-notes').value=entry.notes||'';
@@ -1446,6 +1447,7 @@ function loadEntry(){
     updateNet();
   } else {
     document.getElementById('e-petrol').value='';
+    loadPetrolNow(date); // Check dedicated petrol slot even if no full entry saved yet
     document.getElementById('e-notes').value='';
     setDriving(true);
     // Restore session count from sessTimeVals if data exists (not yet saved to localStorage)
@@ -1513,6 +1515,25 @@ function updateNet(){
 function updateNetDisplay(gross){
   const petrol=parseFloat(document.getElementById('e-petrol')?.value)||0;
   document.getElementById('e-net').textContent=fmtMoney(gross-petrol);
+}
+
+function savePetrolNow(){
+  // Save petrol independently to its own storage slot - simplest and most reliable approach
+  const date=document.getElementById('e-date')?.value;
+  if(!date) return;
+  const val=document.getElementById('e-petrol')?.value||'';
+  try{ localStorage.setItem('mdl_petrol_'+date, val); }catch(e){}
+  // Also update the full entry immediately
+  const data=getData();
+  if(data[date]) { data[date].petrol=parseFloat(val)||0; data[date].estNet=(data[date].earnings?.total||0)-(parseFloat(val)||0); saveData(data); }
+}
+
+function loadPetrolNow(date){
+  // Restore petrol from its own storage slot first, fall back to entry data
+  try{
+    const saved=localStorage.getItem('mdl_petrol_'+date);
+    if(saved!==null){ document.getElementById('e-petrol').value=saved; updateNet(); return; }
+  }catch(e){}
 }
 
 function autoSaveEntry(){
