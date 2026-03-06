@@ -506,7 +506,7 @@ textarea.inp{resize:none;height:80px}
         <div>
           <label class="lbl">Petrol Cost ($)</label>
           <input type="number" class="inp" id="e-petrol" placeholder="0.00" step="0.01" min="0"
-            style="font-family:'Space Mono',monospace" oninput="updateNet()" autocomplete="off" inputmode="decimal">
+            style="font-family:'Space Mono',monospace" oninput="updateNet();autoSaveEntry();" autocomplete="off" inputmode="decimal">
         </div>
       </div>
     </div>
@@ -526,7 +526,7 @@ textarea.inp{resize:none;height:80px}
     <!-- Card 5: Daily Notes -->
     <div class="card">
       <div class="card-label">Daily Notes</div>
-      <textarea class="inp" id="e-notes" placeholder="e.g. Heavy rain morning, TADA incentive day, good CBD crowd..."></textarea>
+      <textarea class="inp" id="e-notes" placeholder="e.g. Heavy rain morning, TADA incentive day, good CBD crowd..." oninput="autoSaveEntry()"></textarea>
     </div>
   </div>
 
@@ -537,7 +537,7 @@ textarea.inp{resize:none;height:80px}
         <div style="font-size:36px;margin-bottom:8px">🚫</div>
         <div style="color:var(--muted);font-size:14px">Rest Day — No driving recorded</div>
       </div>
-      <textarea class="inp" id="e-rest-notes" placeholder="Optional notes..."></textarea>
+      <textarea class="inp" id="e-rest-notes" placeholder="Optional notes..." oninput="autoSaveEntry()"></textarea>
     </div>
   </div>
 
@@ -1223,6 +1223,8 @@ function setDriving(val){
   document.getElementById('btn-rest').className='tog'+(val?'':' on-danger');
   document.getElementById('e-driving').style.display=val?'block':'none';
   document.getElementById('e-rest').style.display=val?'none':'block';
+  // Auto-save driving state immediately so toggle persists across sessions
+  autoSaveEntry();
 }
 
 function setSessions(n){
@@ -1356,6 +1358,8 @@ function setSessionTime(sess,type,val){
   if(el){ el.textContent=val; el.style.color='var(--text)'; }
   if(wrap) wrap.style.color='var(--text)';
   calcHrs(sess);
+  // Auto-save entry so session times persist even without pressing Save
+  autoSaveEntry();
 }
 
 function calcHrs(i){
@@ -1502,6 +1506,59 @@ function updateNet(){
 function updateNetDisplay(gross){
   const petrol=parseFloat(document.getElementById('e-petrol')?.value)||0;
   document.getElementById('e-net').textContent=fmtMoney(gross-petrol);
+}
+
+function autoSaveEntry(){
+  // Silent auto-save — persists driving state, petrol, notes without toast or nav
+  const date=document.getElementById('e-date')?.value;
+  if(!date) return;
+  const data=getData();
+  const d=new Date(date+'T00:00:00');
+  const dow=DAYS[d.getDay()];
+  const isHol=!!SG_HOL[date];
+
+  if(!isDriving){
+    // Save rest day state
+    const existing=data[date]||{};
+    data[date]={...existing, date, dayOfWeek:dow, driving:false,
+      notes:document.getElementById('e-rest-notes')?.value||'',
+      isHoliday:isHol, holidayName:SG_HOL[date]||''};
+    saveData(data);
+    return;
+  }
+
+  // Save driving day state — earnings/trips are auto-populated, just save petrol + sessions + notes
+  const trips=getTrips().filter(t=>t.date===date);
+  let earnings={tada:0,grab:0,gojek:0,others:0,total:0};
+  let distance=0;
+  trips.forEach(t=>{
+    const p=(t.platform||'').toLowerCase();
+    if(p==='tada') earnings.tada+=t.fare||0;
+    else if(p==='grab') earnings.grab+=t.fare||0;
+    else if(p==='gojek') earnings.gojek+=t.fare||0;
+    else earnings.others+=t.fare||0;
+    distance+=t.distanceKm||0;
+  });
+  earnings.total=earnings.tada+earnings.grab+earnings.gojek+earnings.others;
+
+  const petrol=parseFloat(document.getElementById('e-petrol')?.value)||0;
+  const sessions=[];
+  for(let i=1;i<=sessCount;i++){
+    const start=sessTimeVals[`${i}-start`]||'';
+    const end=sessTimeVals[`${i}-end`]||'';
+    const [sh,sm]=start?start.split(':').map(Number):[0,0];
+    const [eh,em]=end?end.split(':').map(Number):[0,0];
+    let mins=(eh*60+em)-(sh*60+sm); if(mins<0) mins+=1440;
+    sessions.push({start,end,hours:(mins/60).toFixed(1)});
+  }
+
+  const existing=data[date]||{};
+  data[date]={...existing, date, dayOfWeek:dow, driving:true, sessions, earnings,
+    petrol, distance:parseFloat(distance.toFixed(1)),
+    estNet:earnings.total-petrol,
+    notes:document.getElementById('e-notes')?.value||'',
+    isHoliday:isHol, holidayName:SG_HOL[date]||''};
+  saveData(data);
 }
 
 function saveEntry(){
