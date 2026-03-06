@@ -126,8 +126,8 @@ input,textarea{font-family:'DM Sans',sans-serif}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
 
 /* ── LAYOUT ─────────────────────────────────────── */
-#app{height:100%;display:flex;flex-direction:column;overflow:hidden}
-.screen{display:none;flex:1;overflow-y:auto;padding-bottom:calc(var(--nav-h)+32px)}
+#app{height:100%;display:flex;flex-direction:column;overflow:hidden;padding-bottom:var(--nav-h)}
+.screen{display:none;flex:1;overflow-y:auto;padding-bottom:32px}
 .screen.active{display:block}
 
 /* ── NAV ─────────────────────────────────────────── */
@@ -351,8 +351,8 @@ textarea.inp{resize:none;height:80px}
 }
 .start-btn:active{transform:scale(.97)}
 .start-btn:disabled{opacity:.35;cursor:not-allowed}
-#screen-trips{padding-bottom:calc(var(--nav-h)+180px)}
-#screen-entry{padding-bottom:calc(var(--nav-h)+180px)}
+#screen-trips{padding-bottom:80px}
+#screen-entry{padding-bottom:80px}
 
 /* ── TODAY TRIP SUMMARY ──────────────────────────── */
 .trip-summary-card{
@@ -707,7 +707,7 @@ textarea.inp{resize:none;height:80px}
     </div>
   </div>
 
-  <div id="trip-list" style="padding-top:8px"></div>
+  <div id="trip-list" style="padding-top:4px"></div>
   <div style="height:16px"></div>
 </div>
 
@@ -997,6 +997,7 @@ const SG_HOL = {
 
 // ── STATE ─────────────────────────────────────────
 let isDriving = true, sessCount = 1, sumMonth = new Date();
+let _isLoading = false;
 let histMonth = {y:new Date().getFullYear(), m:new Date().getMonth()};
 let activeTrip = null, timerInt = null, tripPlatform = 'TADA', tripMode = 'Manual';
 let tripViewDate = null; // null = today
@@ -1196,6 +1197,9 @@ function gpsEl(state, text){
 let entryInitDone = false;
 
 function initEntry(){
+  // Always scroll to top so all content is accessible
+  const sc=document.getElementById('screen-entry');
+  if(sc) sc.scrollTop=0;
   const today=fmtDate(new Date());
   const di=document.getElementById('e-date');
   if(!di.value) di.value=today;
@@ -1374,8 +1378,9 @@ function calcHrs(i){
 }
 
 function loadEntry(){
+  _isLoading=true; // Prevent autoSaveEntry from firing during load
   updateDow();
-  const date=document.getElementById('e-date').value; if(!date) return;
+  const date=document.getElementById('e-date').value; if(!date){ _isLoading=false; return; }
   const data=getData(), entry=data[date];
   const trips=getTrips().filter(t=>t.date===date);
 
@@ -1454,6 +1459,7 @@ function loadEntry(){
       }
     }
   }
+  _isLoading=false; // Loading complete — auto-save now allowed
 }
 
 function refreshEntryEarnings(){
@@ -1511,6 +1517,7 @@ function updateNetDisplay(gross){
 
 function autoSaveEntry(){
   // Silent auto-save — persists driving state, petrol, notes without toast or nav
+  if(_isLoading) return; // Do not save during entry load — would overwrite restored values
   const date=document.getElementById('e-date')?.value;
   if(!date) return;
   const data=getData();
@@ -1795,6 +1802,9 @@ function setTripDate(ds){
 }
 
 function renderTrips(){
+  // Always scroll to top so first trip card is fully visible
+  const sc=document.getElementById('screen-trips');
+  if(sc) sc.scrollTop=0;
   const today=fmtDate(new Date());
   const viewDate=tripViewDate||today;
   const trips=getTrips().filter(t=>t.date===viewDate);
