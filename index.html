@@ -340,17 +340,6 @@ textarea.inp{resize:none;height:80px}
 .timer{font-family:'Space Mono',monospace;font-size:32px;font-weight:700;
   color:var(--accent);text-align:center;margin:6px 0;letter-spacing:3px}
 
-/* ── FIXED SAVE ENTRY BTN ───────────────────────── */
-#fixed-save-btn{
-  position:fixed;bottom:calc(var(--nav-h)+10px);left:12px;right:12px;
-  background:var(--accent);color:#0D1117;border:none;border-radius:14px;
-  padding:15px;font-size:15px;font-weight:700;
-  display:none;align-items:center;justify-content:center;gap:8px;
-  z-index:90;box-shadow:0 4px 20px rgba(0,212,170,.25);cursor:pointer;
-}
-body.light-mode #fixed-save-btn{ color:#FFFFFF; }
-#fixed-save-btn.visible{ display:flex; }
-
 /* ── START TRIP BTN ──────────────────────────────── */
 .start-btn{
   position:fixed;bottom:calc(var(--nav-h)+10px);left:12px;right:12px;
@@ -541,6 +530,13 @@ body.light-mode #fixed-save-btn{ color:#FFFFFF; }
       <div class="card-label">Daily Notes</div>
       <textarea class="inp" id="e-notes" placeholder="e.g. Heavy rain morning, TADA incentive day, good CBD crowd..." oninput="autoSaveEntry()"></textarea>
     </div>
+    <!-- Save Button — below Daily Notes -->
+    <div style="padding:4px 0 8px">
+      <button class="btn btn-green" id="save-entry-btn" onclick="saveEntry()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
+        Save Entry
+      </button>
+    </div>
   </div>
 
   <!-- REST DAY -->
@@ -551,6 +547,13 @@ body.light-mode #fixed-save-btn{ color:#FFFFFF; }
         <div style="color:var(--muted);font-size:14px">Rest Day — No driving recorded</div>
       </div>
       <textarea class="inp" id="e-rest-notes" placeholder="Optional notes..." oninput="autoSaveEntry()"></textarea>
+    </div>
+    <!-- Save Button — below Rest Day Notes -->
+    <div style="padding:4px 0 8px">
+      <button class="btn btn-green" id="save-rest-btn" onclick="saveEntry()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
+        Save Entry
+      </button>
     </div>
   </div>
 
@@ -716,12 +719,6 @@ body.light-mode #fixed-save-btn{ color:#FFFFFF; }
   <div id="trip-list" style="padding-top:4px"></div>
   <div style="height:100vh"></div>
 </div>
-
-<!-- Fixed Save Entry button — always visible above nav on Entry screen -->
-<button id="fixed-save-btn" onclick="saveEntry()">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
-  Save Entry
-</button>
 
 <!-- Fixed Start Trip bar — always visible above nav -->
 
@@ -1094,14 +1091,7 @@ function go(name, btn){
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
   document.getElementById('screen-'+name).classList.add('active');
   if(btn) btn.classList.add('on');
-  if(name==='entry'){
-    initEntry();
-    const fsb=document.getElementById('fixed-save-btn');
-    if(fsb) fsb.classList.add('visible');
-  } else {
-    const fsb=document.getElementById('fixed-save-btn');
-    if(fsb) fsb.classList.remove('visible');
-  }
+  if(name==='entry') initEntry();
   if(name==='summary') renderSummary();
   if(name==='history'){
     renderHistory();
@@ -1622,7 +1612,6 @@ function saveEntry(){
   if(!isDriving){
     data[date]={date,dayOfWeek:dow,driving:false,notes:document.getElementById('e-rest-notes').value,isHoliday:isHol,holidayName:SG_HOL[date]||''};
     saveData(data); toast('Rest day saved ✓');
-    setTimeout(()=>go('summary',document.getElementById('nav-summary')),900);
     return;
   }
 
@@ -1666,7 +1655,6 @@ function saveEntry(){
   saveData(data); toast('Entry saved ✓');
   // Clear persisted session times — now saved in entry
   try{ localStorage.removeItem('mdl_sess_times'); }catch{}
-  setTimeout(()=>go('summary',document.getElementById('nav-summary')),900);
 }
 
 // ══════════════════════════════════════════════════
@@ -2439,9 +2427,6 @@ function startShift(){
 }
 
 window.addEventListener('load',()=>{
-  // Show fixed save button on entry screen (default screen on load)
-  const fsb=document.getElementById('fixed-save-btn');
-  if(fsb) fsb.classList.add('visible');
   // Restore session times from localStorage before initEntry runs
   try{
     const saved=localStorage.getItem('mdl_sess_times');
