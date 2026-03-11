@@ -257,6 +257,12 @@ textarea.inp{resize:none;height:80px}
 .plat-box-name{font-size:9px;font-weight:700;letter-spacing:.5px;margin-bottom:4px}
 .plat-box-val{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--text)}
 
+/* ── ODOMETER ────────────────────────────────────── */
+.odo-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px;align-items:end}
+.odo-dist{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:8px 10px;text-align:center}
+.odo-dist-label{font-size:11px;color:var(--muted);margin-bottom:2px}
+.odo-dist-val{font-size:15px;font-weight:700;color:var(--accent);font-family:'Space Mono',monospace}
+
 /* ── SESSION BLOCK ───────────────────────────────── */
 .sess-block{
   background:var(--bg);border:1.5px solid var(--blue);border-radius:10px;
@@ -339,6 +345,26 @@ textarea.inp{resize:none;height:80px}
 .live-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:pulse 1s infinite}
 .timer{font-family:'Space Mono',monospace;font-size:32px;font-weight:700;
   color:var(--accent);text-align:center;margin:6px 0;letter-spacing:3px}
+
+/* ── PETROL TAB ──────────────────────────────────── */
+.fuel-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px}
+.fuel-record{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px;margin-bottom:8px}
+.fuel-record-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.fuel-record-date{font-weight:700;font-size:15px;color:var(--text)}
+.fuel-record-cost{font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--accent)}
+.fuel-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}
+.fuel-stat{background:var(--bg);border-radius:8px;padding:8px 10px}
+.fuel-stat-label{font-size:11px;color:var(--muted);margin-bottom:2px}
+.fuel-stat-val{font-size:13px;font-weight:600;color:var(--text);font-family:'Space Mono',monospace}
+.fuel-photo-btn{width:100%;padding:14px;border:2px dashed var(--border);border-radius:var(--r);
+  background:transparent;color:var(--muted);font-size:14px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px}
+.fuel-photo-btn:active{background:var(--card)}
+.fuel-extracting{text-align:center;padding:16px;color:var(--muted);font-size:14px}
+.fuel-autofill-badge{background:rgba(0,212,170,.15);color:var(--accent);border:1px solid rgba(0,212,170,.3);
+  border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700}
+body.light-mode .fuel-record{background:var(--surface);border:1.5px solid var(--border)}
+body.light-mode .fuel-stat{background:var(--card)}
 
 /* ── START TRIP BTN ──────────────────────────────── */
 .start-btn{
@@ -468,11 +494,18 @@ textarea.inp{resize:none;height:80px}
 
     <!-- Card 2: Total Gross from Trip Log -->
     <div class="card" id="e-gross-card">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
         <div style="font-size:12px;color:var(--muted)">Total Gross (from Trip Log)</div>
-        <span class="autofill-badge" id="e-autofill-badge" style="display:none">AUTO-FILLED</span>
+        <div style="font-size:12px;color:var(--muted);text-align:right">Total Distance</div>
       </div>
-      <div class="gross-number" id="e-gross">$0.00</div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
+        <div class="gross-number" id="e-gross">$0.00</div>
+        <div style="text-align:right">
+          <div style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--accent)" id="e-odo-total">— km</div>
+          <div style="font-size:11px;color:var(--muted)" id="e-gps-dist">GPS: — km</div>
+        </div>
+      </div>
+      <span class="autofill-badge" id="e-autofill-badge" style="display:none">AUTO-FILLED</span>
 
       <!-- Platform boxes — always read-only, auto-populated from Trip Log -->
       <div class="plat-grid" style="margin-top:10px">
@@ -724,6 +757,95 @@ textarea.inp{resize:none;height:80px}
 <!-- Fixed Start Trip bar — always visible above nav -->
 
 <!-- ══════════════════════════════════════════════════
+     SCREEN 5 — PETROL
+══════════════════════════════════════════════════ -->
+<div class="screen" id="screen-petrol">
+  <div class="ph" style="display:flex;justify-content:space-between;align-items:center">
+    <div class="ph-title">⛽ Petrol Log</div>
+    <button class="theme-toggle" id="theme-btn-petrol" onclick="toggleTheme()">&#9728; Light</button>
+  </div>
+
+  <!-- Add New Top-Up -->
+  <div style="padding:12px 12px 0">
+    <div class="fuel-card">
+      <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px;letter-spacing:.05em">NEW TOP-UP</div>
+
+      <!-- Photo capture -->
+      <button class="fuel-photo-btn" onclick="document.getElementById('fuel-photo-input').click()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Take / Upload Receipt Photo
+      </button>
+      <input type="file" id="fuel-photo-input" accept="image/*" capture="environment" style="display:none" onchange="extractFuelReceipt(this)">
+      <div id="fuel-extracting" style="display:none" class="fuel-extracting">
+        <div style="margin-bottom:6px">⏳ Reading receipt...</div>
+        <div style="font-size:12px">Gemini AI is extracting the details</div>
+      </div>
+
+      <!-- Extracted fields -->
+      <div id="fuel-form">
+        <div class="two-col" style="margin-bottom:8px">
+          <div>
+            <label class="lbl">Date</label>
+            <input class="inp" type="date" id="fuel-date" oninput="fuelFormChanged()">
+          </div>
+          <div>
+            <label class="lbl">Price ($/L)</label>
+            <input class="inp" type="number" inputmode="decimal" id="fuel-price-per-l" placeholder="e.g. 2.85" step="0.01" oninput="calcFuelFields()">
+          </div>
+        </div>
+        <div class="two-col" style="margin-bottom:8px">
+          <div>
+            <label class="lbl">Volume Filled (L)</label>
+            <input class="inp" type="number" inputmode="decimal" id="fuel-volume" placeholder="e.g. 35.5" step="0.1" oninput="calcFuelFields()">
+          </div>
+          <div>
+            <label class="lbl">Cost Before Discount ($)</label>
+            <input class="inp" type="number" inputmode="decimal" id="fuel-cost-before" placeholder="e.g. 101.18" step="0.01" oninput="calcFuelFields()">
+          </div>
+        </div>
+        <div class="two-col" style="margin-bottom:8px">
+          <div>
+            <label class="lbl">Fuel Discount ($)</label>
+            <input class="inp" type="number" inputmode="decimal" id="fuel-discount" placeholder="e.g. 5.00" step="0.01" oninput="calcFuelFields()">
+          </div>
+          <div>
+            <label class="lbl">Actual Cost After Discount ($)</label>
+            <input class="inp" type="number" inputmode="decimal" id="fuel-cost-after" placeholder="e.g. 96.18" step="0.01" oninput="calcFuelFields()">
+          </div>
+        </div>
+        <div style="margin-bottom:8px">
+          <label class="lbl">Distance Since Last Top-Up (km)</label>
+          <input class="inp" type="number" inputmode="decimal" id="fuel-distance" placeholder="e.g. 420" step="1" oninput="calcFuelFields()" style="font-family:'Space Mono',monospace">
+        </div>
+
+        <!-- Calculated fields display -->
+        <div id="fuel-calc-display" style="display:none;background:var(--card);border-radius:var(--r);padding:10px;margin-bottom:10px">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:6px;letter-spacing:.05em">CALCULATED</div>
+          <div class="fuel-grid">
+            <div class="fuel-stat"><div class="fuel-stat-label">Discount %</div><div class="fuel-stat-val" id="fc-discount-pct">—</div></div>
+            <div class="fuel-stat"><div class="fuel-stat-label">Consumption (L/km)</div><div class="fuel-stat-val" id="fc-consumption">—</div></div>
+            <div class="fuel-stat"><div class="fuel-stat-label">Days Since Last Top-Up</div><div class="fuel-stat-val" id="fc-days">—</div></div>
+            <div class="fuel-stat"><div class="fuel-stat-label">Period</div><div class="fuel-stat-val" id="fc-period" style="font-size:11px">—</div></div>
+          </div>
+        </div>
+
+        <button class="btn btn-green" onclick="saveFuelRecord()" style="margin-top:4px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
+          Save Top-Up Record
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div style="padding:0 12px">
+    <div style="font-size:12px;color:var(--muted);letter-spacing:.08em;margin-bottom:8px;margin-top:4px">HISTORY</div>
+    <div id="fuel-history-list"></div>
+  </div>
+  <div style="height:100vh"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
      SCREEN 5 — SETTINGS
 ══════════════════════════════════════════════════ -->
 <div class="screen" id="screen-settings">
@@ -782,6 +904,10 @@ textarea.inp{resize:none;height:80px}
   <button class="nb" id="nav-trips" onclick="go('trips',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12h18M3 12l4-4M3 12l4 4M21 12l-4-4M21 12l-4 4"/></svg>
     🛣️ Trips
+  </button>
+  <button class="nb" id="nav-petrol" onclick="go('petrol',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 22V8l6-6h6l2 2v2h1a2 2 0 012 2v3a2 2 0 01-2 2h-1v7H3z"/><path d="M9 2v6H3"/><rect x="6" y="12" width="6" height="4" rx="1"/></svg>
+    ⛽ Petrol
   </button>
   <button class="nb" id="nav-settings" onclick="go('settings',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
@@ -985,7 +1111,8 @@ textarea.inp{resize:none;height:80px}
 ══════════════════════════════════════════════════ -->
 <script>
 // ── CONFIG ────────────────────────────────────────
-const MAPS_API_KEY = 'AIzaSyA7NBp93xetd7yUiCyRJNu6X7pFespVR6c';
+const MAPS_API_KEY = 'AIzaSyAkyNSJQJzZnFY6MH06M15BTKG-OSTBCRQ';
+const GEMINI_API_KEY = 'AIzaSyCpSjT9NV3RCwZmvII2NvJtOz252xq_yUk';
 // Inject Maps JS SDK immediately — loads in background while user reads the app
 (function(){
   const s=document.createElement('script');
@@ -1101,6 +1228,9 @@ function go(name, btn){
   }
   if(name==='trips')   { tripViewDate=null; renderTrips(); }
   if(name==='settings')initSettings();
+  if(name==='petrol'){ renderFuelHistory(); }
+  const ptb=document.getElementById('theme-btn-petrol');
+  if(ptb) ptb.textContent=document.body.classList.contains('light-mode')?'\u263D Dark':'\u2600 Light';
 }
 
 function closeOverlay(id){ document.getElementById(id).classList.remove('open') }
@@ -1291,6 +1421,17 @@ function renderSessions(){
       `<div class="stats-row" style="margin-top:8px">${sessTrips.length} trip${sessTrips.length!==1?'s':''} &middot; ${tkm.toFixed(1)} km${durPart}${dhrStr2}${dkmStr2}</div>`:
       `<div class="stats-row" style="margin-top:8px;color:var(--muted)">No trips recorded yet — start trips first</div>`;
 
+    // Restore odometer values for this session
+    const date2=document.getElementById('e-date').value||fmtDate(new Date());
+    const savedEntry2=getData()[date2]||{};
+    const savedSess2=(savedEntry2.sessions||[])[i-1]||{};
+    const odoStart2=savedSess2.odoStart||'';
+    const odoEnd2=savedSess2.odoEnd||'';
+    const odoDist2=(odoStart2&&odoEnd2&&parseFloat(odoEnd2)>parseFloat(odoStart2))
+      ?(parseFloat(odoEnd2)-parseFloat(odoStart2)).toFixed(1)+' km'
+      :(odoStart2&&odoEnd2&&parseFloat(odoEnd2)<=parseFloat(odoStart2)&&odoEnd2!=='')
+        ?'⚠ Check readings':'— km';
+
     c.innerHTML+=`
     <div class="sess-block">
       <div class="sess-label">Session ${i}</div>
@@ -1315,11 +1456,53 @@ function renderSessions(){
         </div>
       </div>
       <div style="font-size:11px;color:var(--muted);margin-bottom:8px" id="s-hrs-${i}"></div>
-      <label class="lbl">Platform Earnings (from Trip Log)</label>
+      <div class="odo-row">
+        <div>
+          <label class="lbl">Odo Start (km)</label>
+          <input class="inp" type="number" inputmode="numeric" id="s-odo-start-${i}"
+            placeholder="e.g. 12345" value="${odoStart2}"
+            oninput="calcOdoDist(${i});autoSaveEntry()" style="font-family:'Space Mono',monospace">
+        </div>
+        <div>
+          <label class="lbl">Odo End (km)</label>
+          <input class="inp" type="number" inputmode="numeric" id="s-odo-end-${i}"
+            placeholder="e.g. 12567" value="${odoEnd2}"
+            oninput="calcOdoDist(${i});autoSaveEntry()" style="font-family:'Space Mono',monospace">
+        </div>
+        <div class="odo-dist">
+          <div class="odo-dist-label">Distance</div>
+          <div class="odo-dist-val" id="s-odo-dist-${i}">${odoDist2}</div>
+        </div>
+      </div>
+      <label class="lbl" style="margin-top:8px;display:block">Platform Earnings (from Trip Log)</label>
       <div class="plat-grid">${platBoxes}</div>
       ${statsLine}
     </div>`;
   }
+}
+
+// ── ODOMETER CALCULATION ─────────────────────────
+function calcOdoDist(sess){
+  const s=parseFloat(document.getElementById('s-odo-start-'+sess)?.value)||0;
+  const e=parseFloat(document.getElementById('s-odo-end-'+sess)?.value)||0;
+  const el=document.getElementById('s-odo-dist-'+sess);
+  if(!el) return;
+  if(!s&&!e){ el.textContent='— km'; el.style.color='var(--muted)'; }
+  else if(e>s){ el.textContent=(e-s).toFixed(1)+' km'; el.style.color='var(--accent)'; }
+  else if(e>0&&e<=s){ el.textContent='⚠ Check'; el.style.color='var(--danger)'; }
+  else{ el.textContent='— km'; el.style.color='var(--muted)'; }
+  updateOdoTotal();
+}
+
+function updateOdoTotal(){
+  let total=0; let valid=false;
+  for(let i=1;i<=sessCount;i++){
+    const s=parseFloat(document.getElementById('s-odo-start-'+i)?.value)||0;
+    const e=parseFloat(document.getElementById('s-odo-end-'+i)?.value)||0;
+    if(e>s){ total+=e-s; valid=true; }
+  }
+  const el=document.getElementById('e-odo-total');
+  if(el) el.textContent=valid?total.toFixed(1)+' km':'— km';
 }
 
 // Session time values stored separately
@@ -1451,7 +1634,8 @@ function loadEntry(){
       // Render with correct total count — setSessions restores all sessTimeVals
       setSessions(totalCount);
       document.getElementById('e-petrol').value=entry.petrol||'';
-      loadPetrolNow(date); // Override with dedicated petrol slot if available
+      loadPetrolNow(date);
+  checkFuelAutoFill(date); // Auto-fill petrol from Petrol Tab if record exists // Override with dedicated petrol slot if available
       document.getElementById('e-notes').value=entry.notes||'';
     } else {
       document.getElementById('e-rest-notes').value=entry.notes||'';
@@ -1459,7 +1643,8 @@ function loadEntry(){
     updateNet();
   } else {
     document.getElementById('e-petrol').value='';
-    loadPetrolNow(date); // Check dedicated petrol slot even if no full entry saved yet
+    loadPetrolNow(date);
+  checkFuelAutoFill(date); // Auto-fill petrol from Petrol Tab if record exists // Check dedicated petrol slot even if no full entry saved yet
     document.getElementById('e-notes').value='';
     setDriving(true);
     // Restore session count from sessTimeVals if data exists (not yet saved to localStorage)
@@ -1590,7 +1775,10 @@ function autoSaveEntry(){
     const [sh,sm]=start?start.split(':').map(Number):[0,0];
     const [eh,em]=end?end.split(':').map(Number):[0,0];
     let mins=(eh*60+em)-(sh*60+sm); if(mins<0) mins+=1440;
-    sessions.push({start,end,hours:(mins/60).toFixed(1)});
+    const odoStart=parseFloat(document.getElementById('s-odo-start-'+i)?.value)||0;
+    const odoEnd=parseFloat(document.getElementById('s-odo-end-'+i)?.value)||0;
+    const odoKm=(odoEnd>odoStart)?parseFloat((odoEnd-odoStart).toFixed(1)):0;
+    sessions.push({start,end,hours:(mins/60).toFixed(1),odoStart:odoStart||'',odoEnd:odoEnd||'',odoKm});
   }
 
   const existing=data[date]||{};
@@ -1643,7 +1831,10 @@ function saveEntry(){
     const [sh,sm]=start?start.split(':').map(Number):[0,0];
     const [eh,em]=end?end.split(':').map(Number):[0,0];
     let mins=(eh*60+em)-(sh*60+sm); if(mins<0) mins+=1440;
-    sessions.push({start,end,hours:(mins/60).toFixed(1)});
+    const odoStart=parseFloat(document.getElementById('s-odo-start-'+i)?.value)||0;
+    const odoEnd=parseFloat(document.getElementById('s-odo-end-'+i)?.value)||0;
+    const odoKm=(odoEnd>odoStart)?parseFloat((odoEnd-odoStart).toFixed(1)):0;
+    sessions.push({start,end,hours:(mins/60).toFixed(1),odoStart:odoStart||'',odoEnd:odoEnd||'',odoKm});
   }
 
   data[date]={
@@ -1677,6 +1868,16 @@ function renderSummary(){
 
   document.getElementById('tb-gross').textContent=fmtMoney(te?.earnings?.total||0);
   document.getElementById('tb-dist').textContent=(te?.distance||0)+' km';
+  // Update GPS distance label in gross card
+  const gpsEl=document.getElementById('e-gps-dist');
+  if(gpsEl) gpsEl.textContent='GPS: '+(te?.distance||0)+' km';
+  // Update odometer total from saved sessions
+  const odoEl=document.getElementById('e-odo-total');
+  if(odoEl){
+    const savedSessions=(te?.sessions)||[];
+    const odoTotal=savedSessions.reduce((a,s)=>a+(s.odoKm||0),0);
+    odoEl.textContent=odoTotal>0?odoTotal.toFixed(1)+' km':'— km';
+  }
   document.getElementById('tb-net').textContent=fmtMoney(te?.estNet||0);
 
   const prefix=y+'-'+String(mo+1).padStart(2,'0')+'-';
@@ -2427,6 +2628,239 @@ function startShift(){
   go('entry',document.getElementById('nav-entry'));
 }
 
+
+
+// ══════════════════════════════════════════════════════
+// PETROL TAB FUNCTIONS
+// ══════════════════════════════════════════════════════
+
+function getFuelRecords(){
+  try{ return JSON.parse(localStorage.getItem('mdl_fuel')||'[]'); }catch{ return []; }
+}
+function saveFuelRecords(arr){
+  try{ localStorage.setItem('mdl_fuel',JSON.stringify(arr)); }catch{}
+}
+
+function fuelFormChanged(){
+  calcFuelFields();
+}
+
+function calcFuelFields(){
+  const before=parseFloat(document.getElementById('fuel-cost-before').value)||0;
+  const disc=parseFloat(document.getElementById('fuel-discount').value)||0;
+  const vol=parseFloat(document.getElementById('fuel-volume').value)||0;
+  const dist=parseFloat(document.getElementById('fuel-distance').value)||0;
+  const date=document.getElementById('fuel-date').value;
+  const hasData=before>0||disc>0||vol>0||dist>0;
+  document.getElementById('fuel-calc-display').style.display=hasData?'block':'none';
+
+  // Discount %
+  const pctEl=document.getElementById('fc-discount-pct');
+  if(before>0&&disc>0) pctEl.textContent=((disc/before)*100).toFixed(1)+'%';
+  else pctEl.textContent='—';
+
+  // Consumption L/km
+  const consEl=document.getElementById('fc-consumption');
+  if(vol>0&&dist>0) consEl.textContent=(vol/dist).toFixed(3)+' L/km';
+  else consEl.textContent='—';
+
+  // Days since last top-up
+  const daysEl=document.getElementById('fc-days');
+  const periodEl=document.getElementById('fc-period');
+  if(date){
+    const records=getFuelRecords();
+    if(records.length>0){
+      const prev=records[0]; // newest is first
+      const prevDate=new Date(prev.date+'T00:00:00');
+      const thisDate=new Date(date+'T00:00:00');
+      const days=Math.round((thisDate-prevDate)/(1000*60*60*24));
+      if(days>0){
+        daysEl.textContent=days+' day'+(days!==1?'s':'');
+        periodEl.textContent=prev.date+' → '+date;
+      } else { daysEl.textContent='—'; periodEl.textContent='—'; }
+    } else { daysEl.textContent='First record'; periodEl.textContent='—'; }
+  }
+}
+
+async function extractFuelReceipt(input){
+  const file=input.files[0]; if(!file) return;
+  document.getElementById('fuel-extracting').style.display='block';
+  document.getElementById('fuel-form').style.display='none';
+
+  try{
+    const base64=await new Promise((res,rej)=>{
+      const r=new FileReader();
+      r.onload=()=>res(r.result.split(',')[1]);
+      r.onerror=()=>rej(new Error('Read failed'));
+      r.readAsDataURL(file);
+    });
+
+    const prompt=`You are reading a petrol/fuel receipt from Singapore. Extract the following fields and return ONLY a JSON object with no markdown, no explanation:
+{
+  "date": "YYYY-MM-DD or empty string if not found",
+  "pricePerLitre": number or null,
+  "volumeLitres": number or null,
+  "costBeforeDiscount": number or null,
+  "fuelDiscount": number or null,
+  "actualCostAfterDiscount": number or null
+}
+If a field is not visible or unclear, use null. For date, convert any format to YYYY-MM-DD.`;
+
+    const resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+GEMINI_API_KEY,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        contents:[{parts:[
+          {inline_data:{mime_type:file.type,data:base64}},
+          {text:prompt}
+        ]}]
+      })
+    });
+    const data=await resp.json();
+    const raw=data?.candidates?.[0]?.content?.parts?.[0]?.text||'';
+    const clean=raw.replace(/```json|```/g,'').trim();
+    const extracted=JSON.parse(clean);
+
+    // Populate form fields
+    if(extracted.date) document.getElementById('fuel-date').value=extracted.date;
+    if(extracted.pricePerLitre!=null) document.getElementById('fuel-price-per-l').value=extracted.pricePerLitre.toFixed(3);
+    if(extracted.volumeLitres!=null) document.getElementById('fuel-volume').value=extracted.volumeLitres.toFixed(2);
+    if(extracted.costBeforeDiscount!=null) document.getElementById('fuel-cost-before').value=extracted.costBeforeDiscount.toFixed(2);
+    if(extracted.fuelDiscount!=null) document.getElementById('fuel-discount').value=extracted.fuelDiscount.toFixed(2);
+    if(extracted.actualCostAfterDiscount!=null) document.getElementById('fuel-cost-after').value=extracted.actualCostAfterDiscount.toFixed(2);
+
+    toast('Receipt extracted ✓ — please check and fill distance');
+    calcFuelFields();
+  } catch(err){
+    toast('Extraction failed — please fill in manually');
+    console.error(err);
+  }
+
+  document.getElementById('fuel-extracting').style.display='none';
+  document.getElementById('fuel-form').style.display='block';
+  input.value='';
+}
+
+function saveFuelRecord(){
+  const date=document.getElementById('fuel-date').value;
+  if(!date){ toast('Please enter a date'); return; }
+  const pricePerL=parseFloat(document.getElementById('fuel-price-per-l').value)||0;
+  const volume=parseFloat(document.getElementById('fuel-volume').value)||0;
+  const costBefore=parseFloat(document.getElementById('fuel-cost-before').value)||0;
+  const discount=parseFloat(document.getElementById('fuel-discount').value)||0;
+  const costAfter=parseFloat(document.getElementById('fuel-cost-after').value)||0;
+  const distance=parseFloat(document.getElementById('fuel-distance').value)||0;
+
+  if(costAfter<=0){ toast('Please enter actual fuel cost'); return; }
+
+  // Calculated fields
+  const discountPct=costBefore>0&&discount>0?((discount/costBefore)*100).toFixed(1):null;
+  const consumption=volume>0&&distance>0?(volume/distance).toFixed(3):null;
+  const records=getFuelRecords();
+  const prevRecord=records[0]||null;
+  let daysSinceLast=null, periodFrom=null;
+  if(prevRecord){
+    const prev=new Date(prevRecord.date+'T00:00:00');
+    const curr=new Date(date+'T00:00:00');
+    const d=Math.round((curr-prev)/(1000*60*60*24));
+    if(d>0){ daysSinceLast=d; periodFrom=prevRecord.date; }
+  }
+
+  const record={
+    id:Date.now(), date, pricePerL, volume, costBefore, discount,
+    costAfter, distance, discountPct, consumption,
+    daysSinceLast, periodFrom
+  };
+
+  records.unshift(record); // newest first
+  saveFuelRecords(records);
+
+  // Auto-fill Entry page petrol field for this date
+  syncFuelToEntry(date, costAfter);
+
+  // Clear form
+  ['fuel-date','fuel-price-per-l','fuel-volume','fuel-cost-before',
+   'fuel-discount','fuel-cost-after','fuel-distance'].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+  document.getElementById('fuel-calc-display').style.display='none';
+
+  toast('Top-up saved ✓ — petrol cost updated in Entry page');
+  renderFuelHistory();
+}
+
+function syncFuelToEntry(date, costAfter){
+  // Save petrol cost into the entry data for this date
+  const data=getData();
+  if(!data[date]) data[date]={date,driving:true,petrol:costAfter};
+  else data[date].petrol=costAfter;
+  saveData(data);
+  // Also update dedicated petrol slot
+  try{ localStorage.setItem('mdl_petrol_'+date, costAfter.toFixed(2)); }catch{}
+  // If currently viewing this date in Entry, update the field live
+  const entryDate=document.getElementById('e-date')?.value;
+  if(entryDate===date){
+    const pf=document.getElementById('e-petrol');
+    if(pf){ pf.value=costAfter.toFixed(2); }
+    const net=document.getElementById('e-net');
+    if(net){
+      const gross=parseFloat(document.getElementById('e-gross')?.textContent?.replace(/[^0-9.]/g,'')||'0');
+      net.textContent=fmtMoney(gross-costAfter);
+    }
+  }
+}
+
+function renderFuelHistory(){
+  const list=document.getElementById('fuel-history-list');
+  if(!list) return;
+  const records=getFuelRecords();
+  if(records.length===0){
+    list.innerHTML='<div style="text-align:center;padding:24px;color:var(--muted);font-size:14px">No top-up records yet</div>';
+    return;
+  }
+  list.innerHTML=records.map(r=>`
+    <div class="fuel-record">
+      <div class="fuel-record-header">
+        <div>
+          <div class="fuel-record-date">${r.date}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">${r.volume?r.volume.toFixed(1)+'L':''} ${r.pricePerL?'@ $'+r.pricePerL.toFixed(3)+'/L':''}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="fuel-record-cost">$${r.costAfter.toFixed(2)}</div>
+          ${r.discount>0?'<div style="font-size:12px;color:var(--muted)">saved $'+r.discount.toFixed(2)+'</div>':''}
+        </div>
+      </div>
+      <div class="fuel-grid">
+        ${r.discountPct?'<div class="fuel-stat"><div class="fuel-stat-label">Discount</div><div class="fuel-stat-val">'+r.discountPct+'%</div></div>':''}
+        ${r.consumption?'<div class="fuel-stat"><div class="fuel-stat-label">Consumption</div><div class="fuel-stat-val">'+r.consumption+' L/km</div></div>':''}
+        ${r.distance?'<div class="fuel-stat"><div class="fuel-stat-label">Distance</div><div class="fuel-stat-val">'+r.distance+' km</div></div>':''}
+        ${r.daysSinceLast?'<div class="fuel-stat"><div class="fuel-stat-label">Days Since Last</div><div class="fuel-stat-val">'+r.daysSinceLast+'d</div></div>':''}
+      </div>
+      ${r.periodFrom?'<div style="font-size:11px;color:var(--muted);margin-top:6px">Period: '+r.periodFrom+' → '+r.date+'</div>':''}
+      <div style="margin-top:8px;text-align:right">
+        <button onclick="deleteFuelRecord(${r.id})" style="background:none;border:none;color:var(--danger);font-size:12px;cursor:pointer">✕ Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function deleteFuelRecord(id){
+  const records=getFuelRecords().filter(r=>r.id!==id);
+  saveFuelRecords(records);
+  renderFuelHistory();
+  toast('Record deleted');
+}
+
+// On Entry page load — check if a fuel record exists for this date and auto-fill petrol
+function checkFuelAutoFill(date){
+  const records=getFuelRecords();
+  const match=records.find(r=>r.date===date);
+  if(match){
+    const pf=document.getElementById('e-petrol');
+    if(pf&&!pf.value) pf.value=match.costAfter.toFixed(2);
+  }
+}
+
 window.addEventListener('load',()=>{
   // Restore session times from localStorage before initEntry runs
   try{
@@ -2468,7 +2902,7 @@ window.addEventListener('load',()=>{
 function toggleTheme(){
   const light=document.body.classList.toggle('light-mode');
   const label=light?'\u263D Dark':'\u2600 Light';
-  ['theme-btn','theme-btn-entry','theme-btn-history'].forEach(function(id){
+  ['theme-btn','theme-btn-entry','theme-btn-history','theme-btn-petrol'].forEach(function(id){
     const el=document.getElementById(id); if(el) el.textContent=label;
   });
   try{ localStorage.setItem('mdl_theme',light?'light':'dark'); }catch{}
@@ -2477,7 +2911,7 @@ function toggleTheme(){
   try{
     if(localStorage.getItem('mdl_theme')==='light'){
       document.body.classList.add('light-mode');
-      ['theme-btn','theme-btn-entry','theme-btn-history'].forEach(function(id){
+      ['theme-btn','theme-btn-entry','theme-btn-history','theme-btn-petrol'].forEach(function(id){
         const el=document.getElementById(id); if(el) el.textContent='\u263D Dark';
       });
     }
