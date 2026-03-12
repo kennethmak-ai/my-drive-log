@@ -770,12 +770,19 @@ body.light-mode .fuel-stat{background:var(--card)}
     <div class="fuel-card">
       <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px;letter-spacing:.05em">NEW TOP-UP</div>
 
-      <!-- Photo capture -->
-      <button class="fuel-photo-btn" onclick="document.getElementById('fuel-photo-input').click()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
-        Take / Upload Receipt Photo
-      </button>
-      <input type="file" id="fuel-photo-input" accept="image/*" capture="environment" style="display:none" onchange="extractFuelReceipt(this)">
+      <!-- Photo capture options -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <button class="fuel-photo-btn" onclick="document.getElementById('fuel-camera-input').click()" style="flex-direction:column;gap:6px;padding:12px 8px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          <span style="font-size:12px">Take Photo</span>
+        </button>
+        <button class="fuel-photo-btn" onclick="document.getElementById('fuel-library-input').click()" style="flex-direction:column;gap:6px;padding:12px 8px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <span style="font-size:12px">Photo Library</span>
+        </button>
+      </div>
+      <input type="file" id="fuel-camera-input" accept="image/*" capture="environment" style="display:none" onchange="extractFuelReceipt(this)">
+      <input type="file" id="fuel-library-input" accept="image/*" style="display:none" onchange="extractFuelReceipt(this)">
       <div id="fuel-extracting" style="display:none" class="fuel-extracting">
         <div style="margin-bottom:6px">⏳ Reading receipt...</div>
         <div style="font-size:12px">Gemini AI is extracting the details</div>
@@ -2740,6 +2747,13 @@ function calcFuelFields(){
 
 async function extractFuelReceipt(input){
   const file=input.files[0]; if(!file) return;
+
+  // Check key is set
+  if(!GEMINI_API_KEY||GEMINI_API_KEY==='YOUR_GEMINI_API_KEY_HERE'){
+    toast('Gemini API key not set — please add your key to the file');
+    input.value=''; return;
+  }
+
   document.getElementById('fuel-extracting').style.display='block';
   document.getElementById('fuel-form').style.display='none';
 
@@ -2772,8 +2786,26 @@ If a field is not visible or unclear, use null. For date, convert any format to 
         ]}]
       })
     });
+
     const data=await resp.json();
+
+    // Check for API-level errors
+    if(data.error){
+      toast('Gemini error: '+data.error.message);
+      console.error('Gemini API error:',data.error);
+      document.getElementById('fuel-extracting').style.display='none';
+      document.getElementById('fuel-form').style.display='block';
+      input.value=''; return;
+    }
+
     const raw=data?.candidates?.[0]?.content?.parts?.[0]?.text||'';
+    if(!raw){
+      toast('Gemini returned empty response — try again');
+      document.getElementById('fuel-extracting').style.display='none';
+      document.getElementById('fuel-form').style.display='block';
+      input.value=''; return;
+    }
+
     const clean=raw.replace(/```json|```/g,'').trim();
     const extracted=JSON.parse(clean);
 
@@ -2788,8 +2820,8 @@ If a field is not visible or unclear, use null. For date, convert any format to 
     toast('Receipt extracted ✓ — please check and fill distance');
     calcFuelFields();
   } catch(err){
-    toast('Extraction failed — please fill in manually');
-    console.error(err);
+    toast('Extraction failed: '+err.message);
+    console.error('extractFuelReceipt error:',err);
   }
 
   document.getElementById('fuel-extracting').style.display='none';
@@ -3116,40 +3148,36 @@ function setLocationMode(type, mode){
 async function _geocodeAndStore(type, query, resultEl){
   resultEl.textContent='Looking up...'; resultEl.style.display='block';
   try{
-    const url='https://maps.googleapis.com/maps/api/geocode/json?'
-      +'address='+encodeURIComponent(query+', Singapore')
-      +'&region=sg&key='+MAPS_API_KEY;
-    const resp=await fetch(url);
-    const data=await resp.json();
-    if(data.results&&data.results.length>0){
-      const r=data.results[0];
-      const comps=r.address_components||[];
-      const town=(comps.find(c=>c.types.includes('neighborhood'))||
-                  comps.find(c=>c.types.includes('sublocality_level_1'))||
-                  comps.find(c=>c.types.includes('sublocality'))||
-                  comps.find(c=>c.types.includes('locality'))||{}).long_name||'';
-      const postalComp=(comps.find(c=>c.types.includes('postal_code'))||{}).long_name||'';
-      const fullAddress=r.formatted_address||'';
-      const displayAddr=fullAddress.replace(', Singapore','').replace(/, \d{6}$/,'').trim();
-      const addrObj={
-        address:(postalComp?postalComp+' ':'')+town+(town?' — ':' ')+displayAddr,
-        town:town,
-        postal:postalComp,
-        lat:r.geometry.location.lat,
-        lng:r.geometry.location.lng
-      };
-      if(type==='pickup') editTripVals.pickupAddr=addrObj;
-      else editTripVals.dropoffAddr=addrObj;
-      resultEl.textContent=(postalComp||'')+' '+town+' — '+displayAddr;
-      resultEl.style.color='var(--accent)';
-    } else {
-      const status=data.status||'UNKNOWN';
-      resultEl.textContent='Not found ('+status+') — check entry or try address mode';
-      resultEl.style.color='var(--danger)';
-      console.error('Geocode failed:',data);
-    }
+    // Use Google Maps JS SDK — same method as working GPS address lookup
+    await loadGMaps();
+    const geocoder=new google.maps.Geocoder();
+    const result=await new Promise((res,rej)=>{
+      geocoder.geocode({address:query+', Singapore',region:'SG'},(results,status)=>{
+        if(status==='OK'&&results&&results.length>0) res(results[0]);
+        else rej(new Error(status));
+      });
+    });
+    const comps=result.address_components||[];
+    const town=(comps.find(c=>c.types.includes('sublocality_level_1'))||
+                comps.find(c=>c.types.includes('neighborhood'))||
+                comps.find(c=>c.types.includes('sublocality'))||
+                comps.find(c=>c.types.includes('locality'))||{}).long_name||'Singapore';
+    const postalComp=(comps.find(c=>c.types.includes('postal_code'))||{}).long_name||'';
+    const fullAddress=result.formatted_address||'';
+    const displayAddr=fullAddress.replace(', Singapore','').replace(/, \d{6}$/, '').trim();
+    const addrObj={
+      address:(postalComp?postalComp+' ':'')+town+' — '+displayAddr,
+      town:town,
+      postal:postalComp,
+      lat:result.geometry.location.lat(),
+      lng:result.geometry.location.lng()
+    };
+    if(type==='pickup') editTripVals.pickupAddr=addrObj;
+    else editTripVals.dropoffAddr=addrObj;
+    resultEl.textContent=(postalComp?postalComp+' ':'')+town+' — '+displayAddr;
+    resultEl.style.color='var(--accent)';
   } catch(err){
-    resultEl.textContent='Lookup failed — check your internet connection';
+    resultEl.textContent='Not found — check entry or try address mode ('+err.message+')';
     resultEl.style.color='var(--danger)';
     console.error('Geocode error:',err);
   }
