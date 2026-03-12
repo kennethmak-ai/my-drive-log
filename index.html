@@ -24,7 +24,7 @@ function _mapsCallback(){
   --bg:#0D1117; --surface:#161B27; --card:#1C2333; --border:#252E45;
   --accent:#00D4AA; --blue:#3B82F6; --warn:#F59E0B; --danger:#EF4444;
   --yellow:#FFD60A; --text:#E6EDF3; --muted:#C8D0DC;
-  --nav-h:62px;
+  --nav-h:70px;
   --tada:#F97316; --grab:#00B14F; --gojek:#38BDF8; --others:#A78BFA;
   --r:12px;
 }
@@ -134,15 +134,15 @@ input,textarea{font-family:'DM Sans',sans-serif}
 nav{
   position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);
   background:var(--surface);border-top:1px solid var(--border);
-  display:grid;grid-template-columns:repeat(5,1fr);z-index:200
+  display:grid;grid-template-columns:repeat(6,1fr);z-index:200
 }
 .nb{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:3px;border:none;background:none;color:var(--muted);
-  font-size:9px;font-weight:600;letter-spacing:.4px;padding:6px 2px;
+  font-size:8px;font-weight:600;letter-spacing:.2px;padding:4px 1px;
   transition:color .15s;position:relative
 }
-.nb svg{width:21px;height:21px;stroke-width:1.8}
+.nb svg{width:19px;height:19px;stroke-width:1.8}
 .nb.on{color:var(--accent)}
 .nb.on svg{stroke:var(--accent)}
 
@@ -1033,7 +1033,7 @@ body.light-mode .fuel-stat{background:var(--card)}
 
 <!-- Edit Trip overlay -->
 <div class="overlay" id="edit-overlay">
-  <div class="sheet">
+  <div class="sheet" style="max-height:90vh;overflow-y:auto">
     <div class="sheet-handle"></div>
     <div class="sheet-title">EDIT TRIP INFO</div>
     <div style="margin-bottom:12px">
@@ -1071,10 +1071,43 @@ body.light-mode .fuel-stat{background:var(--card)}
         <button class="tog" onclick="editSetStops(2,this)">2 Stops</button>
       </div>
     </div>
+    <!-- Trip Timing -->
+    <div style="font-size:11px;color:var(--accent);letter-spacing:.08em;margin-bottom:8px;margin-top:4px">TRIP TIMING</div>
+    <div class="two-col" style="margin-bottom:12px">
+      <div>
+        <label class="lbl">Start Time</label>
+        <input id="edit-start-time" type="time" class="inp" style="width:100%">
+      </div>
+      <div>
+        <label class="lbl">End Time</label>
+        <input id="edit-end-time" type="time" class="inp" style="width:100%">
+      </div>
+    </div>
+    <!-- Pickup Location -->
+    <div style="font-size:11px;color:var(--accent);letter-spacing:.08em;margin-bottom:8px">PICKUP LOCATION</div>
+    <div style="margin-bottom:6px">
+      <label class="lbl">Postal Code</label>
+      <div style="display:flex;gap:6px">
+        <input id="edit-pickup-postal" type="number" inputmode="numeric" class="inp" placeholder="e.g. 018956" style="flex:1;font-family:'Space Mono',monospace">
+        <button onclick="geocodeEditPostal('pickup')" style="background:var(--accent);color:#0D1117;border:none;border-radius:var(--r);padding:0 12px;font-size:12px;font-weight:700;cursor:pointer">Look up</button>
+      </div>
+    </div>
+    <div id="edit-pickup-result" style="font-size:12px;color:var(--muted);margin-bottom:12px;padding:6px 8px;background:var(--card);border-radius:8px;display:none"></div>
+    <!-- Dropoff Location -->
+    <div style="font-size:11px;color:var(--accent);letter-spacing:.08em;margin-bottom:8px">DROPOFF LOCATION</div>
+    <div style="margin-bottom:6px">
+      <label class="lbl">Postal Code</label>
+      <div style="display:flex;gap:6px">
+        <input id="edit-dropoff-postal" type="number" inputmode="numeric" class="inp" placeholder="e.g. 238823" style="flex:1;font-family:'Space Mono',monospace">
+        <button onclick="geocodeEditPostal('dropoff')" style="background:var(--accent);color:#0D1117;border:none;border-radius:var(--r);padding:0 12px;font-size:12px;font-weight:700;cursor:pointer">Look up</button>
+      </div>
+    </div>
+    <div id="edit-dropoff-result" style="font-size:12px;color:var(--muted);margin-bottom:12px;padding:6px 8px;background:var(--card);border-radius:8px;display:none"></div>
     <div style="height:8px"></div>
     <button class="btn btn-green" onclick="saveEditTrip()">Save Changes</button>
     <div style="height:8px"></div>
     <button class="btn btn-gray" onclick="closeOverlay('edit-overlay')">Cancel</button>
+    <div style="height:16px"></div>
   </div>
 </div>
 
@@ -1658,6 +1691,20 @@ function loadEntry(){
       }
     }
   }
+  // Restore odometer total from saved entry — runs every time Entry loads
+  const odoEl=document.getElementById('e-odo-total');
+  if(odoEl){
+    const entryForOdo=getData()[date]||{};
+    const odoSessions=(entryForOdo.sessions)||[];
+    const odoTotal=odoSessions.reduce((a,s)=>a+(s.odoKm||0),0);
+    odoEl.textContent=odoTotal>0?odoTotal.toFixed(1)+' km':'— km';
+  }
+  // Restore GPS distance label
+  const gpsEl=document.getElementById('e-gps-dist');
+  if(gpsEl){
+    const entryForGps=getData()[date]||{};
+    gpsEl.textContent='GPS: '+(entryForGps.distance||0)+' km';
+  }
   _isLoading=false; // Loading complete — auto-save now allowed
 }
 
@@ -1869,15 +1916,6 @@ function renderSummary(){
   document.getElementById('tb-gross').textContent=fmtMoney(te?.earnings?.total||0);
   document.getElementById('tb-dist').textContent=(te?.distance||0)+' km';
   // Update GPS distance label in gross card
-  const gpsEl=document.getElementById('e-gps-dist');
-  if(gpsEl) gpsEl.textContent='GPS: '+(te?.distance||0)+' km';
-  // Update odometer total from saved sessions
-  const odoEl=document.getElementById('e-odo-total');
-  if(odoEl){
-    const savedSessions=(te?.sessions)||[];
-    const odoTotal=savedSessions.reduce((a,s)=>a+(s.odoKm||0),0);
-    odoEl.textContent=odoTotal>0?odoTotal.toFixed(1)+' km':'— km';
-  }
   document.getElementById('tb-net').textContent=fmtMoney(te?.estNet||0);
 
   const prefix=y+'-'+String(mo+1).padStart(2,'0')+'-';
@@ -2956,12 +2994,30 @@ function openEditTrip(){
   const trips=getTrips();
   const t=trips.find(function(x){return String(x.id)===String(detailTripId);});
   if(!t) return;
-  editTripVals={plat:t.platform,mode:t.mode,sess:t.sessionNum||1,stops:t.stops||1};
+  editTripVals={
+    plat:t.platform, mode:t.mode, sess:t.sessionNum||1, stops:t.stops||1,
+    pickupAddr:t.pickup||{}, dropoffAddr:t.dropoff||{}
+  };
   document.getElementById('edit-fare').value=(t.fare||0).toFixed(2);
   document.querySelectorAll('#edit-plat-tog .tog').forEach(function(b){b.classList.toggle('on',b.textContent===t.platform);});
   document.querySelectorAll('#edit-mode-tog .tog').forEach(function(b){b.classList.toggle('on',b.textContent===t.mode);});
   document.querySelectorAll('#edit-sess-tog .tog').forEach(function(b,i){b.classList.toggle('on',i+1===(t.sessionNum||1));});
   document.querySelectorAll('#edit-stops-tog .tog').forEach(function(b,i){b.classList.toggle('on',i+1===(t.stops||1));});
+  // Timing
+  document.getElementById('edit-start-time').value=t.startTime||'';
+  document.getElementById('edit-end-time').value=t.endTime||'';
+  // Pickup
+  const pickupPostal=t.pickup?.postal||'';
+  document.getElementById('edit-pickup-postal').value=pickupPostal;
+  const pickupResult=document.getElementById('edit-pickup-result');
+  if(t.pickup?.address){ pickupResult.textContent=t.pickup.address; pickupResult.style.display='block'; }
+  else{ pickupResult.style.display='none'; }
+  // Dropoff
+  const dropoffPostal=t.dropoff?.postal||'';
+  document.getElementById('edit-dropoff-postal').value=dropoffPostal;
+  const dropoffResult=document.getElementById('edit-dropoff-result');
+  if(t.dropoff?.address){ dropoffResult.textContent=t.dropoff.address; dropoffResult.style.display='block'; }
+  else{ dropoffResult.style.display='none'; }
   closeOverlay('detail-overlay');
   document.getElementById('edit-overlay').classList.add('open');
 }
@@ -2998,11 +3054,71 @@ function saveEditTrip(){
   trips[idx].mode=editTripVals.mode||trips[idx].mode;
   trips[idx].sessionNum=editTripVals.sess||trips[idx].sessionNum;
   trips[idx].stops=editTripVals.stops||trips[idx].stops;
+  // Save timing
+  const st=document.getElementById('edit-start-time').value;
+  const et=document.getElementById('edit-end-time').value;
+  if(st) trips[idx].startTime=st;
+  if(et) trips[idx].endTime=et;
+  // Recalculate duration from times if both set
+  if(st&&et){
+    const [sh,sm]=st.split(':').map(Number);
+    const [eh,em]=et.split(':').map(Number);
+    let mins=(eh*60+em)-(sh*60+sm); if(mins<0) mins+=1440;
+    trips[idx].durationMins=mins;
+  }
+  // Save location if geocoded result exists
+  if(editTripVals.pickupAddr&&editTripVals.pickupAddr.address){
+    trips[idx].pickup=editTripVals.pickupAddr;
+  }
+  if(editTripVals.dropoffAddr&&editTripVals.dropoffAddr.address){
+    trips[idx].dropoff=editTripVals.dropoffAddr;
+  }
   try{ localStorage.setItem('mdl_trips_v305',JSON.stringify(trips)); }catch{}
   closeOverlay('edit-overlay');
   renderTrips();
   refreshEntryEarnings();
   toast('Trip updated \u2713');
+}
+
+// Geocode a postal code entered in the edit overlay
+async function geocodeEditPostal(type){
+  const inputId=type==='pickup'?'edit-pickup-postal':'edit-dropoff-postal';
+  const resultId=type==='pickup'?'edit-pickup-result':'edit-dropoff-result';
+  const postal=document.getElementById(inputId).value.trim();
+  if(!postal||postal.length<5){ toast('Enter a valid postal code'); return; }
+  const resultEl=document.getElementById(resultId);
+  resultEl.textContent='Looking up...'; resultEl.style.display='block';
+  try{
+    const resp=await fetch('https://maps.googleapis.com/maps/api/geocode/json?address=Singapore+'+postal+'&key='+MAPS_API_KEY);
+    const data=await resp.json();
+    if(data.results&&data.results.length>0){
+      const r=data.results[0];
+      const comps=r.address_components||[];
+      // Extract town/area name
+      const town=(comps.find(c=>c.types.includes('neighborhood'))||
+                  comps.find(c=>c.types.includes('sublocality'))||
+                  comps.find(c=>c.types.includes('locality'))||{}).long_name||'';
+      const postalComp=(comps.find(c=>c.types.includes('postal_code'))||{}).long_name||postal;
+      const fullAddress=r.formatted_address||'';
+      const addrObj={
+        address: postalComp+' '+town+' — '+fullAddress.replace(', Singapore','').replace(', Singapore',''),
+        town: town,
+        postal: postalComp,
+        lat: r.geometry.location.lat,
+        lng: r.geometry.location.lng
+      };
+      if(type==='pickup') editTripVals.pickupAddr=addrObj;
+      else editTripVals.dropoffAddr=addrObj;
+      resultEl.textContent=postalComp+' '+town+' ('+fullAddress.split(',')[0]+')';
+      resultEl.style.color='var(--accent)';
+    } else {
+      resultEl.textContent='Postal code not found — check and try again';
+      resultEl.style.color='var(--danger)';
+    }
+  } catch(err){
+    resultEl.textContent='Lookup failed — check connection';
+    resultEl.style.color='var(--danger)';
+  }
 }
 </script>
 
