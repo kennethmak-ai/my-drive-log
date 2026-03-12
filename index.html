@@ -1085,21 +1085,39 @@ body.light-mode .fuel-stat{background:var(--card)}
     </div>
     <!-- Pickup Location -->
     <div style="font-size:11px;color:var(--accent);letter-spacing:.08em;margin-bottom:8px">PICKUP LOCATION</div>
-    <div style="margin-bottom:6px">
-      <label class="lbl">Postal Code</label>
+    <div style="display:flex;gap:6px;margin-bottom:8px">
+      <button class="tog on" id="pickup-mode-postal" onclick="setLocationMode('pickup','postal')" style="flex:1;font-size:11px">Postal Code</button>
+      <button class="tog" id="pickup-mode-address" onclick="setLocationMode('pickup','address')" style="flex:1;font-size:11px">Address / Name</button>
+    </div>
+    <div id="pickup-postal-row" style="margin-bottom:6px">
       <div style="display:flex;gap:6px">
-        <input id="edit-pickup-postal" type="number" inputmode="numeric" class="inp" placeholder="e.g. 018956" style="flex:1;font-family:'Space Mono',monospace">
+        <input id="edit-pickup-postal" type="text" inputmode="numeric" maxlength="6" class="inp" placeholder="e.g. 018956" style="flex:1;font-family:'Space Mono',monospace">
         <button onclick="geocodeEditPostal('pickup')" style="background:var(--accent);color:#0D1117;border:none;border-radius:var(--r);padding:0 12px;font-size:12px;font-weight:700;cursor:pointer">Look up</button>
+      </div>
+    </div>
+    <div id="pickup-address-row" style="margin-bottom:6px;display:none">
+      <div style="display:flex;gap:6px">
+        <input id="edit-pickup-text" type="text" class="inp" placeholder="e.g. Raffles Place, Orchard Road..." style="flex:1">
+        <button onclick="geocodeEditAddress('pickup')" style="background:var(--accent);color:#0D1117;border:none;border-radius:var(--r);padding:0 12px;font-size:12px;font-weight:700;cursor:pointer">Look up</button>
       </div>
     </div>
     <div id="edit-pickup-result" style="font-size:12px;color:var(--muted);margin-bottom:12px;padding:6px 8px;background:var(--card);border-radius:8px;display:none"></div>
     <!-- Dropoff Location -->
     <div style="font-size:11px;color:var(--accent);letter-spacing:.08em;margin-bottom:8px">DROPOFF LOCATION</div>
-    <div style="margin-bottom:6px">
-      <label class="lbl">Postal Code</label>
+    <div style="display:flex;gap:6px;margin-bottom:8px">
+      <button class="tog on" id="dropoff-mode-postal" onclick="setLocationMode('dropoff','postal')" style="flex:1;font-size:11px">Postal Code</button>
+      <button class="tog" id="dropoff-mode-address" onclick="setLocationMode('dropoff','address')" style="flex:1;font-size:11px">Address / Name</button>
+    </div>
+    <div id="dropoff-postal-row" style="margin-bottom:6px">
       <div style="display:flex;gap:6px">
-        <input id="edit-dropoff-postal" type="number" inputmode="numeric" class="inp" placeholder="e.g. 238823" style="flex:1;font-family:'Space Mono',monospace">
+        <input id="edit-dropoff-postal" type="text" inputmode="numeric" maxlength="6" class="inp" placeholder="e.g. 238823" style="flex:1;font-family:'Space Mono',monospace">
         <button onclick="geocodeEditPostal('dropoff')" style="background:var(--accent);color:#0D1117;border:none;border-radius:var(--r);padding:0 12px;font-size:12px;font-weight:700;cursor:pointer">Look up</button>
+      </div>
+    </div>
+    <div id="dropoff-address-row" style="margin-bottom:6px;display:none">
+      <div style="display:flex;gap:6px">
+        <input id="edit-dropoff-text" type="text" class="inp" placeholder="e.g. Changi Airport, Jurong East..." style="flex:1">
+        <button onclick="geocodeEditAddress('dropoff')" style="background:var(--accent);color:#0D1117;border:none;border-radius:var(--r);padding:0 12px;font-size:12px;font-weight:700;cursor:pointer">Look up</button>
       </div>
     </div>
     <div id="edit-dropoff-result" style="font-size:12px;color:var(--muted);margin-bottom:12px;padding:6px 8px;background:var(--card);border-radius:8px;display:none"></div>
@@ -1144,7 +1162,7 @@ body.light-mode .fuel-stat{background:var(--card)}
 ══════════════════════════════════════════════════ -->
 <script>
 // ── CONFIG ────────────────────────────────────────
-const MAPS_API_KEY = 'AIzaSyAkyNSJQJzZnFY6MH06M15BTKG-OSTBCRQ';
+const MAPS_API_KEY = ' AIzaSyAkyNSJQJzZnFY6MH06M15BTKG-OSTBCRQ';
 const GEMINI_API_KEY = 'AIzaSyCpSjT9NV3RCwZmvII2NvJtOz252xq_yUk';
 // Inject Maps JS SDK immediately — loads in background while user reads the app
 (function(){
@@ -3081,7 +3099,79 @@ function saveEditTrip(){
 }
 
 // Geocode a postal code entered in the edit overlay
+function setLocationMode(type, mode){
+  const postalRow=document.getElementById(type+'-postal-row');
+  const addressRow=document.getElementById(type+'-address-row');
+  const postalBtn=document.getElementById(type+'-mode-postal');
+  const addressBtn=document.getElementById(type+'-mode-address');
+  if(mode==='postal'){
+    postalRow.style.display='block'; addressRow.style.display='none';
+    postalBtn.classList.add('on'); addressBtn.classList.remove('on');
+  } else {
+    postalRow.style.display='none'; addressRow.style.display='block';
+    postalBtn.classList.remove('on'); addressBtn.classList.add('on');
+  }
+}
+
+async function _geocodeAndStore(type, query, resultEl){
+  resultEl.textContent='Looking up...'; resultEl.style.display='block';
+  try{
+    const url='https://maps.googleapis.com/maps/api/geocode/json?'
+      +'address='+encodeURIComponent(query+', Singapore')
+      +'&region=sg&key='+MAPS_API_KEY;
+    const resp=await fetch(url);
+    const data=await resp.json();
+    if(data.results&&data.results.length>0){
+      const r=data.results[0];
+      const comps=r.address_components||[];
+      const town=(comps.find(c=>c.types.includes('neighborhood'))||
+                  comps.find(c=>c.types.includes('sublocality_level_1'))||
+                  comps.find(c=>c.types.includes('sublocality'))||
+                  comps.find(c=>c.types.includes('locality'))||{}).long_name||'';
+      const postalComp=(comps.find(c=>c.types.includes('postal_code'))||{}).long_name||'';
+      const fullAddress=r.formatted_address||'';
+      const displayAddr=fullAddress.replace(', Singapore','').replace(/, \d{6}$/,'').trim();
+      const addrObj={
+        address:(postalComp?postalComp+' ':'')+town+(town?' — ':' ')+displayAddr,
+        town:town,
+        postal:postalComp,
+        lat:r.geometry.location.lat,
+        lng:r.geometry.location.lng
+      };
+      if(type==='pickup') editTripVals.pickupAddr=addrObj;
+      else editTripVals.dropoffAddr=addrObj;
+      resultEl.textContent=(postalComp||'')+' '+town+' — '+displayAddr;
+      resultEl.style.color='var(--accent)';
+    } else {
+      resultEl.textContent='Location not found — check and try again';
+      resultEl.style.color='var(--danger)';
+    }
+  } catch(err){
+    resultEl.textContent='Lookup failed — check connection';
+    resultEl.style.color='var(--danger)';
+  }
+}
+
 async function geocodeEditPostal(type){
+  const inputId=type==='pickup'?'edit-pickup-postal':'edit-dropoff-postal';
+  const resultId=type==='pickup'?'edit-pickup-result':'edit-dropoff-result';
+  const postal=document.getElementById(inputId).value.trim();
+  if(!postal||postal.length<5){ toast('Enter a valid postal code'); return; }
+  const resultEl=document.getElementById(resultId);
+  // Use postal_code component filter — most reliable for Singapore 6-digit codes
+  await _geocodeAndStore(type, postal, resultEl);
+}
+
+async function geocodeEditAddress(type){
+  const inputId=type==='pickup'?'edit-pickup-text':'edit-dropoff-text';
+  const resultId=type==='pickup'?'edit-pickup-result':'edit-dropoff-result';
+  const addr=document.getElementById(inputId).value.trim();
+  if(!addr){ toast('Enter an address or place name'); return; }
+  const resultEl=document.getElementById(resultId);
+  await _geocodeAndStore(type, addr, resultEl);
+}
+
+async function _geocodeEditPostal_UNUSED(type){
   const inputId=type==='pickup'?'edit-pickup-postal':'edit-dropoff-postal';
   const resultId=type==='pickup'?'edit-pickup-result':'edit-dropoff-result';
   const postal=document.getElementById(inputId).value.trim();
@@ -3094,7 +3184,6 @@ async function geocodeEditPostal(type){
     if(data.results&&data.results.length>0){
       const r=data.results[0];
       const comps=r.address_components||[];
-      // Extract town/area name
       const town=(comps.find(c=>c.types.includes('neighborhood'))||
                   comps.find(c=>c.types.includes('sublocality'))||
                   comps.find(c=>c.types.includes('locality'))||{}).long_name||'';
