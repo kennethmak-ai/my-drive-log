@@ -872,6 +872,17 @@ body.light-mode .fuel-stat{background:var(--card)}
     <input type="number" class="set-inp" id="s-petrol" value="40" oninput="saveSettings()">
   </div>
 
+  <div class="set-section-title" style="margin-top:18px">API Keys</div>
+  <div class="set-row">
+    <div><div class="set-label">Google Maps API Key</div><div class="set-sub">Required for GPS and address lookup</div></div>
+    <input type="text" class="set-inp" id="s-maps-key" placeholder="Paste key here" oninput="saveApiKeys()" style="font-size:11px;width:160px">
+  </div>
+  <div class="set-row">
+    <div><div class="set-label">Gemini API Key</div><div class="set-sub">Required for petrol receipt scanning</div></div>
+    <input type="text" class="set-inp" id="s-gemini-key" placeholder="Paste key here" oninput="saveApiKeys()" style="font-size:11px;width:160px">
+  </div>
+  <div style="padding:0 12px;font-size:11px;color:var(--muted);margin-top:-4px">Keys are saved on this device only and never uploaded anywhere.</div>
+
   <div class="set-section-title" style="margin-top:18px">App Info</div>
   <div class="card" style="margin-top:0">
     <div class="ai-row"><span class="ai-key">Version</span><span class="ai-val">v3.0.5</span></div>
@@ -1169,12 +1180,14 @@ body.light-mode .fuel-stat{background:var(--card)}
 ══════════════════════════════════════════════════ -->
 <script>
 // ── CONFIG ────────────────────────────────────────
-const MAPS_API_KEY = 'AIzaSyCptX5DYMbabPH9XTiawFZLuGQrklCMh3o';
-const GEMINI_API_KEY = 'AIzaSyDiDygLl5837X6TYRsG0LPwPuO61cEm2PE';
+const MAPS_API_KEY = localStorage.getItem('mdl_maps_api_key') || '';
+const GEMINI_API_KEY = localStorage.getItem('mdl_gemini_api_key') || '';
 // Inject Maps JS SDK immediately — loads in background while user reads the app
 (function(){
+  const mapsKey = localStorage.getItem('mdl_maps_api_key') || '';
+  if(!mapsKey) return; // No key yet — will load after user enters it in Settings
   const s=document.createElement('script');
-  s.src='https://maps.googleapis.com/maps/api/js?key='+MAPS_API_KEY+'&callback=_mapsCallback';
+  s.src='https://maps.googleapis.com/maps/api/js?key='+mapsKey+'&callback=_mapsCallback';
   s.async=true; s.defer=true;
   document.head.appendChild(s);
 })();
@@ -2498,6 +2511,16 @@ function initSettings(){
   document.getElementById('s-petrol').value=s.petrol;
   document.getElementById('s-entries').textContent=Object.keys(getData()).length;
   document.getElementById('s-trips').textContent=getTrips().length;
+  document.getElementById('s-maps-key').value=localStorage.getItem('mdl_maps_api_key')||'';
+  document.getElementById('s-gemini-key').value=localStorage.getItem('mdl_gemini_api_key')||'';
+}
+
+function saveApiKeys(){
+  const mapsKey = document.getElementById('s-maps-key').value.trim();
+  const geminiKey = document.getElementById('s-gemini-key').value.trim();
+  if(mapsKey) localStorage.setItem('mdl_maps_api_key', mapsKey);
+  if(geminiKey) localStorage.setItem('mdl_gemini_api_key', geminiKey);
+  toast('API keys saved ✓');
 }
 
 function saveSettings(){
@@ -2748,9 +2771,10 @@ function calcFuelFields(){
 async function extractFuelReceipt(input){
   const file=input.files[0]; if(!file) return;
 
-  // Check key is set
-  if(!GEMINI_API_KEY||GEMINI_API_KEY==='YOUR_GEMINI_API_KEY_HERE'){
-    toast('Gemini API key not set — please add your key to the file');
+  // Check key is set — read fresh from localStorage each time
+  const GEMINI_API_KEY = localStorage.getItem('mdl_gemini_api_key') || '';
+  if(!GEMINI_API_KEY){
+    toast('Gemini API key not set — please go to Settings and paste your key');
     input.value=''; return;
   }
 
