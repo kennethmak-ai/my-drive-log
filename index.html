@@ -820,15 +820,28 @@ body.light-mode .fuel-stat{background:var(--card)}
             <input class="inp" type="number" inputmode="decimal" id="fuel-cost-after" placeholder="e.g. 96.18" step="0.01" oninput="calcFuelFields()">
           </div>
         </div>
-        <div style="margin-bottom:8px">
-          <label class="lbl">Petrol Type</label>
-          <select class="inp" id="fuel-petrol-type">
-            <option value="">-- Select --</option>
-            <option value="RON 95">RON 95</option>
-            <option value="RON 98">RON 98</option>
-            <option value="Diesel">Diesel</option>
-            <option value="Premium Diesel">Premium Diesel</option>
-          </select>
+        <div class="two-col" style="margin-bottom:8px">
+          <div>
+            <label class="lbl">Petrol Brand</label>
+            <select class="inp" id="fuel-brand">
+              <option value="">-- Select --</option>
+              <option value="Esso">Esso</option>
+              <option value="Shell">Shell</option>
+              <option value="Caltex">Caltex</option>
+              <option value="SPC">SPC</option>
+              <option value="Sinopec">Sinopec</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label class="lbl">Petrol Type</label>
+            <select class="inp" id="fuel-petrol-type">
+              <option value="">-- Select --</option>
+              <option value="RON 92">RON 92</option>
+              <option value="RON 95">RON 95</option>
+              <option value="RON 98">RON 98</option>
+            </select>
+          </div>
         </div>
         <div style="margin-bottom:8px">
           <label class="lbl">Distance Since Last Top-Up (km)</label>
@@ -846,14 +859,9 @@ body.light-mode .fuel-stat{background:var(--card)}
           </div>
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
-          <button class="btn btn-green" onclick="saveFuelRecord()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
-            Save Top-Up Record
-          </button>
-          <button class="btn" onclick="discardFuelScan()" style="background:var(--surface);border:1px solid var(--border);color:var(--muted)">
-            ✕ Discard Scanned Info
-          </button>
+        <div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end">
+          <button onclick="discardFuelScan()" style="background:none;border:1px solid var(--border);color:var(--muted);font-size:12px;padding:6px 12px;border-radius:var(--r);cursor:pointer">✕ Discard</button>
+          <button onclick="saveFuelRecord()" style="background:var(--accent);color:#000;font-size:12px;padding:6px 14px;border-radius:var(--r);cursor:pointer;font-weight:600">✓ Save Record</button>
         </div>
       </div>
     </div>
@@ -2817,13 +2825,15 @@ async function extractFuelReceipt(input){
     const prompt=`You are reading a petrol/fuel receipt from Singapore. Extract the following fields and return ONLY a JSON object with no markdown, no explanation:
 {
   "date": "YYYY-MM-DD or empty string if not found",
+  "brand": "petrol station brand e.g. Esso, Shell, Caltex, SPC, Sinopec or empty string if not found",
+  "petrolType": "RON 92, RON 95, or RON 98 — detect from receipt, or empty string if not found",
   "pricePerLitre": number or null,
   "volumeLitres": number or null,
   "costBeforeDiscount": number or null,
   "fuelDiscount": number or null,
   "actualCostAfterDiscount": number or null
 }
-If a field is not visible or unclear, use null. For date, convert any format to YYYY-MM-DD.`;
+If a field is not visible or unclear, use null for numbers or empty string for text. For date, convert any format to YYYY-MM-DD.`;
 
     const resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='+GEMINI_API_KEY,{
       method:'POST',
@@ -2860,6 +2870,8 @@ If a field is not visible or unclear, use null. For date, convert any format to 
 
     // Populate form fields
     if(extracted.date) document.getElementById('fuel-date').value=extracted.date;
+    if(extracted.brand) document.getElementById('fuel-brand').value=extracted.brand;
+    if(extracted.petrolType) document.getElementById('fuel-petrol-type').value=extracted.petrolType;
     if(extracted.pricePerLitre!=null) document.getElementById('fuel-price-per-l').value=extracted.pricePerLitre.toFixed(3);
     if(extracted.volumeLitres!=null) document.getElementById('fuel-volume').value=extracted.volumeLitres.toFixed(2);
     if(extracted.costBeforeDiscount!=null) document.getElementById('fuel-cost-before').value=extracted.costBeforeDiscount.toFixed(2);
@@ -2888,6 +2900,7 @@ function saveFuelRecord(){
   const costAfter=parseFloat(document.getElementById('fuel-cost-after').value)||0;
   const distance=parseFloat(document.getElementById('fuel-distance').value)||0;
   const petrolType=document.getElementById('fuel-petrol-type').value||'';
+  const brand=document.getElementById('fuel-brand').value||'';
 
   if(costAfter<=0){ toast('Please enter actual fuel cost'); return; }
 
@@ -2906,7 +2919,7 @@ function saveFuelRecord(){
 
   const record={
     id:Date.now(), date, pricePerL, volume, costBefore, discount,
-    costAfter, distance, petrolType, discountPct, consumption,
+    costAfter, distance, petrolType, brand, discountPct, consumption,
     daysSinceLast, periodFrom
   };
 
@@ -2922,6 +2935,7 @@ function saveFuelRecord(){
     document.getElementById(id).value='';
   });
   document.getElementById('fuel-petrol-type').value='';
+  document.getElementById('fuel-brand').value='';
   document.getElementById('fuel-calc-display').style.display='none';
 
   toast('Top-up saved ✓ — petrol cost updated in Entry page');
@@ -2930,7 +2944,16 @@ function saveFuelRecord(){
 
 function clearAllPetrolData(){
   if(!confirm('Are you sure you want to delete ALL petrol records? This cannot be undone.')) return;
+  // Clear petrol top-up history
   localStorage.removeItem('mdl_fuel');
+  // Clear petrol cost from all entry data records
+  const data=getData();
+  Object.keys(data).forEach(date=>{
+    if(data[date].petrol) data[date].petrol=0;
+  });
+  saveData(data);
+  // Clear all dedicated mdl_petrol_ keys
+  Object.keys(localStorage).filter(k=>k.startsWith('mdl_petrol_')).forEach(k=>localStorage.removeItem(k));
   toast('All petrol records cleared');
   renderFuelHistory();
 }
@@ -2969,7 +2992,7 @@ function renderFuelHistory(){
       <div class="fuel-record-header">
         <div>
           <div class="fuel-record-date">${r.date}</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:2px">${r.volume?r.volume.toFixed(1)+'L':''} ${r.pricePerL?'@ $'+r.pricePerL.toFixed(3)+'/L':''} ${r.petrolType?'· '+r.petrolType:''}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">${r.brand?r.brand+' · ':''} ${r.volume?r.volume.toFixed(1)+'L':''} ${r.pricePerL?'@ $'+r.pricePerL.toFixed(3)+'/L':''} ${r.petrolType?'· '+r.petrolType:''}</div>
         </div>
         <div style="text-align:right">
           <div class="fuel-record-cost">$${r.costAfter.toFixed(2)}</div>
@@ -2977,9 +3000,9 @@ function renderFuelHistory(){
         </div>
       </div>
       <div class="fuel-grid">
-        ${r.discountPct?'<div class="fuel-stat"><div class="fuel-stat-label">Discount</div><div class="fuel-stat-val">'+r.discountPct+'%</div></div>':''}
-        ${r.consumption?'<div class="fuel-stat"><div class="fuel-stat-label">Consumption</div><div class="fuel-stat-val">'+r.consumption+' km/L</div></div>':''}
         ${r.distance?'<div class="fuel-stat"><div class="fuel-stat-label">Distance</div><div class="fuel-stat-val">'+r.distance+' km</div></div>':''}
+        ${r.consumption?'<div class="fuel-stat"><div class="fuel-stat-label">Consumption</div><div class="fuel-stat-val">'+r.consumption+' km/L</div></div>':''}
+        ${r.discountPct?'<div class="fuel-stat"><div class="fuel-stat-label">Discount</div><div class="fuel-stat-val">'+r.discountPct+'%</div></div>':''}
         ${r.daysSinceLast?'<div class="fuel-stat"><div class="fuel-stat-label">Days Since Last</div><div class="fuel-stat-val">'+r.daysSinceLast+'d</div></div>':''}
       </div>
       ${r.periodFrom?'<div style="font-size:11px;color:var(--muted);margin-top:6px">Period: '+r.periodFrom+' → '+r.date+'</div>':''}
@@ -3004,6 +3027,7 @@ function editFuelRecord(id){
   document.getElementById('fuel-cost-after').value=r.costAfter||'';
   document.getElementById('fuel-distance').value=r.distance||'';
   document.getElementById('fuel-petrol-type').value=r.petrolType||'';
+  document.getElementById('fuel-brand').value=r.brand||'';
   // Delete the old record so saving creates a fresh one
   const updated=records.filter(x=>x.id!==id);
   saveFuelRecords(updated);
@@ -3020,6 +3044,7 @@ function discardFuelScan(){
     document.getElementById(id).value='';
   });
   document.getElementById('fuel-petrol-type').value='';
+  document.getElementById('fuel-brand').value='';
   document.getElementById('fuel-calc-display').style.display='none';
   toast('Scanned info discarded');
 }
