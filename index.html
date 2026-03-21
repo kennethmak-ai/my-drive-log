@@ -509,21 +509,21 @@ body.light-mode .fuel-stat{background:var(--card)}
 
       <!-- Platform boxes — always read-only, auto-populated from Trip Log -->
       <div class="plat-grid" style="margin-top:10px">
+        <div class="plat-box" style="border-color:rgba(0,212,170,.25)">
+          <div class="plat-box-name" style="color:var(--accent)">Total</div>
+          <div class="plat-box-val" id="pb-val-Total" style="color:var(--muted)">—</div>
+        </div>
         <div class="plat-box" style="border-color:rgba(249,115,22,.25)">
           <div class="plat-box-name" style="color:var(--tada)">TADA</div>
           <div class="plat-box-val" id="pb-val-TADA" style="color:var(--muted)">—</div>
-        </div>
-        <div class="plat-box" style="border-color:rgba(0,177,79,.25)">
-          <div class="plat-box-name" style="color:var(--grab)">Grab</div>
-          <div class="plat-box-val" id="pb-val-Grab" style="color:var(--muted)">—</div>
         </div>
         <div class="plat-box" style="border-color:rgba(56,189,248,.25)">
           <div class="plat-box-name" style="color:var(--gojek)">Gojek</div>
           <div class="plat-box-val" id="pb-val-Gojek" style="color:var(--muted)">—</div>
         </div>
-        <div class="plat-box" style="border-color:rgba(167,139,250,.25)">
-          <div class="plat-box-name" style="color:var(--others)">Others</div>
-          <div class="plat-box-val" id="pb-val-Others" style="color:var(--muted)">—</div>
+        <div class="plat-box" style="border-color:rgba(0,177,79,.25)">
+          <div class="plat-box-name" style="color:var(--grab)">Grab</div>
+          <div class="plat-box-val" id="pb-val-Grab" style="color:var(--muted)">—</div>
         </div>
       </div>
 
@@ -992,9 +992,8 @@ body.light-mode .fuel-stat{background:var(--card)}
       <label class="lbl">Platform</label>
       <div class="tog-row" id="plat-tog">
         <button class="tog on-tada" onclick="setPlatform('TADA',this)">TADA</button>
-        <button class="tog" onclick="setPlatform('Grab',this)">Grab</button>
         <button class="tog" onclick="setPlatform('Gojek',this)">Gojek</button>
-        <button class="tog" onclick="setPlatform('Others',this)">Others</button>
+        <button class="tog" onclick="setPlatform('Grab',this)">Grab</button>
       </div>
     </div>
     <div style="margin-bottom:14px">
@@ -1095,9 +1094,8 @@ body.light-mode .fuel-stat{background:var(--card)}
       <label class="lbl">Platform</label>
       <div class="tog-row" id="edit-plat-tog">
         <button class="tog" onclick="editSetPlat('TADA',this)">TADA</button>
-        <button class="tog" onclick="editSetPlat('Grab',this)">Grab</button>
         <button class="tog" onclick="editSetPlat('Gojek',this)">Gojek</button>
-        <button class="tog" onclick="editSetPlat('Others',this)">Others</button>
+        <button class="tog" onclick="editSetPlat('Grab',this)">Grab</button>
       </div>
     </div>
     <div style="margin-bottom:12px">
@@ -1496,24 +1494,28 @@ function renderSessions(){
   c.innerHTML='';
   const date=document.getElementById('e-date').value||fmtDate(new Date());
   const trips=getTrips().filter(t=>t.date===date);
-  const td={TADA:0,Grab:0,Gojek:0,Others:0}; let tkm=0,tmin=0;
+  const td={TADA:0,Grab:0,Gojek:0}; let tkm=0,tmin=0;
   trips.forEach(t=>{td[t.platform]=(td[t.platform]||0)+(t.fare||0);tkm+=t.distanceKm||0;tmin+=t.durationMins||0;});
 
-  const platColors={TADA:'249,115,22',Grab:'0,177,79',Gojek:'56,189,248',Others:'167,139,250'};
-  const platVars={TADA:'tada',Grab:'grab',Gojek:'gojek',Others:'others'};
+  const platColors={TADA:'249,115,22',Grab:'0,177,79',Gojek:'56,189,248'};
+  const platVars={TADA:'tada',Grab:'grab',Gojek:'gojek'};
 
   for(let i=1;i<=sessCount;i++){
     // Filter trips by session number for this block
     const sessTrips=trips.filter(t=>(t.sessionNum||1)===i);
-    const td={TADA:0,Grab:0,Gojek:0,Others:0}; let tkm=0,tmin=0;
+    const td={TADA:0,Grab:0,Gojek:0}; let tkm=0,tmin=0;
     sessTrips.forEach(t=>{td[t.platform]=(td[t.platform]||0)+(t.fare||0);tkm+=t.distanceKm||0;tmin+=t.durationMins||0;});
 
     // Platform boxes — read-only auto-populated per session
-    const platBoxes=['TADA','Grab','Gojek','Others'].map(p=>`
+    const sessTotal=Object.values(td).reduce((a,v)=>a+v,0);
+    const platBoxes=[
+      `<div class="plat-box" style="border-color:rgba(0,212,170,.25)"><div class="plat-box-name" style="color:var(--accent)">Total</div><div class="plat-box-val" data-plat="Total" style="color:${sessTotal>0?'var(--text)':'var(--muted)'}">${sessTotal>0?'$'+sessTotal.toFixed(2):'—'}</div></div>`,
+      ...['TADA','Gojek','Grab'].map(p=>`
       <div class="plat-box" style="border-color:rgba(${platColors[p]},.25)">
         <div class="plat-box-name" style="color:var(--${platVars[p]})">${p}</div>
         <div class="plat-box-val" data-plat="${p}" style="color:${td[p]>0?'var(--text)':'var(--muted)'}">${td[p]>0?'$'+td[p].toFixed(2):'—'}</div>
-      </div>`).join('');
+      </div>`)
+    ].join('');
 
     var sessGross=Object.values(td).reduce(function(a,v){return a+v;},0);
     var smin2=getSessMinsSingle(i);
@@ -1684,7 +1686,7 @@ function loadEntry(){
   const trips=getTrips().filter(t=>t.date===date);
 
   // Always auto-populate platform boxes from Trip Log — no manual input
-  const td={TADA:0,Grab:0,Gojek:0,Others:0};
+  const td={TADA:0,Grab:0,Gojek:0};
   let totalFare=0, totalKm=0, totalMin=0;
   trips.forEach(t=>{
     td[t.platform]=(td[t.platform]||0)+(t.fare||0);
@@ -1695,7 +1697,9 @@ function loadEntry(){
   document.getElementById('e-autofill-badge').style.display=trips.length>0?'inline-flex':'none';
 
   // Update each read-only platform box
-  ['TADA','Grab','Gojek','Others'].forEach(p=>{
+  const totalEl=document.getElementById('pb-val-Total');
+  if(totalEl){ if(totalFare>0){totalEl.textContent='$'+totalFare.toFixed(2);totalEl.style.color='var(--text)';}else{totalEl.textContent='—';totalEl.style.color='var(--muted)';} }
+  ['TADA','Grab','Gojek'].forEach(p=>{
     const el=document.getElementById('pb-val-'+p);
     if(!el) return;
     if(td[p]>0){ el.textContent='$'+td[p].toFixed(2); el.style.color='var(--text)'; }
@@ -1810,9 +1814,12 @@ function refreshEntryEarnings(){
   blocks.forEach((block,idx)=>{
     const i=idx+1;
     const sessTrips=trips.filter(t=>(t.sessionNum||1)===i);
-    const sd={TADA:0,Grab:0,Gojek:0,Others:0};
+    const sd={TADA:0,Grab:0,Gojek:0};
     sessTrips.forEach(t=>sd[t.platform]=(sd[t.platform]||0)+(t.fare||0));
-    ['TADA','Grab','Gojek','Others'].forEach(p=>{
+    const sTotal=Object.values(sd).reduce((a,v)=>a+v,0);
+    const totalEl=block.querySelector('.plat-box-val[data-plat="Total"]');
+    if(totalEl){ if(sTotal>0){totalEl.textContent='$'+sTotal.toFixed(2);totalEl.style.color='var(--text)';}else{totalEl.textContent='—';totalEl.style.color='var(--muted)';} }
+    ['TADA','Grab','Gojek'].forEach(p=>{
       const el=block.querySelector(`.plat-box-val[data-plat="${p}"]`);
       if(!el) return;
       if(sd[p]>0){ el.textContent='$'+sd[p].toFixed(2); el.style.color='var(--text)'; }
@@ -1873,7 +1880,7 @@ function autoSaveEntry(){
 
   // Save driving day state — earnings/trips are auto-populated, just save petrol + sessions + notes
   const trips=getTrips().filter(t=>t.date===date);
-  let earnings={tada:0,grab:0,gojek:0,others:0,total:0};
+  let earnings={tada:0,grab:0,gojek:0,total:0};
   let distance=0;
   trips.forEach(t=>{
     const p=(t.platform||'').toLowerCase();
@@ -1923,7 +1930,7 @@ function saveEntry(){
   }
 
   const trips=getTrips().filter(t=>t.date===date);
-  let earnings={tada:0,grab:0,gojek:0,others:0,total:0};
+  let earnings={tada:0,grab:0,gojek:0,total:0};
   let distance=0;
 
   if(trips.length>0){
@@ -2520,7 +2527,7 @@ function saveTrip(){
 function syncDailyEntry(date){
   const trips=getTrips().filter(t=>t.date===date);
   const data=getData(), entry=data[date]||{};
-  const e={tada:0,grab:0,gojek:0,others:0}; let km=0;
+  const e={tada:0,grab:0,gojek:0}; let km=0;
   trips.forEach(t=>{
     const p=(t.platform||'').toLowerCase();
     e[p in e?p:'others']+=t.fare||0; km+=t.distanceKm||0;
