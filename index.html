@@ -134,7 +134,7 @@ input,textarea{font-family:'DM Sans',sans-serif}
 nav{
   position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);
   background:var(--surface);border-top:1px solid var(--border);
-  display:grid;grid-template-columns:repeat(6,1fr);z-index:200
+  display:grid;grid-template-columns:repeat(7,1fr);z-index:200
 }
 .nb{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -876,6 +876,48 @@ body.light-mode .fuel-stat{background:var(--card)}
 </div>
 
 <!-- ══════════════════════════════════════════════════
+     SCREEN 6 — TRENDS
+══════════════════════════════════════════════════ -->
+<div class="screen" id="screen-trends">
+  <div class="ph" style="display:flex;justify-content:space-between;align-items:center">
+    <div class="ph-title">📈 Trends</div>
+  </div>
+
+  <div style="padding:0 12px">
+
+    <!-- Shift legend -->
+    <div style="display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)">
+        <span style="width:20px;height:20px;border-radius:50%;background:#F97316;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff">D</span> Day shift
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)">
+        <span style="width:20px;height:20px;border-radius:50%;background:#378ADD;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff">N</span> Night shift
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)">
+        <span style="width:20px;height:20px;border-radius:50%;background:#8B5CF6;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff">M</span> Midnight shift
+      </div>
+    </div>
+
+    <!-- Chart legend -->
+    <div style="display:flex;gap:16px;margin-bottom:8px;font-size:12px;color:var(--muted)">
+      <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:#1D9E75;display:inline-block"></span>Consumption (km/L)</span>
+      <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:3px;background:#378ADD;display:inline-block;border-top:2px dashed #378ADD"></span>Distance (km)</span>
+    </div>
+
+    <!-- Consumption trend chart -->
+    <div style="position:relative;width:100%;height:240px">
+      <canvas id="trends-chart"></canvas>
+    </div>
+
+    <!-- Data points with shift badges -->
+    <div style="font-size:11px;color:var(--muted);margin:10px 0 6px;letter-spacing:.06em">TOP-UP RECORDS</div>
+    <div id="trends-records-list"></div>
+
+  </div>
+  <div style="height:100vh"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
      SCREEN 5 — SETTINGS
 ══════════════════════════════════════════════════ -->
 <div class="screen" id="screen-settings">
@@ -959,6 +1001,10 @@ body.light-mode .fuel-stat{background:var(--card)}
   <button class="nb" id="nav-petrol" onclick="go('petrol',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 22V8l6-6h6l2 2v2h1a2 2 0 012 2v3a2 2 0 01-2 2h-1v7H3z"/><path d="M9 2v6H3"/><rect x="6" y="12" width="6" height="4" rx="1"/></svg>
     ⛽ Petrol
+  </button>
+  <button class="nb" id="nav-trends" onclick="go('trends',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    Trends
   </button>
   <button class="nb" id="nav-settings" onclick="go('settings',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
@@ -1331,6 +1377,7 @@ function go(name, btn){
   if(name==='trips')   { tripViewDate=null; renderTrips(); }
   if(name==='settings')initSettings();
   if(name==='petrol'){ renderFuelHistory(); }
+  if(name==='trends'){ renderTrends(); }
   const ptb=document.getElementById('theme-btn-petrol');
   if(ptb) ptb.textContent=document.body.classList.contains('light-mode')?'\u263D Dark':'\u2600 Light';
 }
@@ -1887,10 +1934,9 @@ function autoSaveEntry(){
     if(p==='tada') earnings.tada+=t.fare||0;
     else if(p==='grab') earnings.grab+=t.fare||0;
     else if(p==='gojek') earnings.gojek+=t.fare||0;
-    else earnings.others+=t.fare||0;
     distance+=t.distanceKm||0;
   });
-  earnings.total=earnings.tada+earnings.grab+earnings.gojek+earnings.others;
+  earnings.total=earnings.tada+earnings.grab+earnings.gojek;
 
   const petrol=parseFloat(document.getElementById('e-petrol')?.value)||0;
   const sessions=[];
@@ -1939,10 +1985,9 @@ function saveEntry(){
       if(p==='tada') earnings.tada+=t.fare||0;
       else if(p==='grab') earnings.grab+=t.fare||0;
       else if(p==='gojek') earnings.gojek+=t.fare||0;
-      else earnings.others+=t.fare||0;
       distance+=t.distanceKm||0;
     });
-    earnings.total=earnings.tada+earnings.grab+earnings.gojek+earnings.others;
+    earnings.total=earnings.tada+earnings.grab+earnings.gojek;
   } else {
     // No trips recorded — earnings remain 0 (no manual input)
     earnings.total=0;
@@ -2072,7 +2117,7 @@ function renderHistList(){
       (isHol?`<span style="font-size:10px;color:var(--warn)">🎉 ${SG_HOL[ds]}</span>`:`<span style="font-size:10px;color:var(--danger)">🚫 Rest</span>`):
       `<span style="font-size:10px;color:var(--accent)">🟢 Driving</span>`;
 
-    const platHtml=e?.driving?(['TADA','Grab','Gojek','Others'].filter(p=>(e.earnings?.[p.toLowerCase()]||0)>0)
+    const platHtml=e?.driving?(['TADA','Grab','Gojek'].filter(p=>(e.earnings?.[p.toLowerCase()]||0)>0)
       .map(p=>`<span class="ppill ppill-${p}">${p}</span>`).join('')):'';
 
     // Trip stats from trip log
@@ -2166,7 +2211,7 @@ function renderTrips(){
     btn.disabled=true; ac.style.display='block';
     document.getElementById('ap-addr').textContent=activeTrip.pickup?.addr||'Captured';
     document.getElementById('ap-town').textContent=activeTrip.pickup?.town||'';
-    const pc={'TADA':'tada','Grab':'grab','Gojek':'gojek','Others':'others'};
+    const pc={'TADA':'tada','Grab':'grab','Gojek':'gojek'};
     document.getElementById('active-plat').innerHTML=
       `<span class="ppill ppill-${activeTrip.platform}">${activeTrip.platform}</span>
        <span style="font-size:11px;color:var(--muted);margin-left:8px">${activeTrip.mode}</span>`;
@@ -2309,7 +2354,7 @@ function deleteTrip(){
 // ── Start/End trip ────────────────────────────────
 function setPlatform(p,btn){
   tripPlatform=p;
-  const map={TADA:'on-tada',Grab:'on-grab',Gojek:'on-gojek',Others:'on-others'};
+  const map={TADA:'on-tada',Grab:'on-grab',Gojek:'on-gojek'};
   document.querySelectorAll('#plat-tog .tog').forEach(b=>b.className='tog');
   btn.className='tog '+map[p];
 }
@@ -2530,9 +2575,12 @@ function syncDailyEntry(date){
   const e={tada:0,grab:0,gojek:0}; let km=0;
   trips.forEach(t=>{
     const p=(t.platform||'').toLowerCase();
-    e[p in e?p:'others']+=t.fare||0; km+=t.distanceKm||0;
+    if(p==='tada') e.tada+=t.fare||0;
+    else if(p==='grab') e.grab+=t.fare||0;
+    else if(p==='gojek') e.gojek+=t.fare||0;
+    km+=t.distanceKm||0;
   });
-  e.total=e.tada+e.grab+e.gojek+e.others;
+  e.total=e.tada+e.grab+e.gojek;
   const d=new Date(date+'T00:00:00');
   data[date]={...entry,date,dayOfWeek:DAYS[d.getDay()],driving:true,
     earnings:e,distance:parseFloat(km.toFixed(1)),estNet:e.total-(entry.petrol||0)};
@@ -3019,6 +3067,154 @@ function renderFuelHistory(){
       </div>
     </div>
   `).join('');
+}
+
+function detectShift(date){
+  // Read Session 1 start time from saved entry data
+  const data=getData();
+  const entry=data[date];
+  if(!entry||!entry.sessions||!entry.sessions[0]) return null;
+  const start=entry.sessions[0].start;
+  if(!start) return null;
+  const [h,m]=start.split(':').map(Number);
+  const mins=h*60+(m||0);
+  // Day: 3am(180) to 7am(420)
+  if(mins>=180 && mins<420) return 'D';
+  // Night unambiguous: 2pm(840) to 4:59pm(299)
+  if(mins>=840 && mins<1020) return 'N';
+  // Midnight unambiguous: 7pm(1140) to 9pm(1260)
+  if(mins>=1140 && mins<=1260) return 'M';
+  // Ambiguous: 5pm(1020) to 6:59pm(1139) — check end time
+  if(mins>=1020 && mins<1140){
+    const end=entry.sessions[0].end;
+    if(!end) return 'N'; // default to Night if no end time
+    const [eh]=end.split(':').map(Number);
+    // If end hour is 0,1,2 (midnight to 2:59am) = Night, 3am+ = Midnight
+    const endMins=eh*60+(end.split(':')[1]||0)*1;
+    // end after midnight wraps — treat 0-179 (midnight to 2:59am) as Night
+    if(endMins>=0 && endMins<180) return 'N';
+    return 'M';
+  }
+  return null;
+}
+
+let _trendsChart=null;
+function renderTrends(){
+  const records=getFuelRecords().slice().reverse(); // oldest first for chart
+  const list=document.getElementById('trends-records-list');
+  if(!list) return;
+
+  if(records.length===0){
+    list.innerHTML='<div style="text-align:center;padding:24px;color:var(--muted);font-size:14px">No petrol records yet</div>';
+    const ctx=document.getElementById('trends-chart');
+    if(ctx && _trendsChart){ _trendsChart.destroy(); _trendsChart=null; }
+    return;
+  }
+
+  const shiftColors={D:'#F97316',N:'#378ADD',M:'#8B5CF6'};
+  const shiftLabels={D:'Day','N':'Night',M:'Midnight'};
+
+  // Build chart data
+  const labels=records.map(r=>r.date.slice(5)); // MM-DD
+  const consumption=records.map(r=>r.consumption?parseFloat(r.consumption):null);
+  const distance=records.map(r=>r.distance||null);
+  const pointColors=records.map(r=>{
+    const sh=detectShift(r.date);
+    return shiftColors[sh]||'#888';
+  });
+
+  // Destroy old chart if exists
+  if(_trendsChart){ _trendsChart.destroy(); _trendsChart=null; }
+
+  const ctx=document.getElementById('trends-chart');
+  if(!ctx) return;
+
+  // Load Chart.js if not already loaded
+  function buildChart(){
+    _trendsChart=new Chart(ctx,{
+      type:'line',
+      data:{
+        labels,
+        datasets:[
+          {
+            label:'km/L',
+            data:consumption,
+            borderColor:'#1D9E75',
+            backgroundColor:'rgba(29,158,117,.08)',
+            borderWidth:2,
+            pointRadius:8,
+            pointBackgroundColor:pointColors,
+            pointBorderColor:pointColors,
+            fill:true,
+            tension:.3,
+            yAxisID:'y',
+            spanGaps:true
+          },
+          {
+            label:'Distance (km)',
+            data:distance,
+            borderColor:'#378ADD',
+            backgroundColor:'transparent',
+            borderWidth:2,
+            borderDash:[5,3],
+            pointRadius:3,
+            pointBackgroundColor:'#378ADD',
+            fill:false,
+            tension:.3,
+            yAxisID:'y1',
+            spanGaps:true
+          }
+        ]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{
+          legend:{display:false},
+          tooltip:{
+            callbacks:{
+              afterLabel:function(ctx){
+                const r=records[ctx.dataIndex];
+                const sh=detectShift(r.date);
+                return sh?'Shift: '+(shiftLabels[sh]||sh):'';
+              }
+            }
+          }
+        },
+        scales:{
+          x:{ticks:{font:{size:10},maxRotation:45,autoSkip:true,maxTicksLimit:10,color:'#888'},grid:{display:false}},
+          y:{position:'left',ticks:{font:{size:10},color:'#1D9E75',callback:v=>v+' km/L'},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:'km/L',color:'#1D9E75',font:{size:10}}},
+          y1:{position:'right',ticks:{font:{size:10},color:'#378ADD',callback:v=>v+' km'},grid:{display:false},title:{display:true,text:'km',color:'#378ADD',font:{size:10}}}
+        }
+      }
+    });
+  }
+
+  if(window.Chart){ buildChart(); }
+  else{
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js';
+    s.onload=buildChart;
+    document.head.appendChild(s);
+  }
+
+  // Render records list with shift badges
+  list.innerHTML=records.slice().reverse().map(r=>{
+    const sh=detectShift(r.date);
+    const badge=sh?`<span style="width:20px;height:20px;border-radius:50%;background:${shiftColors[sh]||'#888'};display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0">${sh}</span>`:'<span style="width:20px;height:20px;border-radius:50%;background:var(--muted);display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:#fff;flex-shrink:0">?</span>';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+      ${badge}
+      <div style="flex:1;font-size:12px">
+        <span style="color:var(--text);font-weight:600">${r.date}</span>
+        ${r.petrolType?'<span style="color:var(--muted);margin-left:6px">'+r.petrolType+'</span>':''}
+        ${r.brand?'<span style="color:var(--muted);margin-left:4px">· '+r.brand+'</span>':''}
+      </div>
+      <div style="text-align:right;font-size:12px">
+        ${r.consumption?'<span style="color:#1D9E75;font-weight:600">'+r.consumption+' km/L</span>':'<span style="color:var(--muted)">—</span>'}
+        ${r.distance?'<span style="color:var(--muted);margin-left:8px">'+r.distance+' km</span>':''}
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function editFuelRecord(id){
