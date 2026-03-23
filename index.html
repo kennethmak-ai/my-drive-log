@@ -134,10 +134,15 @@ input,textarea{font-family:'DM Sans',sans-serif}
 nav{
   position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);
   background:var(--surface);border-top:1px solid var(--border);
-  display:flex;overflow-x:auto;overflow-y:hidden;z-index:200;
-  scrollbar-width:none;-ms-overflow-style:none;
+  z-index:200;
 }
-nav::-webkit-scrollbar{display:none}
+.nav-inner{
+  display:flex;height:100%;
+  overflow-x:auto;overflow-y:hidden;
+  scrollbar-width:none;-ms-overflow-style:none;
+  -webkit-overflow-scrolling:touch;
+}
+.nav-inner::-webkit-scrollbar{display:none}
 .nb{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:3px;border:none;background:none;color:var(--muted);
@@ -984,7 +989,7 @@ body.light-mode .fuel-stat{background:var(--card)}
 <!-- ══════════════════════════════════════════════════
      BOTTOM NAV
 ══════════════════════════════════════════════════ -->
-<nav>
+<nav><div class="nav-inner">
   <button class="nb on" id="nav-entry" onclick="go('entry',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5"/><path d="M17.5 3.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 7.5-7.5z"/></svg>
     Entry
@@ -1013,7 +1018,7 @@ body.light-mode .fuel-stat{background:var(--card)}
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
     Settings
   </button>
-</nav>
+</div></nav>
 
 <!-- ══════════════════════════════════════════════════
      SHEETS
