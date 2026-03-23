@@ -134,12 +134,18 @@ input,textarea{font-family:'DM Sans',sans-serif}
 nav{
   position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);
   background:var(--surface);border-top:1px solid var(--border);
-  display:grid;grid-template-columns:repeat(7,1fr);z-index:200;
+  z-index:200;overflow-x:auto;overflow-y:hidden;
+  display:flex;scrollbar-width:none;-ms-overflow-style:none;
+  -webkit-overflow-scrolling:touch;
 }
+nav::-webkit-scrollbar{display:none}
 .nb{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:2px;border:none;background:none;color:var(--muted);
-  font-size:7.5px;font-weight:600;letter-spacing:.1px;padding:4px 1px;
+  font-size:9px;font-weight:600;letter-spacing:.1px;padding:4px 1px;
+  min-width:20vw;flex-shrink:0;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
   transition:color .15s;position:relative
 }
 .nb svg{width:17px;height:17px;stroke-width:1.8}
@@ -2114,8 +2120,14 @@ function renderHistList(){
     if(!e&&!isHol) continue;
     any=true;
     const dow=DAYS[new Date(ds+'T00:00:00').getDay()];
-    const gross=e?.earnings?.total||0, net=e?.estNet||0;
-    const isDriving=dayTrips.length>0||(e?.driving===true);
+
+    // Trip stats — read directly from Trip Log
+    const dayTrips=getTrips().filter(t=>t.date===ds);
+    const gross=dayTrips.reduce((a,t)=>a+(t.fare||0),0);
+    const net=gross-(e?.petrol||0);
+    const tripCount=dayTrips.length;
+    const tripKm=dayTrips.reduce((a,t)=>a+(t.distanceKm||0),0);
+
     const tag=e?.driving===false&&dayTrips.length===0?
       (isHol?`<span style="font-size:10px;color:var(--warn)">🎉 ${SG_HOL[ds]}</span>`:`<span style="font-size:10px;color:var(--danger)">🚫 Rest</span>`):
       `<span style="font-size:10px;color:var(--accent)">🟢 Driving</span>`;
@@ -2123,12 +2135,7 @@ function renderHistList(){
     const platHtml=dayTrips.length>0?(['TADA','Grab','Gojek'].filter(p=>dayTrips.some(t=>t.platform===p))
       .map(p=>`<span class="ppill ppill-${p}">${p}</span>`).join('')):'';
 
-    // Trip stats from trip log
-    const dayTrips=getTrips().filter(t=>t.date===ds);
-    const gross=dayTrips.reduce((a,t)=>a+(t.fare||0),0);
-    const net=gross-(e?.petrol||0);
-    const tripCount=dayTrips.length;
-    const tripKm=dayTrips.reduce((a,t)=>a+(t.distanceKm||0),0);
+    // Session time calculation
     let sessMins=0;
     if(e && e.sessions && e.sessions.length>0){
       e.sessions.forEach(function(s){
