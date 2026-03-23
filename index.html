@@ -134,12 +134,15 @@ input,textarea{font-family:'DM Sans',sans-serif}
 nav{
   position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);
   background:var(--surface);border-top:1px solid var(--border);
-  display:grid;grid-template-columns:repeat(7,1fr);z-index:200
+  display:flex;overflow-x:auto;overflow-y:hidden;z-index:200;
+  scrollbar-width:none;-ms-overflow-style:none;
 }
+nav::-webkit-scrollbar{display:none}
 .nb{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:3px;border:none;background:none;color:var(--muted);
-  font-size:8px;font-weight:600;letter-spacing:.2px;padding:4px 1px;
+  font-size:9px;font-weight:600;letter-spacing:.2px;padding:4px 2px;
+  min-width:20vw;flex-shrink:0;
   transition:color .15s;position:relative
 }
 .nb svg{width:19px;height:19px;stroke-width:1.8}
@@ -2043,9 +2046,11 @@ function renderSummary(){
 
   const prefix=y+'-'+String(mo+1).padStart(2,'0')+'-';
   const entries=Object.values(data).filter(e=>e.date?.startsWith(prefix));
-  const k3=entries.reduce((a,e)=>a+(e.earnings?.total||0),0);
+  const allTrips=getTrips();
+  const monthTrips=allTrips.filter(t=>t.date?.startsWith(prefix));
+  const k3=monthTrips.reduce((a,t)=>a+(t.fare||0),0);
   const k4=entries.reduce((a,e)=>a+(e.petrol||0),0);
-  const driven=entries.filter(e=>e.driving&&(e.earnings?.total||0)>0).length;
+  const driven=entries.filter(e=>e.driving&&monthTrips.filter(t=>t.date===e.date).length>0).length;
   const rem=Math.max(0,s.days-driven);
 
   const k1=s.net, k2=k1+s.days*s.petrol;
@@ -2113,15 +2118,18 @@ function renderHistList(){
     any=true;
     const dow=DAYS[new Date(ds+'T00:00:00').getDay()];
     const gross=e?.earnings?.total||0, net=e?.estNet||0;
-    const tag=e?.driving===false?
+    const isDriving=dayTrips.length>0||(e?.driving===true);
+    const tag=e?.driving===false&&dayTrips.length===0?
       (isHol?`<span style="font-size:10px;color:var(--warn)">🎉 ${SG_HOL[ds]}</span>`:`<span style="font-size:10px;color:var(--danger)">🚫 Rest</span>`):
       `<span style="font-size:10px;color:var(--accent)">🟢 Driving</span>`;
 
-    const platHtml=e?.driving?(['TADA','Grab','Gojek'].filter(p=>(e.earnings?.[p.toLowerCase()]||0)>0)
+    const platHtml=dayTrips.length>0?(['TADA','Grab','Gojek'].filter(p=>dayTrips.some(t=>t.platform===p))
       .map(p=>`<span class="ppill ppill-${p}">${p}</span>`).join('')):'';
 
     // Trip stats from trip log
     const dayTrips=getTrips().filter(t=>t.date===ds);
+    const gross=dayTrips.reduce((a,t)=>a+(t.fare||0),0);
+    const net=gross-(e?.petrol||0);
     const tripCount=dayTrips.length;
     const tripKm=dayTrips.reduce((a,t)=>a+(t.distanceKm||0),0);
     let sessMins=0;
