@@ -472,15 +472,14 @@ body.light-mode .fuel-stat{background:var(--card)}
 
   <!-- Card 1: Date / Day / Driving -->
   <div class="card">
-    <div class="two-col" style="margin-bottom:12px">
-      <div>
-        <label class="lbl">Date</label>
-        <input type="date" class="inp" id="e-date" style="font-family:'Space Mono',monospace;font-size:13px">
+    <div style="margin-bottom:12px">
+      <label class="lbl">Date</label>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button onclick="shiftDate(-1)" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:16px;color:var(--text);cursor:pointer;touch-action:manipulation;flex-shrink:0">‹</button>
+        <input type="date" class="inp" id="e-date" style="font-family:'Space Mono',monospace;font-size:13px;flex:1;text-align:center">
+        <button onclick="shiftDate(1)" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:16px;color:var(--text);cursor:pointer;touch-action:manipulation;flex-shrink:0">›</button>
       </div>
-      <div>
-        <label class="lbl">Day</label>
-        <div class="inp" id="e-dow" style="color:var(--muted);font-family:'Space Mono',monospace;font-size:14px;display:flex;align-items:center"></div>
-      </div>
+      <div class="inp" id="e-dow" style="color:var(--muted);font-family:'Space Mono',monospace;font-size:13px;display:flex;align-items:center;margin-top:6px;background:none;border:none;padding:0"></div>
     </div>
     <label class="lbl">Driving Today?</label>
     <div class="tog-row">
@@ -1406,6 +1405,15 @@ function gpsEl(state, text){
 // ENTRY
 // ══════════════════════════════════════════════════
 let entryInitDone = false;
+
+function shiftDate(days){
+  const di=document.getElementById('e-date');
+  if(!di) return;
+  const current=di.value?new Date(di.value+'T00:00:00'):new Date();
+  current.setDate(current.getDate()+days);
+  di.value=fmtDate(current);
+  loadEntry();
+}
 
 function initEntry(){
   // Always scroll to top so all content is accessible
@@ -2934,17 +2942,79 @@ function syncFuelToEntry(date, costAfter){
 function renderFuelHistory(){
   const list=document.getElementById('fuel-history-list');
   if(!list) return;
-  const records=getFuelRecords();
-  if(records.length===0){
+  const allRecords=getFuelRecords();
+  if(allRecords.length===0){
     list.innerHTML='<div style="text-align:center;padding:24px;color:var(--muted);font-size:14px">No top-up records yet</div>';
     return;
   }
-  list.innerHTML=records.map(r=>`
+
+  // Sort chronologically — newest first (latest on top)
+  const records=allRecords.slice().sort((a,b)=>b.date.localeCompare(a.date));
+
+  // Build monthly summary — use all records sorted for grouping
+  const allSorted=allRecords.slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const monthMap={};
+  allSorted.forEach(r=>{
+    const ym=r.date.slice(0,7); // YYYY-MM
+    if(!monthMap[ym]) monthMap[ym]={total:0,count:0,volume:0};
+    monthMap[ym].total+=r.costAfter||0;
+    monthMap[ym].count+=1;
+    monthMap[ym].volume+=r.volume||0;
+  });
+  const months=Object.keys(monthMap).sort().reverse();
+  const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  const summaryRows=months.map(ym=>{
+    const [y,m]=ym.split('-');
+    const label=MONTHS[parseInt(m)-1]+' '+y;
+    const d=monthMap[ym];
+    const isCurrent=ym===new Date().toISOString().slice(0,7);
+    return `<tr style="${isCurrent?'background:rgba(0,212,170,.08)':''}">
+      <td style="padding:8px 10px;font-size:13px;color:var(--text);font-weight:${isCurrent?'700':'400'}">${label}${isCurrent?' ◀':''}</td>
+      <td style="padding:8px 10px;font-size:13px;text-align:center;color:var(--muted)">${d.count}</td>
+      <td style="padding:8px 10px;font-size:13px;text-align:center;color:var(--muted)">${d.volume>0?d.volume.toFixed(1)+' L':'—'}</td>
+      <td style="padding:8px 10px;font-size:13px;text-align:right;font-family:'Space Mono',monospace;color:${isCurrent?'var(--accent)':'var(--text)'};font-weight:700">$${d.total.toFixed(2)}</td>
+    </tr>`;
+  }).join('');
+
+  const grandTotal=records.reduce((a,r)=>a+(r.costAfter||0),0);
+  const grandVolume=records.reduce((a,r)=>a+(r.volume||0),0);
+  const grandCount=records.length;
+
+  const summaryTable=`
+    <div style="font-size:12px;color:var(--muted);letter-spacing:.08em;margin-bottom:8px;margin-top:4px">MONTHLY SUMMARY</div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:16px">
+      <table style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr style="border-bottom:1px solid var(--border);background:var(--surface)">
+            <th style="padding:8px 10px;font-size:11px;color:var(--muted);text-align:left;font-weight:600;letter-spacing:.05em">MONTH</th>
+            <th style="padding:8px 10px;font-size:11px;color:var(--muted);text-align:center;font-weight:600;letter-spacing:.05em">TOPS-UP</th>
+            <th style="padding:8px 10px;font-size:11px;color:var(--muted);text-align:center;font-weight:600;letter-spacing:.05em">VOLUME</th>
+            <th style="padding:8px 10px;font-size:11px;color:var(--muted);text-align:right;font-weight:600;letter-spacing:.05em">TOTAL ($)</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${summaryRows}
+        </tbody>
+        <tfoot>
+          <tr style="border-top:1px solid var(--border);background:var(--surface)">
+            <td style="padding:8px 10px;font-size:12px;font-weight:700;color:var(--text)">All Time</td>
+            <td style="padding:8px 10px;font-size:12px;text-align:center;color:var(--muted)">${grandCount}</td>
+            <td style="padding:8px 10px;font-size:12px;text-align:center;color:var(--muted)">${grandVolume>0?grandVolume.toFixed(1)+' L':'—'}</td>
+            <td style="padding:8px 10px;font-size:12px;text-align:right;font-family:'Space Mono',monospace;color:var(--accent);font-weight:700">$${grandTotal.toFixed(2)}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <div style="font-size:12px;color:var(--muted);letter-spacing:.08em;margin-bottom:8px">TOP-UP RECORDS</div>
+  `;
+
+  list.innerHTML=summaryTable+records.map(r=>`
     <div class="fuel-record">
       <div class="fuel-record-header">
         <div>
           <div class="fuel-record-date">${r.date}</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:2px">${r.volume?r.volume.toFixed(1)+'L':''} ${r.pricePerL?'@ $'+r.pricePerL.toFixed(3)+'/L':''}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">${r.brand?r.brand+' · ':''}${r.volume?r.volume.toFixed(1)+'L':''} ${r.pricePerL?'@ $'+r.pricePerL.toFixed(3)+'/L':''} ${r.petrolType?'· '+r.petrolType:''}</div>
         </div>
         <div style="text-align:right">
           <div class="fuel-record-cost">$${r.costAfter.toFixed(2)}</div>
@@ -2952,14 +3022,15 @@ function renderFuelHistory(){
         </div>
       </div>
       <div class="fuel-grid">
-        ${r.discountPct?'<div class="fuel-stat"><div class="fuel-stat-label">Discount</div><div class="fuel-stat-val">'+r.discountPct+'%</div></div>':''}
-        ${r.consumption?'<div class="fuel-stat"><div class="fuel-stat-label">Consumption</div><div class="fuel-stat-val">'+r.consumption+' L/km</div></div>':''}
         ${r.distance?'<div class="fuel-stat"><div class="fuel-stat-label">Distance</div><div class="fuel-stat-val">'+r.distance+' km</div></div>':''}
+        ${r.consumption?'<div class="fuel-stat"><div class="fuel-stat-label">Consumption</div><div class="fuel-stat-val">'+r.consumption+' km/L</div></div>':''}
+        ${r.discountPct?'<div class="fuel-stat"><div class="fuel-stat-label">Discount</div><div class="fuel-stat-val">'+r.discountPct+'%</div></div>':''}
         ${r.daysSinceLast?'<div class="fuel-stat"><div class="fuel-stat-label">Days Since Last</div><div class="fuel-stat-val">'+r.daysSinceLast+'d</div></div>':''}
       </div>
       ${r.periodFrom?'<div style="font-size:11px;color:var(--muted);margin-top:6px">Period: '+r.periodFrom+' → '+r.date+'</div>':''}
-      <div style="margin-top:8px;text-align:right">
-        <button onclick="deleteFuelRecord(${r.id})" style="background:none;border:none;color:var(--danger);font-size:12px;cursor:pointer">✕ Delete</button>
+      <div style="margin-top:8px;display:flex;justify-content:flex-end;gap:12px">
+        <button onclick="editFuelRecord(${r.id})" style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;touch-action:manipulation">✎ Edit</button>
+        <button onclick="deleteFuelRecord(${r.id})" style="background:none;border:none;color:var(--danger);font-size:12px;cursor:pointer;touch-action:manipulation">✕ Delete</button>
       </div>
     </div>
   `).join('');
