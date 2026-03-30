@@ -134,21 +134,15 @@ input,textarea{font-family:'DM Sans',sans-serif}
 nav{
   position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);
   background:var(--surface);border-top:1px solid var(--border);
-  z-index:200;overflow-x:auto;overflow-y:hidden;
-  display:flex;scrollbar-width:none;-ms-overflow-style:none;
-  -webkit-overflow-scrolling:touch;
+  display:grid;grid-template-columns:repeat(6,1fr);z-index:200
 }
-nav::-webkit-scrollbar{display:none}
 .nb{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:2px;border:none;background:none;color:var(--muted);
-  font-size:9px;font-weight:600;letter-spacing:.1px;padding:4px 1px;
-  min-width:20vw;flex-shrink:0;
-  touch-action:manipulation;
-  -webkit-tap-highlight-color:transparent;
+  gap:3px;border:none;background:none;color:var(--muted);
+  font-size:8px;font-weight:600;letter-spacing:.2px;padding:4px 1px;
   transition:color .15s;position:relative
 }
-.nb svg{width:17px;height:17px;stroke-width:1.8}
+.nb svg{width:19px;height:19px;stroke-width:1.8}
 .nb.on{color:var(--accent)}
 .nb.on svg{stroke:var(--accent)}
 
@@ -515,21 +509,21 @@ body.light-mode .fuel-stat{background:var(--card)}
 
       <!-- Platform boxes — always read-only, auto-populated from Trip Log -->
       <div class="plat-grid" style="margin-top:10px">
-        <div class="plat-box" style="border-color:rgba(0,212,170,.25)">
-          <div class="plat-box-name" style="color:var(--accent)">Total</div>
-          <div class="plat-box-val" id="pb-val-Total" style="color:var(--muted)">—</div>
-        </div>
         <div class="plat-box" style="border-color:rgba(249,115,22,.25)">
           <div class="plat-box-name" style="color:var(--tada)">TADA</div>
           <div class="plat-box-val" id="pb-val-TADA" style="color:var(--muted)">—</div>
+        </div>
+        <div class="plat-box" style="border-color:rgba(0,177,79,.25)">
+          <div class="plat-box-name" style="color:var(--grab)">Grab</div>
+          <div class="plat-box-val" id="pb-val-Grab" style="color:var(--muted)">—</div>
         </div>
         <div class="plat-box" style="border-color:rgba(56,189,248,.25)">
           <div class="plat-box-name" style="color:var(--gojek)">Gojek</div>
           <div class="plat-box-val" id="pb-val-Gojek" style="color:var(--muted)">—</div>
         </div>
-        <div class="plat-box" style="border-color:rgba(0,177,79,.25)">
-          <div class="plat-box-name" style="color:var(--grab)">Grab</div>
-          <div class="plat-box-val" id="pb-val-Grab" style="color:var(--muted)">—</div>
+        <div class="plat-box" style="border-color:rgba(167,139,250,.25)">
+          <div class="plat-box-name" style="color:var(--others)">Others</div>
+          <div class="plat-box-val" id="pb-val-Others" style="color:var(--muted)">—</div>
         </div>
       </div>
 
@@ -826,29 +820,6 @@ body.light-mode .fuel-stat{background:var(--card)}
             <input class="inp" type="number" inputmode="decimal" id="fuel-cost-after" placeholder="e.g. 96.18" step="0.01" oninput="calcFuelFields()">
           </div>
         </div>
-        <div class="two-col" style="margin-bottom:8px">
-          <div>
-            <label class="lbl">Petrol Brand</label>
-            <select class="inp" id="fuel-brand">
-              <option value="">-- Select --</option>
-              <option value="Esso">Esso</option>
-              <option value="Shell">Shell</option>
-              <option value="Caltex">Caltex</option>
-              <option value="SPC">SPC</option>
-              <option value="Sinopec">Sinopec</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          <div>
-            <label class="lbl">Petrol Type</label>
-            <select class="inp" id="fuel-petrol-type">
-              <option value="">-- Select --</option>
-              <option value="RON 92">RON 92</option>
-              <option value="RON 95">RON 95</option>
-              <option value="RON 98">RON 98</option>
-            </select>
-          </div>
-        </div>
         <div style="margin-bottom:8px">
           <label class="lbl">Distance Since Last Top-Up (km)</label>
           <input class="inp" type="number" inputmode="decimal" id="fuel-distance" placeholder="e.g. 420" step="1" oninput="calcFuelFields()" style="font-family:'Space Mono',monospace">
@@ -859,16 +830,16 @@ body.light-mode .fuel-stat{background:var(--card)}
           <div style="font-size:11px;color:var(--muted);margin-bottom:6px;letter-spacing:.05em">CALCULATED</div>
           <div class="fuel-grid">
             <div class="fuel-stat"><div class="fuel-stat-label">Discount %</div><div class="fuel-stat-val" id="fc-discount-pct">—</div></div>
-            <div class="fuel-stat"><div class="fuel-stat-label">Consumption (km/L)</div><div class="fuel-stat-val" id="fc-consumption">—</div></div>
+            <div class="fuel-stat"><div class="fuel-stat-label">Consumption (L/km)</div><div class="fuel-stat-val" id="fc-consumption">—</div></div>
             <div class="fuel-stat"><div class="fuel-stat-label">Days Since Last Top-Up</div><div class="fuel-stat-val" id="fc-days">—</div></div>
             <div class="fuel-stat"><div class="fuel-stat-label">Period</div><div class="fuel-stat-val" id="fc-period" style="font-size:11px">—</div></div>
           </div>
         </div>
 
-        <div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end">
-          <button onclick="discardFuelScan()" style="background:none;border:1px solid var(--border);color:var(--muted);font-size:12px;padding:6px 12px;border-radius:var(--r);cursor:pointer">✕ Discard</button>
-          <button onclick="saveFuelRecord()" style="background:var(--accent);color:#000;font-size:12px;padding:6px 14px;border-radius:var(--r);cursor:pointer;font-weight:600">✓ Save Record</button>
-        </div>
+        <button class="btn btn-green" onclick="saveFuelRecord()" style="margin-top:4px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
+          Save Top-Up Record
+        </button>
       </div>
     </div>
   </div>
@@ -877,48 +848,6 @@ body.light-mode .fuel-stat{background:var(--card)}
   <div style="padding:0 12px">
     <div style="font-size:12px;color:var(--muted);letter-spacing:.08em;margin-bottom:8px;margin-top:4px">HISTORY</div>
     <div id="fuel-history-list"></div>
-  </div>
-  <div style="height:100vh"></div>
-</div>
-
-<!-- ══════════════════════════════════════════════════
-     SCREEN 6 — TRENDS
-══════════════════════════════════════════════════ -->
-<div class="screen" id="screen-trends">
-  <div class="ph" style="display:flex;justify-content:space-between;align-items:center">
-    <div class="ph-title">📈 Trends</div>
-  </div>
-
-  <div style="padding:0 12px">
-
-    <!-- Shift legend -->
-    <div style="display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap">
-      <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)">
-        <span style="width:20px;height:20px;border-radius:50%;background:#F97316;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff">D</span> Day shift
-      </div>
-      <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)">
-        <span style="width:20px;height:20px;border-radius:50%;background:#378ADD;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff">N</span> Night shift
-      </div>
-      <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)">
-        <span style="width:20px;height:20px;border-radius:50%;background:#8B5CF6;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff">M</span> Midnight shift
-      </div>
-    </div>
-
-    <!-- Chart legend -->
-    <div style="display:flex;gap:16px;margin-bottom:8px;font-size:12px;color:var(--muted)">
-      <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:#1D9E75;display:inline-block"></span>Consumption (km/L)</span>
-      <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:3px;background:#378ADD;display:inline-block;border-top:2px dashed #378ADD"></span>Distance (km)</span>
-    </div>
-
-    <!-- Consumption trend chart -->
-    <div style="position:relative;width:100%;height:240px">
-      <canvas id="trends-chart"></canvas>
-    </div>
-
-    <!-- Data points with shift badges -->
-    <div style="font-size:11px;color:var(--muted);margin:10px 0 6px;letter-spacing:.06em">TOP-UP RECORDS</div>
-    <div id="trends-records-list"></div>
-
   </div>
   <div style="height:100vh"></div>
 </div>
@@ -962,16 +891,6 @@ body.light-mode .fuel-stat{background:var(--card)}
     <div class="ai-row"><span class="ai-key">Trips Recorded</span><span class="ai-val" id="s-trips">0</span></div>
   </div>
 
-  <div class="set-section-title" style="margin-top:18px">Petrol Data</div>
-  <div style="padding:0 12px;display:flex;flex-direction:column;gap:8px">
-    <button class="btn" onclick="clearAllPetrolData()" style="background:var(--danger);color:#fff">
-      🗑 Clear All Petrol Records
-    </button>
-    <div style="font-size:11px;color:var(--muted);padding:0 4px">
-      Permanently deletes all petrol top-up history. Cannot be undone.
-    </div>
-  </div>
-
   <div class="set-section-title" style="margin-top:18px">Data Backup &amp; Export</div>
   <div style="padding:0 12px;display:flex;flex-direction:column;gap:8px">
     <button class="btn btn-green" onclick="exportAll()" id="export-all-btn">
@@ -1008,10 +927,6 @@ body.light-mode .fuel-stat{background:var(--card)}
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 22V8l6-6h6l2 2v2h1a2 2 0 012 2v3a2 2 0 01-2 2h-1v7H3z"/><path d="M9 2v6H3"/><rect x="6" y="12" width="6" height="4" rx="1"/></svg>
     ⛽ Petrol
   </button>
-  <button class="nb" id="nav-trends" onclick="go('trends',this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-    Trends
-  </button>
   <button class="nb" id="nav-settings" onclick="go('settings',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
     Settings
@@ -1044,8 +959,9 @@ body.light-mode .fuel-stat{background:var(--card)}
       <label class="lbl">Platform</label>
       <div class="tog-row" id="plat-tog">
         <button class="tog on-tada" onclick="setPlatform('TADA',this)">TADA</button>
-        <button class="tog" onclick="setPlatform('Gojek',this)">Gojek</button>
         <button class="tog" onclick="setPlatform('Grab',this)">Grab</button>
+        <button class="tog" onclick="setPlatform('Gojek',this)">Gojek</button>
+        <button class="tog" onclick="setPlatform('Others',this)">Others</button>
       </div>
     </div>
     <div style="margin-bottom:14px">
@@ -1146,8 +1062,9 @@ body.light-mode .fuel-stat{background:var(--card)}
       <label class="lbl">Platform</label>
       <div class="tog-row" id="edit-plat-tog">
         <button class="tog" onclick="editSetPlat('TADA',this)">TADA</button>
-        <button class="tog" onclick="editSetPlat('Gojek',this)">Gojek</button>
         <button class="tog" onclick="editSetPlat('Grab',this)">Grab</button>
+        <button class="tog" onclick="editSetPlat('Gojek',this)">Gojek</button>
+        <button class="tog" onclick="editSetPlat('Others',this)">Others</button>
       </div>
     </div>
     <div style="margin-bottom:12px">
@@ -1383,7 +1300,6 @@ function go(name, btn){
   if(name==='trips')   { tripViewDate=null; renderTrips(); }
   if(name==='settings')initSettings();
   if(name==='petrol'){ renderFuelHistory(); }
-  if(name==='trends'){ renderTrends(); }
   const ptb=document.getElementById('theme-btn-petrol');
   if(ptb) ptb.textContent=document.body.classList.contains('light-mode')?'\u263D Dark':'\u2600 Light';
 }
@@ -1547,28 +1463,24 @@ function renderSessions(){
   c.innerHTML='';
   const date=document.getElementById('e-date').value||fmtDate(new Date());
   const trips=getTrips().filter(t=>t.date===date);
-  const td={TADA:0,Grab:0,Gojek:0}; let tkm=0,tmin=0;
+  const td={TADA:0,Grab:0,Gojek:0,Others:0}; let tkm=0,tmin=0;
   trips.forEach(t=>{td[t.platform]=(td[t.platform]||0)+(t.fare||0);tkm+=t.distanceKm||0;tmin+=t.durationMins||0;});
 
-  const platColors={TADA:'249,115,22',Grab:'0,177,79',Gojek:'56,189,248'};
-  const platVars={TADA:'tada',Grab:'grab',Gojek:'gojek'};
+  const platColors={TADA:'249,115,22',Grab:'0,177,79',Gojek:'56,189,248',Others:'167,139,250'};
+  const platVars={TADA:'tada',Grab:'grab',Gojek:'gojek',Others:'others'};
 
   for(let i=1;i<=sessCount;i++){
     // Filter trips by session number for this block
     const sessTrips=trips.filter(t=>(t.sessionNum||1)===i);
-    const td={TADA:0,Grab:0,Gojek:0}; let tkm=0,tmin=0;
+    const td={TADA:0,Grab:0,Gojek:0,Others:0}; let tkm=0,tmin=0;
     sessTrips.forEach(t=>{td[t.platform]=(td[t.platform]||0)+(t.fare||0);tkm+=t.distanceKm||0;tmin+=t.durationMins||0;});
 
     // Platform boxes — read-only auto-populated per session
-    const sessTotal=Object.values(td).reduce((a,v)=>a+v,0);
-    const platBoxes=[
-      `<div class="plat-box" style="border-color:rgba(0,212,170,.25)"><div class="plat-box-name" style="color:var(--accent)">Total</div><div class="plat-box-val" data-plat="Total" style="color:${sessTotal>0?'var(--text)':'var(--muted)'}">${sessTotal>0?'$'+sessTotal.toFixed(2):'—'}</div></div>`,
-      ...['TADA','Gojek','Grab'].map(p=>`
+    const platBoxes=['TADA','Grab','Gojek','Others'].map(p=>`
       <div class="plat-box" style="border-color:rgba(${platColors[p]},.25)">
         <div class="plat-box-name" style="color:var(--${platVars[p]})">${p}</div>
         <div class="plat-box-val" data-plat="${p}" style="color:${td[p]>0?'var(--text)':'var(--muted)'}">${td[p]>0?'$'+td[p].toFixed(2):'—'}</div>
-      </div>`)
-    ].join('');
+      </div>`).join('');
 
     var sessGross=Object.values(td).reduce(function(a,v){return a+v;},0);
     var smin2=getSessMinsSingle(i);
@@ -1739,7 +1651,7 @@ function loadEntry(){
   const trips=getTrips().filter(t=>t.date===date);
 
   // Always auto-populate platform boxes from Trip Log — no manual input
-  const td={TADA:0,Grab:0,Gojek:0};
+  const td={TADA:0,Grab:0,Gojek:0,Others:0};
   let totalFare=0, totalKm=0, totalMin=0;
   trips.forEach(t=>{
     td[t.platform]=(td[t.platform]||0)+(t.fare||0);
@@ -1750,9 +1662,7 @@ function loadEntry(){
   document.getElementById('e-autofill-badge').style.display=trips.length>0?'inline-flex':'none';
 
   // Update each read-only platform box
-  const totalEl=document.getElementById('pb-val-Total');
-  if(totalEl){ if(totalFare>0){totalEl.textContent='$'+totalFare.toFixed(2);totalEl.style.color='var(--text)';}else{totalEl.textContent='—';totalEl.style.color='var(--muted)';} }
-  ['TADA','Grab','Gojek'].forEach(p=>{
+  ['TADA','Grab','Gojek','Others'].forEach(p=>{
     const el=document.getElementById('pb-val-'+p);
     if(!el) return;
     if(td[p]>0){ el.textContent='$'+td[p].toFixed(2); el.style.color='var(--text)'; }
@@ -1867,12 +1777,9 @@ function refreshEntryEarnings(){
   blocks.forEach((block,idx)=>{
     const i=idx+1;
     const sessTrips=trips.filter(t=>(t.sessionNum||1)===i);
-    const sd={TADA:0,Grab:0,Gojek:0};
+    const sd={TADA:0,Grab:0,Gojek:0,Others:0};
     sessTrips.forEach(t=>sd[t.platform]=(sd[t.platform]||0)+(t.fare||0));
-    const sTotal=Object.values(sd).reduce((a,v)=>a+v,0);
-    const totalEl=block.querySelector('.plat-box-val[data-plat="Total"]');
-    if(totalEl){ if(sTotal>0){totalEl.textContent='$'+sTotal.toFixed(2);totalEl.style.color='var(--text)';}else{totalEl.textContent='—';totalEl.style.color='var(--muted)';} }
-    ['TADA','Grab','Gojek'].forEach(p=>{
+    ['TADA','Grab','Gojek','Others'].forEach(p=>{
       const el=block.querySelector(`.plat-box-val[data-plat="${p}"]`);
       if(!el) return;
       if(sd[p]>0){ el.textContent='$'+sd[p].toFixed(2); el.style.color='var(--text)'; }
@@ -1933,16 +1840,17 @@ function autoSaveEntry(){
 
   // Save driving day state — earnings/trips are auto-populated, just save petrol + sessions + notes
   const trips=getTrips().filter(t=>t.date===date);
-  let earnings={tada:0,grab:0,gojek:0,total:0};
+  let earnings={tada:0,grab:0,gojek:0,others:0,total:0};
   let distance=0;
   trips.forEach(t=>{
     const p=(t.platform||'').toLowerCase();
     if(p==='tada') earnings.tada+=t.fare||0;
     else if(p==='grab') earnings.grab+=t.fare||0;
     else if(p==='gojek') earnings.gojek+=t.fare||0;
+    else earnings.others+=t.fare||0;
     distance+=t.distanceKm||0;
   });
-  earnings.total=earnings.tada+earnings.grab+earnings.gojek;
+  earnings.total=earnings.tada+earnings.grab+earnings.gojek+earnings.others;
 
   const petrol=parseFloat(document.getElementById('e-petrol')?.value)||0;
   const sessions=[];
@@ -1982,7 +1890,7 @@ function saveEntry(){
   }
 
   const trips=getTrips().filter(t=>t.date===date);
-  let earnings={tada:0,grab:0,gojek:0,total:0};
+  let earnings={tada:0,grab:0,gojek:0,others:0,total:0};
   let distance=0;
 
   if(trips.length>0){
@@ -1991,9 +1899,10 @@ function saveEntry(){
       if(p==='tada') earnings.tada+=t.fare||0;
       else if(p==='grab') earnings.grab+=t.fare||0;
       else if(p==='gojek') earnings.gojek+=t.fare||0;
+      else earnings.others+=t.fare||0;
       distance+=t.distanceKm||0;
     });
-    earnings.total=earnings.tada+earnings.grab+earnings.gojek;
+    earnings.total=earnings.tada+earnings.grab+earnings.gojek+earnings.others;
   } else {
     // No trips recorded — earnings remain 0 (no manual input)
     earnings.total=0;
@@ -2049,10 +1958,10 @@ function renderSummary(){
 
   const prefix=y+'-'+String(mo+1).padStart(2,'0')+'-';
   const entries=Object.values(data).filter(e=>e.date?.startsWith(prefix));
-  const allTrips=getTrips();
-  const monthTrips=allTrips.filter(t=>t.date?.startsWith(prefix));
+  const monthTrips=getTrips().filter(t=>t.date?.startsWith(prefix));
   const k3=monthTrips.reduce((a,t)=>a+(t.fare||0),0);
-  const k4=entries.reduce((a,e)=>a+(e.petrol||0),0);
+  const fuelRecords=getFuelRecords().filter(r=>r.date?.startsWith(prefix));
+  const k4=fuelRecords.reduce((a,r)=>a+(r.costAfter||0),0);
   const driven=entries.filter(e=>e.driving&&monthTrips.filter(t=>t.date===e.date).length>0).length;
   const rem=Math.max(0,s.days-driven);
 
@@ -2121,12 +2030,14 @@ function renderHistList(){
     any=true;
     const dow=DAYS[new Date(ds+'T00:00:00').getDay()];
 
-    // Trip stats — read directly from Trip Log
+    // Read earnings directly from Trip Log
     const dayTrips=getTrips().filter(t=>t.date===ds);
     const gross=dayTrips.reduce((a,t)=>a+(t.fare||0),0);
-    const net=gross-(e?.petrol||0);
+    // Read petrol directly from Fuel Records
+    const dayFuel=getFuelRecords().filter(r=>r.date===ds);
+    const petrolCost=dayFuel.reduce((a,r)=>a+(r.costAfter||0),0);
+    const net=gross-petrolCost;
     const tripCount=dayTrips.length;
-    const tripKm=dayTrips.reduce((a,t)=>a+(t.distanceKm||0),0);
 
     const tag=e?.driving===false&&dayTrips.length===0?
       (isHol?`<span style="font-size:10px;color:var(--warn)">🎉 ${SG_HOL[ds]}</span>`:`<span style="font-size:10px;color:var(--danger)">🚫 Rest</span>`):
@@ -2136,6 +2047,7 @@ function renderHistList(){
       .map(p=>`<span class="ppill ppill-${p}">${p}</span>`).join('')):'';
 
     // Session time calculation
+    const tripKm=dayTrips.reduce((a,t)=>a+(t.distanceKm||0),0);
     let sessMins=0;
     if(e && e.sessions && e.sessions.length>0){
       e.sessions.forEach(function(s){
@@ -2223,7 +2135,7 @@ function renderTrips(){
     btn.disabled=true; ac.style.display='block';
     document.getElementById('ap-addr').textContent=activeTrip.pickup?.addr||'Captured';
     document.getElementById('ap-town').textContent=activeTrip.pickup?.town||'';
-    const pc={'TADA':'tada','Grab':'grab','Gojek':'gojek'};
+    const pc={'TADA':'tada','Grab':'grab','Gojek':'gojek','Others':'others'};
     document.getElementById('active-plat').innerHTML=
       `<span class="ppill ppill-${activeTrip.platform}">${activeTrip.platform}</span>
        <span style="font-size:11px;color:var(--muted);margin-left:8px">${activeTrip.mode}</span>`;
@@ -2366,7 +2278,7 @@ function deleteTrip(){
 // ── Start/End trip ────────────────────────────────
 function setPlatform(p,btn){
   tripPlatform=p;
-  const map={TADA:'on-tada',Grab:'on-grab',Gojek:'on-gojek'};
+  const map={TADA:'on-tada',Grab:'on-grab',Gojek:'on-gojek',Others:'on-others'};
   document.querySelectorAll('#plat-tog .tog').forEach(b=>b.className='tog');
   btn.className='tog '+map[p];
 }
@@ -2584,15 +2496,12 @@ function saveTrip(){
 function syncDailyEntry(date){
   const trips=getTrips().filter(t=>t.date===date);
   const data=getData(), entry=data[date]||{};
-  const e={tada:0,grab:0,gojek:0}; let km=0;
+  const e={tada:0,grab:0,gojek:0,others:0}; let km=0;
   trips.forEach(t=>{
     const p=(t.platform||'').toLowerCase();
-    if(p==='tada') e.tada+=t.fare||0;
-    else if(p==='grab') e.grab+=t.fare||0;
-    else if(p==='gojek') e.gojek+=t.fare||0;
-    km+=t.distanceKm||0;
+    e[p in e?p:'others']+=t.fare||0; km+=t.distanceKm||0;
   });
-  e.total=e.tada+e.grab+e.gojek;
+  e.total=e.tada+e.grab+e.gojek+e.others;
   const d=new Date(date+'T00:00:00');
   data[date]={...entry,date,dayOfWeek:DAYS[d.getDay()],driving:true,
     earnings:e,distance:parseFloat(km.toFixed(1)),estNet:e.total-(entry.petrol||0)};
@@ -2845,9 +2754,9 @@ function calcFuelFields(){
   if(before>0&&disc>0) pctEl.textContent=((disc/before)*100).toFixed(1)+'%';
   else pctEl.textContent='—';
 
-  // Consumption km/L
+  // Consumption L/km
   const consEl=document.getElementById('fc-consumption');
-  if(vol>0&&dist>0) consEl.textContent=(dist/vol).toFixed(2)+' km/L';
+  if(vol>0&&dist>0) consEl.textContent=(vol/dist).toFixed(3)+' L/km';
   else consEl.textContent='—';
 
   // Days since last top-up
@@ -2892,17 +2801,15 @@ async function extractFuelReceipt(input){
     const prompt=`You are reading a petrol/fuel receipt from Singapore. Extract the following fields and return ONLY a JSON object with no markdown, no explanation:
 {
   "date": "YYYY-MM-DD or empty string if not found",
-  "brand": "petrol station brand e.g. Esso, Shell, Caltex, SPC, Sinopec or empty string if not found",
-  "petrolType": "RON 92, RON 95, or RON 98 — detect from receipt, or empty string if not found",
   "pricePerLitre": number or null,
   "volumeLitres": number or null,
   "costBeforeDiscount": number or null,
   "fuelDiscount": number or null,
   "actualCostAfterDiscount": number or null
 }
-If a field is not visible or unclear, use null for numbers or empty string for text. For date, convert any format to YYYY-MM-DD.`;
+If a field is not visible or unclear, use null. For date, convert any format to YYYY-MM-DD.`;
 
-    const resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='+GEMINI_API_KEY,{
+    const resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+GEMINI_API_KEY,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
@@ -2937,8 +2844,6 @@ If a field is not visible or unclear, use null for numbers or empty string for t
 
     // Populate form fields
     if(extracted.date) document.getElementById('fuel-date').value=extracted.date;
-    if(extracted.brand) document.getElementById('fuel-brand').value=extracted.brand;
-    if(extracted.petrolType) document.getElementById('fuel-petrol-type').value=extracted.petrolType;
     if(extracted.pricePerLitre!=null) document.getElementById('fuel-price-per-l').value=extracted.pricePerLitre.toFixed(3);
     if(extracted.volumeLitres!=null) document.getElementById('fuel-volume').value=extracted.volumeLitres.toFixed(2);
     if(extracted.costBeforeDiscount!=null) document.getElementById('fuel-cost-before').value=extracted.costBeforeDiscount.toFixed(2);
@@ -2966,14 +2871,12 @@ function saveFuelRecord(){
   const discount=parseFloat(document.getElementById('fuel-discount').value)||0;
   const costAfter=parseFloat(document.getElementById('fuel-cost-after').value)||0;
   const distance=parseFloat(document.getElementById('fuel-distance').value)||0;
-  const petrolType=document.getElementById('fuel-petrol-type').value||'';
-  const brand=document.getElementById('fuel-brand').value||'';
 
   if(costAfter<=0){ toast('Please enter actual fuel cost'); return; }
 
   // Calculated fields
   const discountPct=costBefore>0&&discount>0?((discount/costBefore)*100).toFixed(1):null;
-  const consumption=volume>0&&distance>0?(distance/volume).toFixed(2):null;
+  const consumption=volume>0&&distance>0?(volume/distance).toFixed(3):null;
   const records=getFuelRecords();
   const prevRecord=records[0]||null;
   let daysSinceLast=null, periodFrom=null;
@@ -2986,7 +2889,7 @@ function saveFuelRecord(){
 
   const record={
     id:Date.now(), date, pricePerL, volume, costBefore, discount,
-    costAfter, distance, petrolType, brand, discountPct, consumption,
+    costAfter, distance, discountPct, consumption,
     daysSinceLast, periodFrom
   };
 
@@ -3001,27 +2904,9 @@ function saveFuelRecord(){
    'fuel-discount','fuel-cost-after','fuel-distance'].forEach(id=>{
     document.getElementById(id).value='';
   });
-  document.getElementById('fuel-petrol-type').value='';
-  document.getElementById('fuel-brand').value='';
   document.getElementById('fuel-calc-display').style.display='none';
 
   toast('Top-up saved ✓ — petrol cost updated in Entry page');
-  renderFuelHistory();
-}
-
-function clearAllPetrolData(){
-  if(!confirm('Are you sure you want to delete ALL petrol records? This cannot be undone.')) return;
-  // Clear petrol top-up history
-  localStorage.removeItem('mdl_fuel');
-  // Clear petrol cost from all entry data records
-  const data=getData();
-  Object.keys(data).forEach(date=>{
-    if(data[date].petrol) data[date].petrol=0;
-  });
-  saveData(data);
-  // Clear all dedicated mdl_petrol_ keys
-  Object.keys(localStorage).filter(k=>k.startsWith('mdl_petrol_')).forEach(k=>localStorage.removeItem(k));
-  toast('All petrol records cleared');
   renderFuelHistory();
 }
 
@@ -3059,7 +2944,7 @@ function renderFuelHistory(){
       <div class="fuel-record-header">
         <div>
           <div class="fuel-record-date">${r.date}</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:2px">${r.brand?r.brand+' · ':''} ${r.volume?r.volume.toFixed(1)+'L':''} ${r.pricePerL?'@ $'+r.pricePerL.toFixed(3)+'/L':''} ${r.petrolType?'· '+r.petrolType:''}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">${r.volume?r.volume.toFixed(1)+'L':''} ${r.pricePerL?'@ $'+r.pricePerL.toFixed(3)+'/L':''}</div>
         </div>
         <div style="text-align:right">
           <div class="fuel-record-cost">$${r.costAfter.toFixed(2)}</div>
@@ -3067,207 +2952,52 @@ function renderFuelHistory(){
         </div>
       </div>
       <div class="fuel-grid">
-        ${r.distance?'<div class="fuel-stat"><div class="fuel-stat-label">Distance</div><div class="fuel-stat-val">'+r.distance+' km</div></div>':''}
-        ${r.consumption?'<div class="fuel-stat"><div class="fuel-stat-label">Consumption</div><div class="fuel-stat-val">'+r.consumption+' km/L</div></div>':''}
         ${r.discountPct?'<div class="fuel-stat"><div class="fuel-stat-label">Discount</div><div class="fuel-stat-val">'+r.discountPct+'%</div></div>':''}
+        ${r.consumption?'<div class="fuel-stat"><div class="fuel-stat-label">Consumption</div><div class="fuel-stat-val">'+r.consumption+' L/km</div></div>':''}
+        ${r.distance?'<div class="fuel-stat"><div class="fuel-stat-label">Distance</div><div class="fuel-stat-val">'+r.distance+' km</div></div>':''}
         ${r.daysSinceLast?'<div class="fuel-stat"><div class="fuel-stat-label">Days Since Last</div><div class="fuel-stat-val">'+r.daysSinceLast+'d</div></div>':''}
       </div>
       ${r.periodFrom?'<div style="font-size:11px;color:var(--muted);margin-top:6px">Period: '+r.periodFrom+' → '+r.date+'</div>':''}
-      <div style="margin-top:8px;display:flex;justify-content:flex-end;gap:12px">
-        <button onclick="editFuelRecord(${r.id})" style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer">✎ Edit</button>
+      <div style="margin-top:8px;text-align:right">
         <button onclick="deleteFuelRecord(${r.id})" style="background:none;border:none;color:var(--danger);font-size:12px;cursor:pointer">✕ Delete</button>
       </div>
     </div>
   `).join('');
 }
 
-function detectShift(date){
-  // Read Session 1 start time from saved entry data
-  const data=getData();
-  const entry=data[date];
-  if(!entry||!entry.sessions||!entry.sessions[0]) return null;
-  const start=entry.sessions[0].start;
-  if(!start) return null;
-  const [h,m]=start.split(':').map(Number);
-  const mins=h*60+(m||0);
-  // Day: 3am(180) to 7am(420)
-  if(mins>=180 && mins<420) return 'D';
-  // Night unambiguous: 2pm(840) to 4:59pm(299)
-  if(mins>=840 && mins<1020) return 'N';
-  // Midnight unambiguous: 7pm(1140) to 9pm(1260)
-  if(mins>=1140 && mins<=1260) return 'M';
-  // Ambiguous: 5pm(1020) to 6:59pm(1139) — check end time
-  if(mins>=1020 && mins<1140){
-    const end=entry.sessions[0].end;
-    if(!end) return 'N'; // default to Night if no end time
-    const [eh]=end.split(':').map(Number);
-    // If end hour is 0,1,2 (midnight to 2:59am) = Night, 3am+ = Midnight
-    const endMins=eh*60+(end.split(':')[1]||0)*1;
-    // end after midnight wraps — treat 0-179 (midnight to 2:59am) as Night
-    if(endMins>=0 && endMins<180) return 'N';
-    return 'M';
-  }
-  return null;
-}
-
-let _trendsChart=null;
-function renderTrends(){
-  const records=getFuelRecords().slice().reverse(); // oldest first for chart
-  const list=document.getElementById('trends-records-list');
-  if(!list) return;
-
-  if(records.length===0){
-    list.innerHTML='<div style="text-align:center;padding:24px;color:var(--muted);font-size:14px">No petrol records yet</div>';
-    const ctx=document.getElementById('trends-chart');
-    if(ctx && _trendsChart){ _trendsChart.destroy(); _trendsChart=null; }
-    return;
-  }
-
-  const shiftColors={D:'#F97316',N:'#378ADD',M:'#8B5CF6'};
-  const shiftLabels={D:'Day','N':'Night',M:'Midnight'};
-
-  // Build chart data
-  const labels=records.map(r=>r.date.slice(5)); // MM-DD
-  const consumption=records.map(r=>r.consumption?parseFloat(r.consumption):null);
-  const distance=records.map(r=>r.distance||null);
-  const pointColors=records.map(r=>{
-    const sh=detectShift(r.date);
-    return shiftColors[sh]||'#888';
-  });
-
-  // Destroy old chart if exists
-  if(_trendsChart){ _trendsChart.destroy(); _trendsChart=null; }
-
-  const ctx=document.getElementById('trends-chart');
-  if(!ctx) return;
-
-  // Load Chart.js if not already loaded
-  function buildChart(){
-    _trendsChart=new Chart(ctx,{
-      type:'line',
-      data:{
-        labels,
-        datasets:[
-          {
-            label:'km/L',
-            data:consumption,
-            borderColor:'#1D9E75',
-            backgroundColor:'rgba(29,158,117,.08)',
-            borderWidth:2,
-            pointRadius:8,
-            pointBackgroundColor:pointColors,
-            pointBorderColor:pointColors,
-            fill:true,
-            tension:.3,
-            yAxisID:'y',
-            spanGaps:true
-          },
-          {
-            label:'Distance (km)',
-            data:distance,
-            borderColor:'#378ADD',
-            backgroundColor:'transparent',
-            borderWidth:2,
-            borderDash:[5,3],
-            pointRadius:3,
-            pointBackgroundColor:'#378ADD',
-            fill:false,
-            tension:.3,
-            yAxisID:'y1',
-            spanGaps:true
-          }
-        ]
-      },
-      options:{
-        responsive:true,
-        maintainAspectRatio:false,
-        plugins:{
-          legend:{display:false},
-          tooltip:{
-            callbacks:{
-              afterLabel:function(ctx){
-                const r=records[ctx.dataIndex];
-                const sh=detectShift(r.date);
-                return sh?'Shift: '+(shiftLabels[sh]||sh):'';
-              }
-            }
-          }
-        },
-        scales:{
-          x:{ticks:{font:{size:10},maxRotation:45,autoSkip:true,maxTicksLimit:10,color:'#888'},grid:{display:false}},
-          y:{position:'left',ticks:{font:{size:10},color:'#1D9E75',callback:v=>v+' km/L'},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:'km/L',color:'#1D9E75',font:{size:10}}},
-          y1:{position:'right',ticks:{font:{size:10},color:'#378ADD',callback:v=>v+' km'},grid:{display:false},title:{display:true,text:'km',color:'#378ADD',font:{size:10}}}
-        }
-      }
-    });
-  }
-
-  if(window.Chart){ buildChart(); }
-  else{
-    const s=document.createElement('script');
-    s.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js';
-    s.onload=buildChart;
-    document.head.appendChild(s);
-  }
-
-  // Render records list with shift badges
-  list.innerHTML=records.slice().reverse().map(r=>{
-    const sh=detectShift(r.date);
-    const badge=sh?`<span style="width:20px;height:20px;border-radius:50%;background:${shiftColors[sh]||'#888'};display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0">${sh}</span>`:'<span style="width:20px;height:20px;border-radius:50%;background:var(--muted);display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:#fff;flex-shrink:0">?</span>';
-    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
-      ${badge}
-      <div style="flex:1;font-size:12px">
-        <span style="color:var(--text);font-weight:600">${r.date}</span>
-        ${r.petrolType?'<span style="color:var(--muted);margin-left:6px">'+r.petrolType+'</span>':''}
-        ${r.brand?'<span style="color:var(--muted);margin-left:4px">· '+r.brand+'</span>':''}
-      </div>
-      <div style="text-align:right;font-size:12px">
-        ${r.consumption?'<span style="color:#1D9E75;font-weight:600">'+r.consumption+' km/L</span>':'<span style="color:var(--muted)">—</span>'}
-        ${r.distance?'<span style="color:var(--muted);margin-left:8px">'+r.distance+' km</span>':''}
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function editFuelRecord(id){
-  const records=getFuelRecords();
-  const r=records.find(x=>x.id===id);
-  if(!r) return;
-  // Populate form with existing values
-  document.getElementById('fuel-date').value=r.date||'';
-  document.getElementById('fuel-price-per-l').value=r.pricePerL||'';
-  document.getElementById('fuel-volume').value=r.volume||'';
-  document.getElementById('fuel-cost-before').value=r.costBefore||'';
-  document.getElementById('fuel-discount').value=r.discount||'';
-  document.getElementById('fuel-cost-after').value=r.costAfter||'';
-  document.getElementById('fuel-distance').value=r.distance||'';
-  document.getElementById('fuel-petrol-type').value=r.petrolType||'';
-  document.getElementById('fuel-brand').value=r.brand||'';
-  // Delete the old record so saving creates a fresh one
-  const updated=records.filter(x=>x.id!==id);
-  saveFuelRecords(updated);
-  renderFuelHistory();
-  calcFuelFields();
-  // Scroll to top of petrol tab
-  document.getElementById('screen-petrol').scrollTop=0;
-  toast('Record loaded for editing — make changes and save');
-}
-
-function discardFuelScan(){
-  ['fuel-date','fuel-price-per-l','fuel-volume','fuel-cost-before',
-   'fuel-discount','fuel-cost-after','fuel-distance'].forEach(id=>{
-    document.getElementById(id).value='';
-  });
-  document.getElementById('fuel-petrol-type').value='';
-  document.getElementById('fuel-brand').value='';
-  document.getElementById('fuel-calc-display').style.display='none';
-  toast('Scanned info discarded');
-}
-
 function deleteFuelRecord(id){
   if(!confirm('Are you sure you want to delete this petrol record? This cannot be undone.')) return;
-  const records=getFuelRecords().filter(r=>r.id!==id);
+  const all=getFuelRecords();
+  const target=all.find(r=>r.id===id);
+  const records=all.filter(r=>r.id!==id);
   saveFuelRecords(records);
+
+  // Recalculate petrol cost for that date from remaining records
+  if(target){
+    const date=target.date;
+    const remaining=records.filter(r=>r.date===date);
+    const newCost=remaining.reduce((a,r)=>a+(r.costAfter||0),0);
+    // Update entry data
+    const data=getData();
+    if(data[date]){
+      data[date].petrol=newCost;
+      data[date].estNet=(data[date].earnings?.total||0)-newCost;
+      saveData(data);
+    }
+    // Update dedicated petrol slot
+    if(newCost>0){
+      try{ localStorage.setItem('mdl_petrol_'+date, newCost.toFixed(2)); }catch{}
+    } else {
+      try{ localStorage.removeItem('mdl_petrol_'+date); }catch{}
+    }
+    // Update Entry tab live if viewing that date
+    const entryDate=document.getElementById('e-date')?.value;
+    if(entryDate===date){
+      const pf=document.getElementById('e-petrol');
+      if(pf) pf.value=newCost>0?newCost.toFixed(2):'';
+    }
+  }
+
   renderFuelHistory();
   toast('Record deleted');
 }
