@@ -480,6 +480,7 @@ body.light-mode .fuel-stat{background:var(--card)}
         <button onclick="shiftDate(-1)" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:16px;color:var(--text);cursor:pointer;touch-action:manipulation;flex-shrink:0">‹</button>
         <input type="date" class="inp" id="e-date" style="font-family:'Space Mono',monospace;font-size:13px;flex:1;text-align:center">
         <button onclick="shiftDate(1)" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:16px;color:var(--text);cursor:pointer;touch-action:manipulation;flex-shrink:0">›</button>
+        <button onclick="goToToday()" style="background:var(--accent);border:none;border-radius:8px;padding:8px 10px;font-size:11px;font-weight:700;color:#0D1117;cursor:pointer;touch-action:manipulation;flex-shrink:0;letter-spacing:.3px">Today</button>
       </div>
       <div class="inp" id="e-dow" style="color:var(--muted);font-family:'Space Mono',monospace;font-size:13px;display:flex;align-items:center;margin-top:6px;background:none;border:none;padding:0"></div>
     </div>
@@ -1414,6 +1415,13 @@ function shiftDate(days){
   const current=di.value?new Date(di.value+'T00:00:00'):new Date();
   current.setDate(current.getDate()+days);
   di.value=fmtDate(current);
+  loadEntry();
+}
+
+function goToToday(){
+  const di=document.getElementById('e-date');
+  if(!di) return;
+  di.value=fmtDate(new Date());
   loadEntry();
 }
 
@@ -2827,7 +2835,7 @@ async function extractFuelReceipt(input){
 }
 If a field is not visible or unclear, use null. For date, convert any format to YYYY-MM-DD.`;
 
-    const resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+GEMINI_API_KEY,{
+    const resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='+GEMINI_API_KEY,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
@@ -2980,11 +2988,13 @@ function renderFuelHistory(){
     const label=MONTHS[parseInt(m)-1]+' '+y;
     const d=monthMap[ym];
     const avgConsumption=d.volume>0&&d.distance>0?(d.distance/d.volume).toFixed(1)+' km/L':'—';
+    const totalDist=d.distance>0?d.distance.toFixed(0)+' km':'—';
     const isCurrent=ym===new Date().toISOString().slice(0,7);
     return `<tr style="${isCurrent?'background:rgba(0,212,170,.08)':''}">
       <td style="padding:8px 10px;font-size:13px;color:var(--text);font-weight:${isCurrent?'700':'400'}">${label}${isCurrent?' ◀':''}</td>
       <td style="padding:8px 10px;font-size:13px;text-align:center;color:var(--muted)">${d.count}</td>
       <td style="padding:8px 10px;font-size:13px;text-align:center;color:var(--muted)">${avgConsumption}</td>
+      <td style="padding:8px 10px;font-size:13px;text-align:center;color:var(--muted)">${totalDist}</td>
       <td style="padding:8px 10px;font-size:13px;text-align:center;color:var(--muted)">${d.volume>0?d.volume.toFixed(1)+' L':'—'}</td>
       <td style="padding:8px 10px;font-size:13px;text-align:right;font-family:'Space Mono',monospace;color:${isCurrent?'var(--accent)':'var(--text)'};font-weight:700">$${d.total.toFixed(2)}</td>
     </tr>`;
@@ -2992,6 +3002,7 @@ function renderFuelHistory(){
 
   const grandTotal=records.reduce((a,r)=>a+(r.costAfter||0),0);
   const grandVolume=records.reduce((a,r)=>a+(r.volume||0),0);
+  const grandDist=records.reduce((a,r)=>a+(r.distance||0),0);
   const grandCount=records.length;
 
   const summaryTable=`
@@ -3003,6 +3014,7 @@ function renderFuelHistory(){
             <th style="padding:8px 10px;font-size:11px;color:var(--muted);text-align:left;font-weight:600;letter-spacing:.05em">MONTH</th>
             <th style="padding:8px 10px;font-size:11px;color:var(--muted);text-align:center;font-weight:600;letter-spacing:.05em">TOPS-UP</th>
             <th style="padding:8px 10px;font-size:11px;color:var(--muted);text-align:center;font-weight:600;letter-spacing:.05em">AVG KM/L</th>
+            <th style="padding:8px 10px;font-size:11px;color:var(--muted);text-align:center;font-weight:600;letter-spacing:.05em">DISTANCE</th>
             <th style="padding:8px 10px;font-size:11px;color:var(--muted);text-align:center;font-weight:600;letter-spacing:.05em">VOLUME</th>
             <th style="padding:8px 10px;font-size:11px;color:var(--muted);text-align:right;font-weight:600;letter-spacing:.05em">TOTAL ($)</th>
           </tr>
@@ -3014,7 +3026,8 @@ function renderFuelHistory(){
           <tr style="border-top:1px solid var(--border);background:var(--surface)">
             <td style="padding:8px 10px;font-size:12px;font-weight:700;color:var(--text)">All Time</td>
             <td style="padding:8px 10px;font-size:12px;text-align:center;color:var(--muted)">${grandCount}</td>
-            <td style="padding:8px 10px;font-size:12px;text-align:center;color:var(--muted)">${grandVolume>0&&records.reduce((a,r)=>a+(r.distance||0),0)>0?(records.reduce((a,r)=>a+(r.distance||0),0)/grandVolume).toFixed(1)+' km/L':'—'}</td>
+            <td style="padding:8px 10px;font-size:12px;text-align:center;color:var(--muted)">${grandVolume>0&&grandDist>0?(grandDist/grandVolume).toFixed(1)+' km/L':'—'}</td>
+            <td style="padding:8px 10px;font-size:12px;text-align:center;color:var(--muted)">${grandDist>0?grandDist.toFixed(0)+' km':'—'}</td>
             <td style="padding:8px 10px;font-size:12px;text-align:center;color:var(--muted)">${grandVolume>0?grandVolume.toFixed(1)+' L':'—'}</td>
             <td style="padding:8px 10px;font-size:12px;text-align:right;font-family:'Space Mono',monospace;color:var(--accent);font-weight:700">$${grandTotal.toFixed(2)}</td>
           </tr>
@@ -3049,6 +3062,30 @@ function renderFuelHistory(){
       </div>
     </div>
   `).join('');
+}
+
+function editFuelRecord(id){
+  const records=getFuelRecords();
+  const r=records.find(x=>x.id===id);
+  if(!r) return;
+  // Populate form with existing values
+  document.getElementById('fuel-date').value=r.date||'';
+  document.getElementById('fuel-price-per-l').value=r.pricePerL||'';
+  document.getElementById('fuel-volume').value=r.volume||'';
+  document.getElementById('fuel-cost-before').value=r.costBefore||'';
+  document.getElementById('fuel-discount').value=r.discount||'';
+  document.getElementById('fuel-cost-after').value=r.costAfter||'';
+  document.getElementById('fuel-distance').value=r.distance||'';
+  document.getElementById('fuel-petrol-type').value=r.petrolType||'';
+  document.getElementById('fuel-brand').value=r.brand||'';
+  // Remove old record so saving creates a fresh one
+  const updated=records.filter(x=>x.id!==id);
+  saveFuelRecords(updated);
+  renderFuelHistory();
+  calcFuelFields();
+  // Scroll to top of petrol tab
+  document.getElementById('screen-petrol').scrollTop=0;
+  toast('Record loaded for editing — make changes and save');
 }
 
 function deleteFuelRecord(id){
