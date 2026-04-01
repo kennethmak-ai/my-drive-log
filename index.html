@@ -876,6 +876,10 @@ body.light-mode .fuel-stat{background:var(--card)}
     <div><div class="set-label">Est. Petrol / Day ($)</div><div class="set-sub">Average daily petrol spend</div></div>
     <input type="number" class="set-inp" id="s-petrol" value="40" oninput="saveSettings()">
   </div>
+  <div class="set-row">
+    <div><div class="set-label">Other Fixed Cost / Day ($)</div><div class="set-sub">Insurance, parking, instalment</div></div>
+    <input type="number" class="set-inp" id="s-other" value="0" step="0.01" oninput="saveSettings()">
+  </div>
 
   <div class="set-section-title" style="margin-top:18px">Petrol Cost Estimator</div>
   <div style="padding:0 12px 0">
@@ -1259,7 +1263,7 @@ function saveData(d){ localStorage.setItem(DATA_KEY, JSON.stringify(d)) }
 function getTrips() { try{return JSON.parse(localStorage.getItem(TRIPS_KEY)||'[]')}catch{return[]} }
 function saveTrips(t){ localStorage.setItem(TRIPS_KEY, JSON.stringify(t)) }
 function getSettings(ym){
-  try{return JSON.parse(localStorage.getItem(SET_KEY(ym))||'{"net":7000,"days":27,"petrol":40}')}
+  try{return JSON.parse(localStorage.getItem(SET_KEY(ym))||'{"net":7000,"days":27,"petrol":40,"other":0}')}
   catch{return{net:7000,days:27,petrol:40}}
 }
 function putSettings(ym,s){ localStorage.setItem(SET_KEY(ym),JSON.stringify(s)) }
@@ -2012,13 +2016,16 @@ function renderSummary(){
 
   const prefix=y+'-'+String(mo+1).padStart(2,'0')+'-';
   const entries=Object.values(data).filter(e=>e.date?.startsWith(prefix));
-  const k3=entries.reduce((a,e)=>a+(e.earnings?.total||0),0);
-  const k4=entries.reduce((a,e)=>a+(e.petrol||0),0);
-  const driven=entries.filter(e=>e.driving&&(e.earnings?.total||0)>0).length;
+  const monthTrips=getTrips().filter(t=>t.date?.startsWith(prefix));
+  const k3=monthTrips.reduce((a,t)=>a+(t.fare||0),0);
+  const fuelRecords=getFuelRecords().filter(r=>r.date?.startsWith(prefix));
+  const k4=fuelRecords.reduce((a,r)=>a+(r.costAfter||0),0);
+  const driven=entries.filter(e=>e.driving&&monthTrips.filter(t=>t.date===e.date).length>0).length;
   const rem=Math.max(0,s.days-driven);
 
-  const k1=s.net, k2=k1+s.days*s.petrol;
-  const k5=k3-k4, k6=Math.max(0,k2-k3), k7=Math.max(0,k1-k5);
+  const k1=s.net, k2=k1+s.days*(s.petrol+(s.other||0));
+  const totalOtherSoFar=driven*(s.other||0);
+  const k5=k3-k4-totalOtherSoFar, k6=Math.max(0,k2-k3), k7=Math.max(0,k1-k5);
   const k8=k2/Math.max(1,s.days), k9=k6/Math.max(1,rem);
 
   const fm=v=>fmtMoney(v);
@@ -2563,6 +2570,7 @@ function initSettings(){
   document.getElementById('s-net').value=s.net;
   document.getElementById('s-days').value=s.days;
   document.getElementById('s-petrol').value=s.petrol;
+  document.getElementById('s-other').value=s.other||0;
   document.getElementById('s-entries').textContent=Object.keys(getData()).length;
   document.getElementById('s-trips').textContent=getTrips().length;
   document.getElementById('s-maps-key').value=localStorage.getItem('mdl_maps_api_key')||'';
@@ -2670,7 +2678,8 @@ function saveSettings(){
   putSettings(ym,{
     net:parseFloat(document.getElementById('s-net').value)||7000,
     days:parseInt(document.getElementById('s-days').value)||27,
-    petrol:parseFloat(document.getElementById('s-petrol').value)||40
+    petrol:parseFloat(document.getElementById('s-petrol').value)||40,
+    other:parseFloat(document.getElementById('s-other').value)||0
   });
   toast('Settings saved ✓');
 }
