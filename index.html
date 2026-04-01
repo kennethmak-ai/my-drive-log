@@ -420,12 +420,14 @@ body.light-mode .fuel-stat{background:var(--card)}
 }
 
 /* ── MONTH CHIPS ─────────────────────────────────── */
-.chips{display:flex;gap:6px;overflow-x:auto;padding:10px 12px;scrollbar-width:none}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:10px 12px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .chips::-webkit-scrollbar{display:none}
 .chip{
-  flex-shrink:0;padding:6px 14px;border-radius:99px;font-size:12px;font-weight:600;
-  border:1.5px solid var(--border);background:transparent;color:var(--muted);transition:all .15s
+  flex-shrink:0;padding:6px 0;border-radius:99px;font-size:12px;font-weight:600;
+  border:1.5px solid var(--border);background:transparent;color:var(--muted);transition:all .15s;
+  touch-action:manipulation;text-align:center;
 }
+#trip-date-chips .chip{min-width:calc(20% - 5px);width:calc(20% - 5px)}
 .chip.on{border-color:var(--accent);color:var(--accent);background:rgba(0,212,170,.08)}
 
 /* ── NOTE TOGGLE ─────────────────────────────────── */
@@ -2101,23 +2103,31 @@ function renderTripDateChips(){
   if(!chipsEl) return;
   const allTrips=getTrips();
   const today=fmtDate(new Date());
-  // Build last 7 days
+  // Always include today + 6 previous days (7 total)
   const days=[];
   for(let i=0;i<7;i++){
     const d=new Date(); d.setDate(d.getDate()-i);
-    const ds=fmtDate(d);
-    days.push(ds);
+    days.push(fmtDate(d));
   }
-  // Only show days with trips OR today
-  const shown=days.filter(ds=>ds===today||allTrips.some(t=>t.date===ds));
+  // Also include any older days that have trips
+  allTrips.forEach(t=>{
+    if(!days.includes(t.date)) days.push(t.date);
+  });
+  // Sort newest first, deduplicate
+  const sorted=[...new Set(days)].sort((a,b)=>b.localeCompare(a));
   const cur=tripViewDate||today;
-  chipsEl.innerHTML=shown.map(ds=>{
+  chipsEl.innerHTML=sorted.map(ds=>{
     const isToday=ds===today;
     const d=new Date(ds+'T00:00:00');
     const label=isToday?'Today':DAYS[d.getDay()].slice(0,3)+' '+String(d.getDate()).padStart(2,'0');
     const on=ds===cur?'on':'';
     return `<button class="chip ${on}" onclick="setTripDate('${ds}')">${label}</button>`;
   }).join('');
+  // Scroll active chip into view
+  setTimeout(()=>{
+    const active=chipsEl.querySelector('.chip.on');
+    if(active) active.scrollIntoView({inline:'center',behavior:'smooth',block:'nearest'});
+  },50);
 }
 
 function setTripDate(ds){
@@ -2956,10 +2966,11 @@ function renderFuelHistory(){
   const monthMap={};
   allSorted.forEach(r=>{
     const ym=r.date.slice(0,7); // YYYY-MM
-    if(!monthMap[ym]) monthMap[ym]={total:0,count:0,volume:0};
+    if(!monthMap[ym]) monthMap[ym]={total:0,count:0,volume:0,distance:0};
     monthMap[ym].total+=r.costAfter||0;
     monthMap[ym].count+=1;
     monthMap[ym].volume+=r.volume||0;
+    monthMap[ym].distance+=r.distance||0;
   });
   const months=Object.keys(monthMap).sort().reverse();
   const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -2968,10 +2979,12 @@ function renderFuelHistory(){
     const [y,m]=ym.split('-');
     const label=MONTHS[parseInt(m)-1]+' '+y;
     const d=monthMap[ym];
+    const avgConsumption=d.volume>0&&d.distance>0?(d.distance/d.volume).toFixed(1)+' km/L':'—';
     const isCurrent=ym===new Date().toISOString().slice(0,7);
     return `<tr style="${isCurrent?'background:rgba(0,212,170,.08)':''}">
       <td style="padding:8px 10px;font-size:13px;color:var(--text);font-weight:${isCurrent?'700':'400'}">${label}${isCurrent?' ◀':''}</td>
       <td style="padding:8px 10px;font-size:13px;text-align:center;color:var(--muted)">${d.count}</td>
+      <td style="padding:8px 10px;font-size:13px;text-align:center;color:var(--muted)">${avgConsumption}</td>
       <td style="padding:8px 10px;font-size:13px;text-align:center;color:var(--muted)">${d.volume>0?d.volume.toFixed(1)+' L':'—'}</td>
       <td style="padding:8px 10px;font-size:13px;text-align:right;font-family:'Space Mono',monospace;color:${isCurrent?'var(--accent)':'var(--text)'};font-weight:700">$${d.total.toFixed(2)}</td>
     </tr>`;
@@ -2989,6 +3002,7 @@ function renderFuelHistory(){
           <tr style="border-bottom:1px solid var(--border);background:var(--surface)">
             <th style="padding:8px 10px;font-size:11px;color:var(--muted);text-align:left;font-weight:600;letter-spacing:.05em">MONTH</th>
             <th style="padding:8px 10px;font-size:11px;color:var(--muted);text-align:center;font-weight:600;letter-spacing:.05em">TOPS-UP</th>
+            <th style="padding:8px 10px;font-size:11px;color:var(--muted);text-align:center;font-weight:600;letter-spacing:.05em">AVG KM/L</th>
             <th style="padding:8px 10px;font-size:11px;color:var(--muted);text-align:center;font-weight:600;letter-spacing:.05em">VOLUME</th>
             <th style="padding:8px 10px;font-size:11px;color:var(--muted);text-align:right;font-weight:600;letter-spacing:.05em">TOTAL ($)</th>
           </tr>
@@ -3000,6 +3014,7 @@ function renderFuelHistory(){
           <tr style="border-top:1px solid var(--border);background:var(--surface)">
             <td style="padding:8px 10px;font-size:12px;font-weight:700;color:var(--text)">All Time</td>
             <td style="padding:8px 10px;font-size:12px;text-align:center;color:var(--muted)">${grandCount}</td>
+            <td style="padding:8px 10px;font-size:12px;text-align:center;color:var(--muted)">${grandVolume>0&&records.reduce((a,r)=>a+(r.distance||0),0)>0?(records.reduce((a,r)=>a+(r.distance||0),0)/grandVolume).toFixed(1)+' km/L':'—'}</td>
             <td style="padding:8px 10px;font-size:12px;text-align:center;color:var(--muted)">${grandVolume>0?grandVolume.toFixed(1)+' L':'—'}</td>
             <td style="padding:8px 10px;font-size:12px;text-align:right;font-family:'Space Mono',monospace;color:var(--accent);font-weight:700">$${grandTotal.toFixed(2)}</td>
           </tr>
