@@ -6,7 +6,12 @@
 <meta name="format-detection" content="telephone=no, date=no, email=no, address=no">
 <meta name="theme-color" content="#0D1117">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="My Drive Log">
 <title>My Drive Log</title>
+<link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABW0lEQVR4nMWXsRHCMAxFFR9tSENJywI0FBmCJbJDZmACGpZgCApmoE1JEzwANHHOEZIsO8H8hnMw+k86IzkFIJXV+o2fLSnbvwp/bXKaUx6G+yIXhMltjiGKFHN7u9BB6yYaJAqAM54DogLAxtvjCbpr+2WG92lATGiDH3R7PEFZN9A/H+Tesm5EoGgAbM4ZUyBaiGAFOPNQebXngAVw5KHMpQwdhLRHVYFfigTQZq9RqArJFfADavvDYgCUYSrE38/AKmbznFInA1Sb3dh2AegmU9YN2NtlsvZ/b4X47Czw/wndtVU3Fr9KDswXjqPuhFr586Da7ERAEcAFceWngkniJmZSBWIh8LmRFLwP4InoRHVIB4jM78PnAeC7AskXEko46+EQzgfgQDgNxudhuZcAohpRaLCkXEqjAOYYcfr7LDD4XS2nbP8qRvPcb0cucYMf5DSfAOSCwB4fom24gmOf/oYAAAAASUVORK5CYII=">
+<link rel="apple-touch-icon" sizes="192x192" href="data:image/png;base64,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">
+<link rel="apple-touch-icon" sizes="512x512" href="data:image/png;base64,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">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
 <script>
 // Maps JS API loaded immediately at page open — ready before user taps Start Trip
@@ -420,14 +425,12 @@ body.light-mode .fuel-stat{background:var(--card)}
 }
 
 /* ── MONTH CHIPS ─────────────────────────────────── */
-.chips{display:flex;gap:6px;overflow-x:auto;padding:10px 12px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:10px 12px;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
 .chip{
-  flex-shrink:0;padding:6px 0;border-radius:99px;font-size:12px;font-weight:600;
-  border:1.5px solid var(--border);background:transparent;color:var(--muted);transition:all .15s;
-  touch-action:manipulation;text-align:center;
+  flex-shrink:0;padding:6px 14px;border-radius:99px;font-size:12px;font-weight:600;
+  border:1.5px solid var(--border);background:transparent;color:var(--muted);transition:all .15s
 }
-#trip-date-chips .chip{min-width:calc(20% - 5px);width:calc(20% - 5px)}
 .chip.on{border-color:var(--accent);color:var(--accent);background:rgba(0,212,170,.08)}
 
 /* ── NOTE TOGGLE ─────────────────────────────────── */
@@ -476,10 +479,10 @@ body.light-mode .fuel-stat{background:var(--card)}
   <div class="card">
     <div style="margin-bottom:12px">
       <label class="lbl">Date</label>
-      <div style="display:flex;align-items:center;gap:8px">
-        <button onclick="shiftDate(-1)" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:16px;color:var(--text);cursor:pointer;touch-action:manipulation;flex-shrink:0">‹</button>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button onclick="shiftDate(-1)" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 11px;font-size:16px;color:var(--text);cursor:pointer;touch-action:manipulation;flex-shrink:0">‹</button>
         <input type="date" class="inp" id="e-date" style="font-family:'Space Mono',monospace;font-size:13px;flex:1;text-align:center">
-        <button onclick="shiftDate(1)" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:16px;color:var(--text);cursor:pointer;touch-action:manipulation;flex-shrink:0">›</button>
+        <button onclick="shiftDate(1)" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 11px;font-size:16px;color:var(--text);cursor:pointer;touch-action:manipulation;flex-shrink:0">›</button>
         <button onclick="goToToday()" style="background:var(--accent);border:none;border-radius:8px;padding:8px 10px;font-size:11px;font-weight:700;color:#0D1117;cursor:pointer;touch-action:manipulation;flex-shrink:0;letter-spacing:.3px">Today</button>
       </div>
       <div class="inp" id="e-dow" style="color:var(--muted);font-family:'Space Mono',monospace;font-size:13px;display:flex;align-items:center;margin-top:6px;background:none;border:none;padding:0"></div>
@@ -826,45 +829,22 @@ body.light-mode .fuel-stat{background:var(--card)}
           <label class="lbl">Distance Since Last Top-Up (km)</label>
           <input class="inp" type="number" inputmode="decimal" id="fuel-distance" placeholder="e.g. 420" step="1" oninput="calcFuelFields()" style="font-family:'Space Mono',monospace">
         </div>
-        <div class="two-col" style="margin-bottom:8px">
-          <div>
-            <label class="lbl">Petrol Brand</label>
-            <select class="inp" id="fuel-brand">
-              <option value="">-- Select --</option>
-              <option value="Esso">Esso</option>
-              <option value="Shell">Shell</option>
-              <option value="Caltex">Caltex</option>
-              <option value="SPC">SPC</option>
-              <option value="Sinopec">Sinopec</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          <div>
-            <label class="lbl">Petrol Type</label>
-            <select class="inp" id="fuel-petrol-type">
-              <option value="">-- Select --</option>
-              <option value="RON 92">RON 92</option>
-              <option value="RON 95">RON 95</option>
-              <option value="RON 98">RON 98</option>
-            </select>
-          </div>
-        </div>
 
         <!-- Calculated fields display -->
         <div id="fuel-calc-display" style="display:none;background:var(--card);border-radius:var(--r);padding:10px;margin-bottom:10px">
           <div style="font-size:11px;color:var(--muted);margin-bottom:6px;letter-spacing:.05em">CALCULATED</div>
           <div class="fuel-grid">
             <div class="fuel-stat"><div class="fuel-stat-label">Discount %</div><div class="fuel-stat-val" id="fc-discount-pct">—</div></div>
-            <div class="fuel-stat"><div class="fuel-stat-label">Consumption (km/L)</div><div class="fuel-stat-val" id="fc-consumption">—</div></div>
+            <div class="fuel-stat"><div class="fuel-stat-label">Consumption (L/km)</div><div class="fuel-stat-val" id="fc-consumption">—</div></div>
             <div class="fuel-stat"><div class="fuel-stat-label">Days Since Last Top-Up</div><div class="fuel-stat-val" id="fc-days">—</div></div>
             <div class="fuel-stat"><div class="fuel-stat-label">Period</div><div class="fuel-stat-val" id="fc-period" style="font-size:11px">—</div></div>
           </div>
         </div>
 
-        <div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end">
-          <button onclick="discardFuelScan()" style="background:none;border:1px solid var(--border);color:var(--muted);font-size:12px;padding:6px 12px;border-radius:var(--r);cursor:pointer;touch-action:manipulation">✕ Cancel</button>
-          <button onclick="saveFuelRecord()" style="background:var(--accent);color:#0D1117;font-size:12px;padding:6px 14px;border-radius:var(--r);cursor:pointer;font-weight:600;touch-action:manipulation">✓ Save Record</button>
-        </div>
+        <button class="btn btn-green" onclick="saveFuelRecord()" style="margin-top:4px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
+          Save Top-Up Record
+        </button>
       </div>
     </div>
   </div>
@@ -895,6 +875,39 @@ body.light-mode .fuel-stat{background:var(--card)}
   <div class="set-row">
     <div><div class="set-label">Est. Petrol / Day ($)</div><div class="set-sub">Average daily petrol spend</div></div>
     <input type="number" class="set-inp" id="s-petrol" value="40" oninput="saveSettings()">
+  </div>
+
+  <div class="set-section-title" style="margin-top:18px">Petrol Cost Estimator</div>
+  <div style="padding:0 12px 0">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Auto-filled from your petrol records. Edit any field then tap Calculate.</div>
+    <div class="set-row">
+      <div><div class="set-label">Petrol Price ($/L)</div><div class="set-sub" id="est-price-sub">From latest top-up record</div></div>
+      <input type="number" class="set-inp" id="est-price" placeholder="e.g. 3.47" step="0.01" inputmode="decimal">
+    </div>
+    <div class="set-row">
+      <div><div class="set-label">Est. Distance / Day (km)</div><div class="set-sub">Default 350 km</div></div>
+      <input type="number" class="set-inp" id="est-distance" placeholder="350" step="1" inputmode="decimal">
+    </div>
+    <div class="set-row">
+      <div><div class="set-label">Consumption (km/L)</div><div class="set-sub" id="est-consumption-sub">From last month avg</div></div>
+      <input type="number" class="set-inp" id="est-consumption" placeholder="e.g. 12.0" step="0.1" inputmode="decimal">
+    </div>
+    <div class="set-row">
+      <div><div class="set-label">Petrol Discount (%)</div><div class="set-sub" id="est-discount-sub">From latest top-up record</div></div>
+      <input type="number" class="set-inp" id="est-discount" placeholder="e.g. 25" step="1" inputmode="decimal">
+    </div>
+    <div style="margin:12px 0 8px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
+        <span style="font-size:12px;color:var(--muted)">Est. Petrol Cost / Day (after discount)</span>
+        <span style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--accent)" id="est-result">—</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted)" id="est-formula">Enter values above and tap Calculate</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:4px">
+      <button onclick="calcPetrolEstimate()" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:10px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;touch-action:manipulation">Calculate</button>
+      <button onclick="applyPetrolEstimate()" style="flex:1;background:var(--accent);border:none;border-radius:var(--r);padding:10px;font-size:13px;font-weight:700;color:#0D1117;cursor:pointer;touch-action:manipulation">Apply to Monthly Target</button>
+    </div>
+    <div style="font-size:11px;color:var(--muted);padding:0 2px 8px">Apply writes the calculated figure into Est. Petrol / Day above.</div>
   </div>
 
   <div class="set-section-title" style="margin-top:18px">API Keys</div>
@@ -1999,11 +2012,9 @@ function renderSummary(){
 
   const prefix=y+'-'+String(mo+1).padStart(2,'0')+'-';
   const entries=Object.values(data).filter(e=>e.date?.startsWith(prefix));
-  const monthTrips=getTrips().filter(t=>t.date?.startsWith(prefix));
-  const k3=monthTrips.reduce((a,t)=>a+(t.fare||0),0);
-  const fuelRecords=getFuelRecords().filter(r=>r.date?.startsWith(prefix));
-  const k4=fuelRecords.reduce((a,r)=>a+(r.costAfter||0),0);
-  const driven=entries.filter(e=>e.driving&&monthTrips.filter(t=>t.date===e.date).length>0).length;
+  const k3=entries.reduce((a,e)=>a+(e.earnings?.total||0),0);
+  const k4=entries.reduce((a,e)=>a+(e.petrol||0),0);
+  const driven=entries.filter(e=>e.driving&&(e.earnings?.total||0)>0).length;
   const rem=Math.max(0,s.days-driven);
 
   const k1=s.net, k2=k1+s.days*s.petrol;
@@ -2070,24 +2081,17 @@ function renderHistList(){
     if(!e&&!isHol) continue;
     any=true;
     const dow=DAYS[new Date(ds+'T00:00:00').getDay()];
-
-    // Read earnings directly from Trip Log
-    const dayTrips=getTrips().filter(t=>t.date===ds);
-    const gross=dayTrips.reduce((a,t)=>a+(t.fare||0),0);
-    // Read petrol directly from Fuel Records
-    const dayFuel=getFuelRecords().filter(r=>r.date===ds);
-    const petrolCost=dayFuel.reduce((a,r)=>a+(r.costAfter||0),0);
-    const net=gross-petrolCost;
-    const tripCount=dayTrips.length;
-
-    const tag=e?.driving===false&&dayTrips.length===0?
+    const gross=e?.earnings?.total||0, net=e?.estNet||0;
+    const tag=e?.driving===false?
       (isHol?`<span style="font-size:10px;color:var(--warn)">🎉 ${SG_HOL[ds]}</span>`:`<span style="font-size:10px;color:var(--danger)">🚫 Rest</span>`):
       `<span style="font-size:10px;color:var(--accent)">🟢 Driving</span>`;
 
-    const platHtml=dayTrips.length>0?(['TADA','Grab','Gojek'].filter(p=>dayTrips.some(t=>t.platform===p))
+    const platHtml=e?.driving?(['TADA','Grab','Gojek','Others'].filter(p=>(e.earnings?.[p.toLowerCase()]||0)>0)
       .map(p=>`<span class="ppill ppill-${p}">${p}</span>`).join('')):'';
 
-    // Session time calculation
+    // Trip stats from trip log
+    const dayTrips=getTrips().filter(t=>t.date===ds);
+    const tripCount=dayTrips.length;
     const tripKm=dayTrips.reduce((a,t)=>a+(t.distanceKm||0),0);
     let sessMins=0;
     if(e && e.sessions && e.sessions.length>0){
@@ -2134,31 +2138,23 @@ function renderTripDateChips(){
   if(!chipsEl) return;
   const allTrips=getTrips();
   const today=fmtDate(new Date());
-  // Always include today + 6 previous days (7 total)
+  // Build last 7 days
   const days=[];
   for(let i=0;i<7;i++){
     const d=new Date(); d.setDate(d.getDate()-i);
-    days.push(fmtDate(d));
+    const ds=fmtDate(d);
+    days.push(ds);
   }
-  // Also include any older days that have trips
-  allTrips.forEach(t=>{
-    if(!days.includes(t.date)) days.push(t.date);
-  });
-  // Sort newest first, deduplicate
-  const sorted=[...new Set(days)].sort((a,b)=>b.localeCompare(a));
+  // Only show days with trips OR today
+  const shown=days.filter(ds=>ds===today||allTrips.some(t=>t.date===ds));
   const cur=tripViewDate||today;
-  chipsEl.innerHTML=sorted.map(ds=>{
+  chipsEl.innerHTML=shown.map(ds=>{
     const isToday=ds===today;
     const d=new Date(ds+'T00:00:00');
     const label=isToday?'Today':DAYS[d.getDay()].slice(0,3)+' '+String(d.getDate()).padStart(2,'0');
     const on=ds===cur?'on':'';
     return `<button class="chip ${on}" onclick="setTripDate('${ds}')">${label}</button>`;
   }).join('');
-  // Scroll active chip into view
-  setTimeout(()=>{
-    const active=chipsEl.querySelector('.chip.on');
-    if(active) active.scrollIntoView({inline:'center',behavior:'smooth',block:'nearest'});
-  },50);
 }
 
 function setTripDate(ds){
@@ -2571,6 +2567,94 @@ function initSettings(){
   document.getElementById('s-trips').textContent=getTrips().length;
   document.getElementById('s-maps-key').value=localStorage.getItem('mdl_maps_api_key')||'';
   document.getElementById('s-gemini-key').value=localStorage.getItem('mdl_gemini_api_key')||'';
+
+  // Pre-fill Petrol Cost Estimator defaults
+  const allFuel=getFuelRecords();
+
+  // 1. Latest petrol price from most recent record
+  const latestPrice=allFuel.length>0&&allFuel[0].pricePerL?allFuel[0].pricePerL:null;
+  const priceEl=document.getElementById('est-price');
+  const priceSubEl=document.getElementById('est-price-sub');
+  if(priceEl){
+    if(latestPrice){ priceEl.value=latestPrice.toFixed(3); priceSubEl.textContent='From latest top-up ('+allFuel[0].date+')'; }
+    else { priceEl.value=''; priceSubEl.textContent='No records yet — enter manually'; }
+  }
+
+  // 2. Distance default 350
+  const distEl=document.getElementById('est-distance');
+  if(distEl&&!distEl.value) distEl.value='350';
+
+  // 3. Last month avg km/L
+  const lastMonthYM=(()=>{const d=new Date();d.setMonth(d.getMonth()-1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');})();
+  const lastMonthFuel=allFuel.filter(r=>r.date&&r.date.startsWith(lastMonthYM));
+  const consEl=document.getElementById('est-consumption');
+  const consSubEl=document.getElementById('est-consumption-sub');
+  if(consEl){
+    if(lastMonthFuel.length>0){
+      const totalDist=lastMonthFuel.reduce((a,r)=>a+(r.distance||0),0);
+      const totalVol=lastMonthFuel.reduce((a,r)=>a+(r.volume||0),0);
+      if(totalDist>0&&totalVol>0){
+        const avg=(totalDist/totalVol).toFixed(1);
+        consEl.value=avg;
+        consSubEl.textContent='Last month avg ('+lastMonthFuel.length+' record'+(lastMonthFuel.length>1?'s':'')+')';
+      } else { consEl.value='12.0'; consSubEl.textContent='Last month — no distance data, using 12.0'; }
+    } else {
+      // Fall back to all-time avg
+      const totalDist=allFuel.reduce((a,r)=>a+(r.distance||0),0);
+      const totalVol=allFuel.reduce((a,r)=>a+(r.volume||0),0);
+      if(totalDist>0&&totalVol>0){
+        const avg=(totalDist/totalVol).toFixed(1);
+        consEl.value=avg;
+        consSubEl.textContent='All-time avg (no last month records)';
+      } else { consEl.value='12.0'; consSubEl.textContent='Default — no records available'; }
+    }
+  }
+
+  // 4. Discount % from latest fuel record that has a discount
+  const discEl=document.getElementById('est-discount');
+  const discSubEl=document.getElementById('est-discount-sub');
+  if(discEl){
+    const latestWithDisc=allFuel.find(r=>r.discountPct&&parseFloat(r.discountPct)>0);
+    if(latestWithDisc){
+      discEl.value=parseFloat(latestWithDisc.discountPct).toFixed(0);
+      discSubEl.textContent='From top-up on '+latestWithDisc.date;
+    } else {
+      discEl.value='0';
+      discSubEl.textContent='No discount records found — enter manually';
+    }
+  }
+}
+
+function calcPetrolEstimate(){
+  const price=parseFloat(document.getElementById('est-price').value);
+  const distance=parseFloat(document.getElementById('est-distance').value);
+  const consumption=parseFloat(document.getElementById('est-consumption').value);
+  const discountPct=parseFloat(document.getElementById('est-discount').value)||0;
+  const resultEl=document.getElementById('est-result');
+  const formulaEl=document.getElementById('est-formula');
+  if(!price||!distance||!consumption||consumption<=0){
+    toast('Please fill in all three fields');
+    return;
+  }
+  const litresPerDay=distance/consumption;
+  const costBeforeDisc=litresPerDay*price;
+  const discountAmt=costBeforeDisc*(discountPct/100);
+  const costAfterDisc=costBeforeDisc-discountAmt;
+  resultEl.textContent='$'+costAfterDisc.toFixed(2);
+  const discNote=discountPct>0?' − '+discountPct+'% disc ($'+discountAmt.toFixed(2)+')':'';
+  formulaEl.textContent=distance+' km ÷ '+consumption+' km/L = '+litresPerDay.toFixed(2)+' L × $'+price.toFixed(3)+'/L = $'+costBeforeDisc.toFixed(2)+discNote;
+  return costAfterDisc;
+}
+
+function applyPetrolEstimate(){
+  const cost=calcPetrolEstimate();
+  if(!cost) return;
+  const petrolEl=document.getElementById('s-petrol');
+  if(petrolEl){
+    petrolEl.value=cost.toFixed(2);
+    saveSettings();
+    toast('Est. Petrol / Day updated to $'+cost.toFixed(2)+' ✓');
+  }
 }
 
 function saveApiKeys(){
@@ -2803,9 +2887,9 @@ function calcFuelFields(){
   if(before>0&&disc>0) pctEl.textContent=((disc/before)*100).toFixed(1)+'%';
   else pctEl.textContent='—';
 
-  // Consumption km/L
+  // Consumption L/km
   const consEl=document.getElementById('fc-consumption');
-  if(vol>0&&dist>0) consEl.textContent=(dist/vol).toFixed(2)+' km/L';
+  if(vol>0&&dist>0) consEl.textContent=(vol/dist).toFixed(3)+' L/km';
   else consEl.textContent='—';
 
   // Days since last top-up
@@ -2850,18 +2934,15 @@ async function extractFuelReceipt(input){
     const prompt=`You are reading a petrol/fuel receipt from Singapore. Extract the following fields and return ONLY a JSON object with no markdown, no explanation:
 {
   "date": "YYYY-MM-DD or empty string if not found",
-  "brand": "petrol station brand e.g. Esso, Shell, Caltex, SPC, Sinopec or empty string if not found",
-  "petrolType": "RON 92, RON 95, or RON 98 — detect from receipt text, or empty string if not found",
   "pricePerLitre": number or null,
   "volumeLitres": number or null,
   "costBeforeDiscount": number or null,
   "fuelDiscount": number or null,
   "actualCostAfterDiscount": number or null
 }
-IMPORTANT date rules: Singapore receipts often print dates as DD/MM/YY (day first, then month, then 2-digit year). For example "21/03/26" means 21st March 2026, which is 2026-03-21. Never interpret DD/MM/YY as YY/MM/DD. Always convert to YYYY-MM-DD format. If year is 2 digits, assume 2000s (e.g. 26 = 2026).
-If a field is not visible or unclear, use null for numbers or empty string for text.`;
+If a field is not visible or unclear, use null. For date, convert any format to YYYY-MM-DD.`;
 
-    const resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='+GEMINI_API_KEY,{
+    const resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+GEMINI_API_KEY,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
@@ -2896,8 +2977,6 @@ If a field is not visible or unclear, use null for numbers or empty string for t
 
     // Populate form fields
     if(extracted.date) document.getElementById('fuel-date').value=extracted.date;
-    if(extracted.brand){ const fb=document.getElementById('fuel-brand'); if(fb) fb.value=extracted.brand; }
-    if(extracted.petrolType){ const fpt=document.getElementById('fuel-petrol-type'); if(fpt) fpt.value=extracted.petrolType; }
     if(extracted.pricePerLitre!=null) document.getElementById('fuel-price-per-l').value=extracted.pricePerLitre.toFixed(3);
     if(extracted.volumeLitres!=null) document.getElementById('fuel-volume').value=extracted.volumeLitres.toFixed(2);
     if(extracted.costBeforeDiscount!=null) document.getElementById('fuel-cost-before').value=extracted.costBeforeDiscount.toFixed(2);
@@ -2925,14 +3004,12 @@ function saveFuelRecord(){
   const discount=parseFloat(document.getElementById('fuel-discount').value)||0;
   const costAfter=parseFloat(document.getElementById('fuel-cost-after').value)||0;
   const distance=parseFloat(document.getElementById('fuel-distance').value)||0;
-  const brand=document.getElementById('fuel-brand')?.value||'';
-  const petrolType=document.getElementById('fuel-petrol-type')?.value||'';
 
   if(costAfter<=0){ toast('Please enter actual fuel cost'); return; }
 
-  // Calculated fields — km/L not L/km
+  // Calculated fields
   const discountPct=costBefore>0&&discount>0?((discount/costBefore)*100).toFixed(1):null;
-  const consumption=volume>0&&distance>0?(distance/volume).toFixed(2):null;
+  const consumption=volume>0&&distance>0?(volume/distance).toFixed(3):null;
   const records=getFuelRecords();
   const prevRecord=records[0]||null;
   let daysSinceLast=null, periodFrom=null;
@@ -2945,7 +3022,7 @@ function saveFuelRecord(){
 
   const record={
     id:Date.now(), date, pricePerL, volume, costBefore, discount,
-    costAfter, distance, brand, petrolType, discountPct, consumption,
+    costAfter, distance, discountPct, consumption,
     daysSinceLast, periodFrom
   };
 
@@ -2960,23 +3037,10 @@ function saveFuelRecord(){
    'fuel-discount','fuel-cost-after','fuel-distance'].forEach(id=>{
     document.getElementById(id).value='';
   });
-  const fb=document.getElementById('fuel-brand'); if(fb) fb.value='';
-  const fpt=document.getElementById('fuel-petrol-type'); if(fpt) fpt.value='';
   document.getElementById('fuel-calc-display').style.display='none';
 
   toast('Top-up saved ✓ — petrol cost updated in Entry page');
   renderFuelHistory();
-}
-
-function discardFuelScan(){
-  ['fuel-date','fuel-price-per-l','fuel-volume','fuel-cost-before',
-   'fuel-discount','fuel-cost-after','fuel-distance'].forEach(id=>{
-    document.getElementById(id).value='';
-  });
-  const fb=document.getElementById('fuel-brand'); if(fb) fb.value='';
-  const fpt=document.getElementById('fuel-petrol-type'); if(fpt) fpt.value='';
-  document.getElementById('fuel-calc-display').style.display='none';
-  toast('Cancelled');
 }
 
 function syncFuelToEntry(date, costAfter){
@@ -3009,14 +3073,14 @@ function renderFuelHistory(){
     return;
   }
 
-  // Sort chronologically — newest first (latest on top)
+  // Sort newest first
   const records=allRecords.slice().sort((a,b)=>b.date.localeCompare(a.date));
 
-  // Build monthly summary — use all records sorted for grouping
+  // Build monthly summary
   const allSorted=allRecords.slice().sort((a,b)=>a.date.localeCompare(b.date));
   const monthMap={};
   allSorted.forEach(r=>{
-    const ym=r.date.slice(0,7); // YYYY-MM
+    const ym=r.date.slice(0,7);
     if(!monthMap[ym]) monthMap[ym]={total:0,count:0,volume:0,distance:0};
     monthMap[ym].total+=r.costAfter||0;
     monthMap[ym].count+=1;
@@ -3024,57 +3088,53 @@ function renderFuelHistory(){
     monthMap[ym].distance+=r.distance||0;
   });
   const months=Object.keys(monthMap).sort().reverse();
-  const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const currentYear=new Date().getFullYear().toString();
+  const nowYM=new Date().toISOString().slice(0,7);
 
   const summaryRows=months.map(ym=>{
     const [y,m]=ym.split('-');
-    const currentYear=new Date().getFullYear().toString();
-    // Only show year if it's not the current year
-    const label=y===currentYear?MONTHS[parseInt(m)-1]:MONTHS[parseInt(m)-1]+' '+y;
+    const shortY=y.slice(2);
+    const label=y===currentYear?MN[parseInt(m)-1]:MN[parseInt(m)-1]+' '+shortY;
     const d=monthMap[ym];
-    const avgConsumption=d.volume>0&&d.distance>0?(d.distance/d.volume).toFixed(1)+' km/L':'—';
-    const totalDist=d.distance>0?d.distance.toFixed(0)+' km':'—';
-    const isCurrent=ym===new Date().toISOString().slice(0,7);
+    const isCurrent=ym===nowYM;
     return `<tr style="${isCurrent?'background:rgba(0,212,170,.08)':''}">
-      <td style="padding:8px 10px;font-size:13px;color:var(--text);font-weight:${isCurrent?'700':'400'}">${label}${isCurrent?' ◀':''}</td>
-      <td style="padding:8px 10px;font-size:13px;text-align:center;color:var(--muted)">${d.count}</td>
-      <td style="padding:8px 10px;font-size:13px;text-align:center;color:var(--muted)">${totalDist}</td>
-      <td style="padding:8px 10px;font-size:13px;text-align:center;color:var(--muted)">${d.volume>0?d.volume.toFixed(1)+' L':'—'}</td>
-      <td style="padding:8px 10px;font-size:13px;text-align:center;color:var(--muted)">${avgConsumption}</td>
-      <td style="padding:8px 10px;font-size:13px;text-align:right;font-family:'Space Mono',monospace;color:${isCurrent?'var(--accent)':'var(--text)'};font-weight:700">$${d.total.toFixed(2)}</td>
+      <td style="padding:7px 8px;font-size:12px;color:var(--text);font-weight:${isCurrent?'700':'400'};white-space:nowrap">${label}${isCurrent?' ◀':''}</td>
+      <td style="padding:7px 6px;font-size:12px;text-align:center;color:var(--muted)">${d.count}</td>
+      <td style="padding:7px 6px;font-size:12px;text-align:center;color:var(--muted);font-family:'Space Mono',monospace">${d.distance>0?d.distance.toFixed(0):'—'}</td>
+      <td style="padding:7px 6px;font-size:12px;text-align:center;color:var(--muted);font-family:'Space Mono',monospace">${d.volume>0?d.volume.toFixed(1):'—'}</td>
+      <td style="padding:7px 6px;font-size:12px;text-align:center;color:var(--muted);font-family:'Space Mono',monospace">${d.volume>0&&d.distance>0?(d.distance/d.volume).toFixed(1):'—'}</td>
+      <td style="padding:7px 8px;font-size:12px;text-align:right;font-family:'Space Mono',monospace;color:${isCurrent?'var(--accent)':'var(--text)'};font-weight:700">$${d.total.toFixed(2)}</td>
     </tr>`;
   }).join('');
 
-  const grandTotal=records.reduce((a,r)=>a+(r.costAfter||0),0);
-  const grandVolume=records.reduce((a,r)=>a+(r.volume||0),0);
-  const grandDist=records.reduce((a,r)=>a+(r.distance||0),0);
-  const grandCount=records.length;
+  const grandTotal=allRecords.reduce((a,r)=>a+(r.costAfter||0),0);
+  const grandVol=allRecords.reduce((a,r)=>a+(r.volume||0),0);
+  const grandDist=allRecords.reduce((a,r)=>a+(r.distance||0),0);
 
   const summaryTable=`
     <div style="font-size:12px;color:var(--muted);letter-spacing:.08em;margin-bottom:8px;margin-top:4px">MONTHLY SUMMARY</div>
     <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:16px">
-      <table style="width:100%;border-collapse:collapse">
+      <table style="width:100%;border-collapse:collapse;table-layout:fixed">
         <thead>
           <tr style="border-bottom:1px solid var(--border);background:var(--surface)">
-            <th style="padding:8px 10px;font-size:11px;color:var(--muted);text-align:left;font-weight:600;letter-spacing:.05em">MONTH</th>
-            <th style="padding:8px 10px;font-size:11px;color:var(--muted);text-align:center;font-weight:600;letter-spacing:.05em">TOPS-UP</th>
-            <th style="padding:8px 10px;font-size:11px;color:var(--muted);text-align:center;font-weight:600;letter-spacing:.05em">DIST</th>
-            <th style="padding:8px 10px;font-size:11px;color:var(--muted);text-align:center;font-weight:600;letter-spacing:.05em">VOL</th>
-            <th style="padding:8px 10px;font-size:11px;color:var(--muted);text-align:center;font-weight:600;letter-spacing:.05em">AVG KM/L</th>
-            <th style="padding:8px 10px;font-size:11px;color:var(--muted);text-align:right;font-weight:600;letter-spacing:.05em">TOTAL ($)</th>
+            <th style="padding:7px 8px;font-size:10px;color:var(--muted);text-align:left;font-weight:600;letter-spacing:.04em">MONTH</th>
+            <th style="padding:7px 6px;font-size:10px;color:var(--muted);text-align:center;font-weight:600;letter-spacing:.04em">TOPS</th>
+            <th style="padding:7px 6px;font-size:10px;color:var(--muted);text-align:center;font-weight:600;letter-spacing:.04em">DIST (km)</th>
+            <th style="padding:7px 6px;font-size:10px;color:var(--muted);text-align:center;font-weight:600;letter-spacing:.04em">VOL (L)</th>
+            <th style="padding:7px 6px;font-size:10px;color:var(--muted);text-align:center;font-weight:600;letter-spacing:.04em">AVG (km/L)</th>
+            <th style="padding:7px 8px;font-size:10px;color:var(--muted);text-align:right;font-weight:600;letter-spacing:.04em">TOTAL ($)</th>
           </tr>
         </thead>
-        <tbody>
-          ${summaryRows}
-        </tbody>
+        <tbody>${summaryRows}</tbody>
         <tfoot>
           <tr style="border-top:1px solid var(--border);background:var(--surface)">
-            <td style="padding:8px 10px;font-size:12px;font-weight:700;color:var(--text)">All Time</td>
-            <td style="padding:8px 10px;font-size:12px;text-align:center;color:var(--muted)">${grandCount}</td>
-            <td style="padding:8px 10px;font-size:12px;text-align:center;color:var(--muted)">${grandDist>0?grandDist.toFixed(0)+' km':'—'}</td>
-            <td style="padding:8px 10px;font-size:12px;text-align:center;color:var(--muted)">${grandVolume>0?grandVolume.toFixed(1)+' L':'—'}</td>
-            <td style="padding:8px 10px;font-size:12px;text-align:center;color:var(--muted)">${grandVolume>0&&grandDist>0?(grandDist/grandVolume).toFixed(1)+' km/L':'—'}</td>
-            <td style="padding:8px 10px;font-size:12px;text-align:right;font-family:'Space Mono',monospace;color:var(--accent);font-weight:700">$${grandTotal.toFixed(2)}</td>
+            <td style="padding:7px 8px;font-size:11px;font-weight:700;color:var(--text)">All time</td>
+            <td style="padding:7px 6px;font-size:11px;text-align:center;color:var(--muted)">${allRecords.length}</td>
+            <td style="padding:7px 6px;font-size:11px;text-align:center;color:var(--muted);font-family:'Space Mono',monospace">${grandDist>0?grandDist.toFixed(0):'—'}</td>
+            <td style="padding:7px 6px;font-size:11px;text-align:center;color:var(--muted);font-family:'Space Mono',monospace">${grandVol>0?grandVol.toFixed(1):'—'}</td>
+            <td style="padding:7px 6px;font-size:11px;text-align:center;color:var(--muted);font-family:'Space Mono',monospace">${grandVol>0&&grandDist>0?(grandDist/grandVol).toFixed(1):'—'}</td>
+            <td style="padding:7px 8px;font-size:11px;text-align:right;font-family:'Space Mono',monospace;color:var(--accent);font-weight:700">$${grandTotal.toFixed(2)}</td>
           </tr>
         </tfoot>
       </table>
@@ -3109,63 +3169,9 @@ function renderFuelHistory(){
   `).join('');
 }
 
-function editFuelRecord(id){
-  const records=getFuelRecords();
-  const r=records.find(x=>x.id===id);
-  if(!r) return;
-  // Populate form with existing values
-  document.getElementById('fuel-date').value=r.date||'';
-  document.getElementById('fuel-price-per-l').value=r.pricePerL||'';
-  document.getElementById('fuel-volume').value=r.volume||'';
-  document.getElementById('fuel-cost-before').value=r.costBefore||'';
-  document.getElementById('fuel-discount').value=r.discount||'';
-  document.getElementById('fuel-cost-after').value=r.costAfter||'';
-  document.getElementById('fuel-distance').value=r.distance||'';
-  document.getElementById('fuel-petrol-type').value=r.petrolType||'';
-  document.getElementById('fuel-brand').value=r.brand||'';
-  // Remove old record so saving creates a fresh one
-  const updated=records.filter(x=>x.id!==id);
-  saveFuelRecords(updated);
-  renderFuelHistory();
-  calcFuelFields();
-  // Scroll to top of petrol tab
-  document.getElementById('screen-petrol').scrollTop=0;
-  toast('Record loaded for editing — make changes and save');
-}
-
 function deleteFuelRecord(id){
-  if(!confirm('Are you sure you want to delete this petrol record? This cannot be undone.')) return;
-  const all=getFuelRecords();
-  const target=all.find(r=>r.id===id);
-  const records=all.filter(r=>r.id!==id);
+  const records=getFuelRecords().filter(r=>r.id!==id);
   saveFuelRecords(records);
-
-  // Recalculate petrol cost for that date from remaining records
-  if(target){
-    const date=target.date;
-    const remaining=records.filter(r=>r.date===date);
-    const newCost=remaining.reduce((a,r)=>a+(r.costAfter||0),0);
-    // Update entry data
-    const data=getData();
-    if(data[date]){
-      data[date].petrol=newCost;
-      data[date].estNet=(data[date].earnings?.total||0)-newCost;
-      saveData(data);
-    }
-    // Update dedicated petrol slot
-    if(newCost>0){
-      try{ localStorage.setItem('mdl_petrol_'+date, newCost.toFixed(2)); }catch{}
-    } else {
-      try{ localStorage.removeItem('mdl_petrol_'+date); }catch{}
-    }
-    // Update Entry tab live if viewing that date
-    const entryDate=document.getElementById('e-date')?.value;
-    if(entryDate===date){
-      const pf=document.getElementById('e-petrol');
-      if(pf) pf.value=newCost>0?newCost.toFixed(2):'';
-    }
-  }
-
   renderFuelHistory();
   toast('Record deleted');
 }
