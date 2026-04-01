@@ -892,9 +892,13 @@ body.light-mode .fuel-stat{background:var(--card)}
       <div><div class="set-label">Consumption (km/L)</div><div class="set-sub" id="est-consumption-sub">From last month avg</div></div>
       <input type="number" class="set-inp" id="est-consumption" placeholder="e.g. 12.0" step="0.1" inputmode="decimal">
     </div>
+    <div class="set-row">
+      <div><div class="set-label">Petrol Discount (%)</div><div class="set-sub" id="est-discount-sub">From latest top-up record</div></div>
+      <input type="number" class="set-inp" id="est-discount" placeholder="e.g. 25" step="1" inputmode="decimal">
+    </div>
     <div style="margin:12px 0 8px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px">
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
-        <span style="font-size:12px;color:var(--muted)">Est. Petrol Cost / Day</span>
+        <span style="font-size:12px;color:var(--muted)">Est. Petrol Cost / Day (after discount)</span>
         <span style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--accent)" id="est-result">—</span>
       </div>
       <div style="font-size:11px;color:var(--muted)" id="est-formula">Enter values above and tap Calculate</div>
@@ -2605,12 +2609,27 @@ function initSettings(){
       } else { consEl.value='12.0'; consSubEl.textContent='Default — no records available'; }
     }
   }
+
+  // 4. Discount % from latest fuel record that has a discount
+  const discEl=document.getElementById('est-discount');
+  const discSubEl=document.getElementById('est-discount-sub');
+  if(discEl){
+    const latestWithDisc=allFuel.find(r=>r.discountPct&&parseFloat(r.discountPct)>0);
+    if(latestWithDisc){
+      discEl.value=parseFloat(latestWithDisc.discountPct).toFixed(0);
+      discSubEl.textContent='From top-up on '+latestWithDisc.date;
+    } else {
+      discEl.value='0';
+      discSubEl.textContent='No discount records found — enter manually';
+    }
+  }
 }
 
 function calcPetrolEstimate(){
   const price=parseFloat(document.getElementById('est-price').value);
   const distance=parseFloat(document.getElementById('est-distance').value);
   const consumption=parseFloat(document.getElementById('est-consumption').value);
+  const discountPct=parseFloat(document.getElementById('est-discount').value)||0;
   const resultEl=document.getElementById('est-result');
   const formulaEl=document.getElementById('est-formula');
   if(!price||!distance||!consumption||consumption<=0){
@@ -2618,10 +2637,13 @@ function calcPetrolEstimate(){
     return;
   }
   const litresPerDay=distance/consumption;
-  const costPerDay=litresPerDay*price;
-  resultEl.textContent='$'+costPerDay.toFixed(2);
-  formulaEl.textContent=distance+' km ÷ '+consumption+' km/L = '+litresPerDay.toFixed(2)+' L × $'+price.toFixed(3)+'/L';
-  return costPerDay;
+  const costBeforeDisc=litresPerDay*price;
+  const discountAmt=costBeforeDisc*(discountPct/100);
+  const costAfterDisc=costBeforeDisc-discountAmt;
+  resultEl.textContent='$'+costAfterDisc.toFixed(2);
+  const discNote=discountPct>0?' − '+discountPct+'% disc ($'+discountAmt.toFixed(2)+')':'';
+  formulaEl.textContent=distance+' km ÷ '+consumption+' km/L = '+litresPerDay.toFixed(2)+' L × $'+price.toFixed(3)+'/L = $'+costBeforeDisc.toFixed(2)+discNote;
+  return costAfterDisc;
 }
 
 function applyPetrolEstimate(){
