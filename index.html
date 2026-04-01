@@ -826,22 +826,45 @@ body.light-mode .fuel-stat{background:var(--card)}
           <label class="lbl">Distance Since Last Top-Up (km)</label>
           <input class="inp" type="number" inputmode="decimal" id="fuel-distance" placeholder="e.g. 420" step="1" oninput="calcFuelFields()" style="font-family:'Space Mono',monospace">
         </div>
+        <div class="two-col" style="margin-bottom:8px">
+          <div>
+            <label class="lbl">Petrol Brand</label>
+            <select class="inp" id="fuel-brand">
+              <option value="">-- Select --</option>
+              <option value="Esso">Esso</option>
+              <option value="Shell">Shell</option>
+              <option value="Caltex">Caltex</option>
+              <option value="SPC">SPC</option>
+              <option value="Sinopec">Sinopec</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label class="lbl">Petrol Type</label>
+            <select class="inp" id="fuel-petrol-type">
+              <option value="">-- Select --</option>
+              <option value="RON 92">RON 92</option>
+              <option value="RON 95">RON 95</option>
+              <option value="RON 98">RON 98</option>
+            </select>
+          </div>
+        </div>
 
         <!-- Calculated fields display -->
         <div id="fuel-calc-display" style="display:none;background:var(--card);border-radius:var(--r);padding:10px;margin-bottom:10px">
           <div style="font-size:11px;color:var(--muted);margin-bottom:6px;letter-spacing:.05em">CALCULATED</div>
           <div class="fuel-grid">
             <div class="fuel-stat"><div class="fuel-stat-label">Discount %</div><div class="fuel-stat-val" id="fc-discount-pct">—</div></div>
-            <div class="fuel-stat"><div class="fuel-stat-label">Consumption (L/km)</div><div class="fuel-stat-val" id="fc-consumption">—</div></div>
+            <div class="fuel-stat"><div class="fuel-stat-label">Consumption (km/L)</div><div class="fuel-stat-val" id="fc-consumption">—</div></div>
             <div class="fuel-stat"><div class="fuel-stat-label">Days Since Last Top-Up</div><div class="fuel-stat-val" id="fc-days">—</div></div>
             <div class="fuel-stat"><div class="fuel-stat-label">Period</div><div class="fuel-stat-val" id="fc-period" style="font-size:11px">—</div></div>
           </div>
         </div>
 
-        <button class="btn btn-green" onclick="saveFuelRecord()" style="margin-top:4px">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
-          Save Top-Up Record
-        </button>
+        <div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end">
+          <button onclick="discardFuelScan()" style="background:none;border:1px solid var(--border);color:var(--muted);font-size:12px;padding:6px 12px;border-radius:var(--r);cursor:pointer;touch-action:manipulation">✕ Cancel</button>
+          <button onclick="saveFuelRecord()" style="background:var(--accent);color:#0D1117;font-size:12px;padding:6px 14px;border-radius:var(--r);cursor:pointer;font-weight:600;touch-action:manipulation">✓ Save Record</button>
+        </div>
       </div>
     </div>
   </div>
@@ -2780,9 +2803,9 @@ function calcFuelFields(){
   if(before>0&&disc>0) pctEl.textContent=((disc/before)*100).toFixed(1)+'%';
   else pctEl.textContent='—';
 
-  // Consumption L/km
+  // Consumption km/L
   const consEl=document.getElementById('fc-consumption');
-  if(vol>0&&dist>0) consEl.textContent=(vol/dist).toFixed(3)+' L/km';
+  if(vol>0&&dist>0) consEl.textContent=(dist/vol).toFixed(2)+' km/L';
   else consEl.textContent='—';
 
   // Days since last top-up
@@ -2827,13 +2850,16 @@ async function extractFuelReceipt(input){
     const prompt=`You are reading a petrol/fuel receipt from Singapore. Extract the following fields and return ONLY a JSON object with no markdown, no explanation:
 {
   "date": "YYYY-MM-DD or empty string if not found",
+  "brand": "petrol station brand e.g. Esso, Shell, Caltex, SPC, Sinopec or empty string if not found",
+  "petrolType": "RON 92, RON 95, or RON 98 — detect from receipt text, or empty string if not found",
   "pricePerLitre": number or null,
   "volumeLitres": number or null,
   "costBeforeDiscount": number or null,
   "fuelDiscount": number or null,
   "actualCostAfterDiscount": number or null
 }
-If a field is not visible or unclear, use null. For date, convert any format to YYYY-MM-DD.`;
+IMPORTANT date rules: Singapore receipts often print dates as DD/MM/YY (day first, then month, then 2-digit year). For example "21/03/26" means 21st March 2026, which is 2026-03-21. Never interpret DD/MM/YY as YY/MM/DD. Always convert to YYYY-MM-DD format. If year is 2 digits, assume 2000s (e.g. 26 = 2026).
+If a field is not visible or unclear, use null for numbers or empty string for text.`;
 
     const resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='+GEMINI_API_KEY,{
       method:'POST',
@@ -2870,6 +2896,8 @@ If a field is not visible or unclear, use null. For date, convert any format to 
 
     // Populate form fields
     if(extracted.date) document.getElementById('fuel-date').value=extracted.date;
+    if(extracted.brand){ const fb=document.getElementById('fuel-brand'); if(fb) fb.value=extracted.brand; }
+    if(extracted.petrolType){ const fpt=document.getElementById('fuel-petrol-type'); if(fpt) fpt.value=extracted.petrolType; }
     if(extracted.pricePerLitre!=null) document.getElementById('fuel-price-per-l').value=extracted.pricePerLitre.toFixed(3);
     if(extracted.volumeLitres!=null) document.getElementById('fuel-volume').value=extracted.volumeLitres.toFixed(2);
     if(extracted.costBeforeDiscount!=null) document.getElementById('fuel-cost-before').value=extracted.costBeforeDiscount.toFixed(2);
@@ -2897,12 +2925,14 @@ function saveFuelRecord(){
   const discount=parseFloat(document.getElementById('fuel-discount').value)||0;
   const costAfter=parseFloat(document.getElementById('fuel-cost-after').value)||0;
   const distance=parseFloat(document.getElementById('fuel-distance').value)||0;
+  const brand=document.getElementById('fuel-brand')?.value||'';
+  const petrolType=document.getElementById('fuel-petrol-type')?.value||'';
 
   if(costAfter<=0){ toast('Please enter actual fuel cost'); return; }
 
-  // Calculated fields
+  // Calculated fields — km/L not L/km
   const discountPct=costBefore>0&&discount>0?((discount/costBefore)*100).toFixed(1):null;
-  const consumption=volume>0&&distance>0?(volume/distance).toFixed(3):null;
+  const consumption=volume>0&&distance>0?(distance/volume).toFixed(2):null;
   const records=getFuelRecords();
   const prevRecord=records[0]||null;
   let daysSinceLast=null, periodFrom=null;
@@ -2915,7 +2945,7 @@ function saveFuelRecord(){
 
   const record={
     id:Date.now(), date, pricePerL, volume, costBefore, discount,
-    costAfter, distance, discountPct, consumption,
+    costAfter, distance, brand, petrolType, discountPct, consumption,
     daysSinceLast, periodFrom
   };
 
@@ -2930,10 +2960,23 @@ function saveFuelRecord(){
    'fuel-discount','fuel-cost-after','fuel-distance'].forEach(id=>{
     document.getElementById(id).value='';
   });
+  const fb=document.getElementById('fuel-brand'); if(fb) fb.value='';
+  const fpt=document.getElementById('fuel-petrol-type'); if(fpt) fpt.value='';
   document.getElementById('fuel-calc-display').style.display='none';
 
   toast('Top-up saved ✓ — petrol cost updated in Entry page');
   renderFuelHistory();
+}
+
+function discardFuelScan(){
+  ['fuel-date','fuel-price-per-l','fuel-volume','fuel-cost-before',
+   'fuel-discount','fuel-cost-after','fuel-distance'].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+  const fb=document.getElementById('fuel-brand'); if(fb) fb.value='';
+  const fpt=document.getElementById('fuel-petrol-type'); if(fpt) fpt.value='';
+  document.getElementById('fuel-calc-display').style.display='none';
+  toast('Cancelled');
 }
 
 function syncFuelToEntry(date, costAfter){
@@ -2985,7 +3028,9 @@ function renderFuelHistory(){
 
   const summaryRows=months.map(ym=>{
     const [y,m]=ym.split('-');
-    const label=MONTHS[parseInt(m)-1]+' '+y;
+    const currentYear=new Date().getFullYear().toString();
+    // Only show year if it's not the current year
+    const label=y===currentYear?MONTHS[parseInt(m)-1]:MONTHS[parseInt(m)-1]+' '+y;
     const d=monthMap[ym];
     const avgConsumption=d.volume>0&&d.distance>0?(d.distance/d.volume).toFixed(1)+' km/L':'—';
     const totalDist=d.distance>0?d.distance.toFixed(0)+' km':'—';
@@ -2993,9 +3038,9 @@ function renderFuelHistory(){
     return `<tr style="${isCurrent?'background:rgba(0,212,170,.08)':''}">
       <td style="padding:8px 10px;font-size:13px;color:var(--text);font-weight:${isCurrent?'700':'400'}">${label}${isCurrent?' ◀':''}</td>
       <td style="padding:8px 10px;font-size:13px;text-align:center;color:var(--muted)">${d.count}</td>
-      <td style="padding:8px 10px;font-size:13px;text-align:center;color:var(--muted)">${avgConsumption}</td>
       <td style="padding:8px 10px;font-size:13px;text-align:center;color:var(--muted)">${totalDist}</td>
       <td style="padding:8px 10px;font-size:13px;text-align:center;color:var(--muted)">${d.volume>0?d.volume.toFixed(1)+' L':'—'}</td>
+      <td style="padding:8px 10px;font-size:13px;text-align:center;color:var(--muted)">${avgConsumption}</td>
       <td style="padding:8px 10px;font-size:13px;text-align:right;font-family:'Space Mono',monospace;color:${isCurrent?'var(--accent)':'var(--text)'};font-weight:700">$${d.total.toFixed(2)}</td>
     </tr>`;
   }).join('');
@@ -3013,9 +3058,9 @@ function renderFuelHistory(){
           <tr style="border-bottom:1px solid var(--border);background:var(--surface)">
             <th style="padding:8px 10px;font-size:11px;color:var(--muted);text-align:left;font-weight:600;letter-spacing:.05em">MONTH</th>
             <th style="padding:8px 10px;font-size:11px;color:var(--muted);text-align:center;font-weight:600;letter-spacing:.05em">TOPS-UP</th>
+            <th style="padding:8px 10px;font-size:11px;color:var(--muted);text-align:center;font-weight:600;letter-spacing:.05em">DIST</th>
+            <th style="padding:8px 10px;font-size:11px;color:var(--muted);text-align:center;font-weight:600;letter-spacing:.05em">VOL</th>
             <th style="padding:8px 10px;font-size:11px;color:var(--muted);text-align:center;font-weight:600;letter-spacing:.05em">AVG KM/L</th>
-            <th style="padding:8px 10px;font-size:11px;color:var(--muted);text-align:center;font-weight:600;letter-spacing:.05em">DISTANCE</th>
-            <th style="padding:8px 10px;font-size:11px;color:var(--muted);text-align:center;font-weight:600;letter-spacing:.05em">VOLUME</th>
             <th style="padding:8px 10px;font-size:11px;color:var(--muted);text-align:right;font-weight:600;letter-spacing:.05em">TOTAL ($)</th>
           </tr>
         </thead>
@@ -3026,9 +3071,9 @@ function renderFuelHistory(){
           <tr style="border-top:1px solid var(--border);background:var(--surface)">
             <td style="padding:8px 10px;font-size:12px;font-weight:700;color:var(--text)">All Time</td>
             <td style="padding:8px 10px;font-size:12px;text-align:center;color:var(--muted)">${grandCount}</td>
-            <td style="padding:8px 10px;font-size:12px;text-align:center;color:var(--muted)">${grandVolume>0&&grandDist>0?(grandDist/grandVolume).toFixed(1)+' km/L':'—'}</td>
             <td style="padding:8px 10px;font-size:12px;text-align:center;color:var(--muted)">${grandDist>0?grandDist.toFixed(0)+' km':'—'}</td>
             <td style="padding:8px 10px;font-size:12px;text-align:center;color:var(--muted)">${grandVolume>0?grandVolume.toFixed(1)+' L':'—'}</td>
+            <td style="padding:8px 10px;font-size:12px;text-align:center;color:var(--muted)">${grandVolume>0&&grandDist>0?(grandDist/grandVolume).toFixed(1)+' km/L':'—'}</td>
             <td style="padding:8px 10px;font-size:12px;text-align:right;font-family:'Space Mono',monospace;color:var(--accent);font-weight:700">$${grandTotal.toFixed(2)}</td>
           </tr>
         </tfoot>
