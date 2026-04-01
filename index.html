@@ -477,15 +477,15 @@ body.light-mode .fuel-stat{background:var(--card)}
 
   <!-- Card 1: Date / Day / Driving -->
   <div class="card">
-    <div class="two-col" style="margin-bottom:12px">
-      <div>
-        <label class="lbl">Date</label>
-        <input type="date" class="inp" id="e-date" style="font-family:'Space Mono',monospace;font-size:13px">
+    <div style="margin-bottom:12px">
+      <label class="lbl">Date</label>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button onclick="shiftDate(-1)" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 11px;font-size:16px;color:var(--text);cursor:pointer;touch-action:manipulation;flex-shrink:0">‹</button>
+        <input type="date" class="inp" id="e-date" style="font-family:'Space Mono',monospace;font-size:13px;flex:1;text-align:center">
+        <button onclick="shiftDate(1)" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 11px;font-size:16px;color:var(--text);cursor:pointer;touch-action:manipulation;flex-shrink:0">›</button>
+        <button onclick="goToToday()" style="background:var(--accent);border:none;border-radius:8px;padding:8px 10px;font-size:11px;font-weight:700;color:#0D1117;cursor:pointer;touch-action:manipulation;flex-shrink:0;letter-spacing:.3px">Today</button>
       </div>
-      <div>
-        <label class="lbl">Day</label>
-        <div class="inp" id="e-dow" style="color:var(--muted);font-family:'Space Mono',monospace;font-size:14px;display:flex;align-items:center"></div>
-      </div>
+      <div class="inp" id="e-dow" style="color:var(--muted);font-family:'Space Mono',monospace;font-size:13px;display:flex;align-items:center;margin-top:6px;background:none;border:none;padding:0"></div>
     </div>
     <label class="lbl">Driving Today?</label>
     <div class="tog-row">
@@ -1411,6 +1411,22 @@ function gpsEl(state, text){
 // ENTRY
 // ══════════════════════════════════════════════════
 let entryInitDone = false;
+
+function shiftDate(days){
+  const di=document.getElementById('e-date');
+  if(!di) return;
+  const current=di.value?new Date(di.value+'T00:00:00'):new Date();
+  current.setDate(current.getDate()+days);
+  di.value=fmtDate(current);
+  loadEntry();
+}
+
+function goToToday(){
+  const di=document.getElementById('e-date');
+  if(!di) return;
+  di.value=fmtDate(new Date());
+  loadEntry();
+}
 
 function initEntry(){
   // Always scroll to top so all content is accessible
