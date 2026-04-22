@@ -522,13 +522,13 @@ body.light-mode .fuel-stat{background:var(--card)}
           <div class="plat-box-name" style="color:var(--tada)">TADA</div>
           <div class="plat-box-val" id="pb-val-TADA" style="color:var(--muted)">—</div>
         </div>
-        <div class="plat-box" style="border-color:rgba(56,189,248,.25)">
-          <div class="plat-box-name" style="color:var(--gojek)">Gojek</div>
-          <div class="plat-box-val" id="pb-val-Gojek" style="color:var(--muted)">—</div>
-        </div>
         <div class="plat-box" style="border-color:rgba(0,177,79,.25)">
           <div class="plat-box-name" style="color:var(--grab)">Grab</div>
           <div class="plat-box-val" id="pb-val-Grab" style="color:var(--muted)">—</div>
+        </div>
+        <div class="plat-box" style="border-color:rgba(56,189,248,.25)">
+          <div class="plat-box-name" style="color:var(--gojek)">Gojek</div>
+          <div class="plat-box-val" id="pb-val-Gojek" style="color:var(--muted)">—</div>
         </div>
       </div>
 
@@ -746,6 +746,7 @@ body.light-mode .fuel-stat{background:var(--card)}
         <span style="font-size:13px;font-weight:600;color:var(--text)" id="trip-count">0 trips</span>
         <span class="tsc-total" id="trip-total">$0.00</span>
       </div>
+      <div id="trip-plat-breakdown" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px"></div>
       <div id="trip-sess-breakdown" style="display:none;font-size:11px;color:var(--muted);margin-bottom:6px;flex-wrap:wrap;gap:8px"></div>
       <div style="font-size:11px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap">
         <span id="trip-km">0 km</span><span id="trip-min">0 min</span>
@@ -1537,7 +1538,7 @@ function renderSessions(){
     const sessTotal=Object.values(td).reduce((a,v)=>a+v,0);
     const platBoxes=[
       `<div class="plat-box" style="border-color:rgba(0,212,170,.35)"><div class="plat-box-name" style="color:var(--accent)">TOTAL</div><div class="plat-box-val" data-plat="Total" style="color:${sessTotal>0?'var(--text)':'var(--muted)'}">${sessTotal>0?'$'+sessTotal.toFixed(2):'—'}</div></div>`,
-      ...['TADA','Gojek','Grab'].map(p=>`
+      ...['TADA','Grab','Gojek'].map(p=>`
       <div class="plat-box" style="border-color:rgba(${platColors[p]},.25)">
         <div class="plat-box-name" style="color:var(--${platVars[p]})">${p}</div>
         <div class="plat-box-val" data-plat="${p}" style="color:${td[p]>0?'var(--text)':'var(--muted)'}">${td[p]>0?'$'+td[p].toFixed(2):'—'}</div>
@@ -2154,23 +2155,26 @@ function renderTripDateChips(){
   if(!chipsEl) return;
   const allTrips=getTrips();
   const today=fmtDate(new Date());
-  // Build last 7 days
+  // Always include today + 6 previous days (7 total)
   const days=[];
   for(let i=0;i<7;i++){
     const d=new Date(); d.setDate(d.getDate()-i);
-    const ds=fmtDate(d);
-    days.push(ds);
+    days.push(fmtDate(d));
   }
-  // Only show days with trips OR today
-  const shown=days.filter(ds=>ds===today||allTrips.some(t=>t.date===ds));
+  // Also include any older days that have trips
+  allTrips.forEach(t=>{ if(!days.includes(t.date)) days.push(t.date); });
+  // Sort newest first, deduplicate
+  const sorted=[...new Set(days)].sort((a,b)=>b.localeCompare(a));
   const cur=tripViewDate||today;
-  chipsEl.innerHTML=shown.map(ds=>{
+  chipsEl.innerHTML=sorted.map(ds=>{
     const isToday=ds===today;
     const d=new Date(ds+'T00:00:00');
     const label=isToday?'Today':DAYS[d.getDay()].slice(0,3)+' '+String(d.getDate()).padStart(2,'0');
     const on=ds===cur?'on':'';
-    return `<button class="chip ${on}" onclick="setTripDate('${ds}')">${label}</button>`;
+    return `<button class="chip ${on}" onclick="setTripDate('${ds}')" style="min-width:calc(20vw - 8px);flex-shrink:0;touch-action:manipulation">${label}</button>`;
   }).join('');
+  // Scroll active chip into view
+  setTimeout(()=>{ const a=chipsEl.querySelector('.chip.on'); if(a) a.scrollIntoView({inline:'nearest',behavior:'smooth',block:'nearest'}); },50);
 }
 
 function setTripDate(ds){
@@ -2215,9 +2219,19 @@ function renderTrips(){
     const tf=trips.reduce((a,t)=>a+(t.fare||0),0);
     const tk=trips.reduce((a,t)=>a+(t.distanceKm||0),0);
     ts.style.display='block';
-    document.getElementById('trip-count').textContent=trips.length+' trip'+(trips.length!==1?'s':'')+' today';
+    document.getElementById('trip-count').textContent=trips.length+' trip'+(trips.length!==1?'s':'');
     document.getElementById('trip-total').textContent=fmtMoney(tf);
     document.getElementById('trip-km').textContent=tk.toFixed(1)+' km';
+    // Platform earnings breakdown
+    const platEl=document.getElementById('trip-plat-breakdown');
+    if(platEl){
+      const platTotals={TADA:0,Gojek:0,Grab:0};
+      trips.forEach(t=>{ if(platTotals[t.platform]!==undefined) platTotals[t.platform]+=t.fare||0; });
+      const platColors={TADA:'var(--tada)',Gojek:'var(--gojek)',Grab:'var(--grab)'};
+      platEl.innerHTML=Object.entries(platTotals).filter(([,v])=>v>0).map(([p,v])=>
+        `<span style="font-size:11px;font-weight:600;color:${platColors[p]};background:rgba(0,0,0,.15);padding:2px 7px;border-radius:99px">${p} ${fmtMoney(v)}</span>`
+      ).join('');
+    }
     // Duration = total session clock time (live unsaved first, then saved)
     var sessMinsT=getSessMinsLive();
     if(sessMinsT===0) sessMinsT=getSessMinsSaved(viewDate);
