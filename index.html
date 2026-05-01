@@ -221,14 +221,14 @@ textarea.inp{resize:none;height:80px}
 
 /* ── TODAY BANNER ────────────────────────────────── */
 .today-banner{
-  display:grid;grid-template-columns:repeat(4,1fr);
+  display:grid;grid-template-columns:1fr 1fr 1fr;
   background:var(--card);border:1px solid var(--border);border-radius:var(--r);
   margin:10px 12px 0;overflow:hidden
 }
-.tb-cell{padding:10px 6px 10px;text-align:center;display:flex;flex-direction:column;justify-content:space-between;align-items:center}
+.tb-cell{padding:12px 10px;text-align:center}
 .tb-cell:not(:last-child){border-right:1px solid var(--border)}
-.tb-label{font-size:8px;font-weight:600;color:var(--muted);letter-spacing:.6px;text-transform:uppercase;min-height:24px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.3}
-.tb-val{font-family:'Space Mono',monospace;font-size:14px;font-weight:700;color:var(--text);margin-top:4px}
+.tb-label{font-size:9px;font-weight:600;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px}
+.tb-val{font-family:'Space Mono',monospace;font-size:15px;font-weight:700;color:var(--text)}
 
 /* ── MONTH NAV ───────────────────────────────────── */
 .mnav{
@@ -607,23 +607,19 @@ body.light-mode .fuel-stat{background:var(--card)}
     <button class="mnav-btn" onclick="changeMonth(1)">›</button>
   </div>
 
-  <!-- Summary banner — 4 key monthly metrics -->
+  <!-- Today banner -->
   <div class="today-banner">
     <div class="tb-cell">
-      <div class="tb-label">Gross So Far</div>
-      <div class="tb-val" id="tb-gross">$0</div>
+      <div class="tb-label">Today Gross</div>
+      <div class="tb-val" id="tb-gross">$0.00</div>
     </div>
     <div class="tb-cell">
-      <div class="tb-label">Est. Net So Far</div>
-      <div class="tb-val" id="tb-net">$0</div>
+      <div class="tb-label">Distance</div>
+      <div class="tb-val" id="tb-dist">0 km</div>
     </div>
     <div class="tb-cell">
-      <div class="tb-label">Rem. Gross Needed</div>
-      <div class="tb-val" id="tb-rem-gross">$0</div>
-    </div>
-    <div class="tb-cell">
-      <div class="tb-label">Bal. Gross / Day</div>
-      <div class="tb-val" id="tb-dist">$0</div>
+      <div class="tb-label">Net Today</div>
+      <div class="tb-val" id="tb-net">$0.00</div>
     </div>
   </div>
 
@@ -645,11 +641,8 @@ body.light-mode .fuel-stat{background:var(--card)}
     <div class="kpi-row" style="margin:0"><span class="kpi-lbl" style="font-size:12px">K10 &middot; Planned Days</span><span class="kpi-val" id="k10">0</span></div>
     <div class="kpi-row" style="margin:0"><span class="kpi-lbl" style="font-size:12px">K11 &middot; Remaining</span><span class="kpi-val" id="k11">0</span></div>
   </div>
-  <!-- K12 Petrol Budget Variance -->
-  <div class="kpi-row" id="k12-row" style="margin-top:6px">
-    <span class="kpi-lbl">K12 &middot; Petrol Budget Variance<br><span style="font-size:10px;color:var(--muted);font-weight:400">+ve = planned &gt; actual (under budget)</span></span>
-    <span class="kpi-val" id="k12">$0</span>
-  </div>
+  <div class="kpi-row" id="k12-row" style="margin-top:6px"><span class="kpi-lbl">K12 &middot; Petrol Budget Variance</span><span class="kpi-val" id="k12">$0</span></div>
+  <div style="margin:2px 12px 0;font-size:11px;color:var(--muted)">+ve = planned &gt; actual</div>
   <div style="height:100vh"></div>
 </div>
 
@@ -845,7 +838,7 @@ body.light-mode .fuel-stat{background:var(--card)}
           <div style="font-size:11px;color:var(--muted);margin-bottom:6px;letter-spacing:.05em">CALCULATED</div>
           <div class="fuel-grid">
             <div class="fuel-stat"><div class="fuel-stat-label">Discount %</div><div class="fuel-stat-val" id="fc-discount-pct">—</div></div>
-            <div class="fuel-stat"><div class="fuel-stat-label">Consumption (km/L)</div><div class="fuel-stat-val" id="fc-consumption">—</div></div>
+            <div class="fuel-stat"><div class="fuel-stat-label">Consumption (L/km)</div><div class="fuel-stat-val" id="fc-consumption">—</div></div>
             <div class="fuel-stat"><div class="fuel-stat-label">Days Since Last Top-Up</div><div class="fuel-stat-val" id="fc-days">—</div></div>
             <div class="fuel-stat"><div class="fuel-stat-label">Period</div><div class="fuel-stat-val" id="fc-period" style="font-size:11px">—</div></div>
           </div>
@@ -2025,6 +2018,13 @@ function renderSummary(){
   const ym=y+'_'+(mo+1);
   const s=getSettings(ym);
   const data=getData();
+  const today=fmtDate(new Date());
+  const te=data[today];
+
+  document.getElementById('tb-gross').textContent=fmtMoney(te?.earnings?.total||0);
+  document.getElementById('tb-dist').textContent=(te?.distance||0)+' km';
+  // Update GPS distance label in gross card
+  document.getElementById('tb-net').textContent=fmtMoney(te?.estNet||0);
 
   const prefix=y+'-'+String(mo+1).padStart(2,'0')+'-';
   const entries=Object.values(data).filter(e=>e.date?.startsWith(prefix));
@@ -2040,13 +2040,6 @@ function renderSummary(){
   const k5=k3-k4-totalOtherSoFar, k6=Math.max(0,k2-k3), k7=Math.max(0,k1-k5);
   const k8=k2/Math.max(1,s.days), k9=k6/Math.max(1,rem);
 
-  // Banner — 4 metrics, whole dollars only
-  const fmInt=v=>'$'+Math.round(v);
-  document.getElementById('tb-gross').textContent=fmInt(k3);
-  document.getElementById('tb-net').textContent=fmInt(k5);
-  document.getElementById('tb-rem-gross').textContent=fmInt(k6);
-  document.getElementById('tb-dist').textContent=fmInt(k9);
-
   const fm=v=>fmtMoney(v);
   document.getElementById('k1').textContent=fm(k1);
   document.getElementById('k2').textContent=fm(k2);
@@ -2060,12 +2053,11 @@ function renderSummary(){
   document.getElementById('k10').textContent=s.days;
   document.getElementById('k11').textContent=rem;
 
-  // K12 — Petrol Budget Variance
+  // K12 — Petrol Budget Variance (planned petrol - actual petrol)
   const k12=(s.days*s.petrol)-k4;
   const k12El=document.getElementById('k12');
-  const k12Row=document.getElementById('k12-row');
   if(k12El){
-    k12El.textContent=(k12>=0?'+':'')+fm(k12);
+    k12El.textContent=(k12>=0?'+':'')+fmtMoney(k12);
     k12El.style.color=k12<0?'var(--danger)':'var(--accent)';
     k12El.style.fontWeight=k12<0?'700':'400';
   }
@@ -2108,10 +2100,13 @@ function renderHistList(){
   const prefix=y+'-'+String(m+1).padStart(2,'0')+'-';
   const data=getData(), daysInMonth=new Date(y,m+1,0).getDate();
   const list=document.getElementById('hist-list');
+  const today=fmtDate(new Date());
   list.innerHTML='';
   let any=false;
   for(let d=daysInMonth;d>=1;d--){
     const ds=prefix+String(d).padStart(2,'0');
+    // Skip future dates
+    if(ds>today) continue;
     const e=data[ds];
     const isHol=!!SG_HOL[ds];
     if(!e&&!isHol) continue;
@@ -2938,9 +2933,9 @@ function calcFuelFields(){
   if(before>0&&disc>0) pctEl.textContent=((disc/before)*100).toFixed(1)+'%';
   else pctEl.textContent='—';
 
-  // Consumption km/L
+  // Consumption L/km
   const consEl=document.getElementById('fc-consumption');
-  if(vol>0&&dist>0) consEl.textContent=(dist/vol).toFixed(2)+' km/L';
+  if(vol>0&&dist>0) consEl.textContent=(vol/dist).toFixed(3)+' L/km';
   else consEl.textContent='—';
 
   // Days since last top-up
@@ -3060,7 +3055,7 @@ function saveFuelRecord(){
 
   // Calculated fields
   const discountPct=costBefore>0&&discount>0?((discount/costBefore)*100).toFixed(1):null;
-  const consumption=volume>0&&distance>0?(distance/volume).toFixed(2):null;
+  const consumption=volume>0&&distance>0?(volume/distance).toFixed(3):null;
   const records=getFuelRecords();
   const prevRecord=records[0]||null;
   let daysSinceLast=null, periodFrom=null;
@@ -3207,7 +3202,7 @@ function renderFuelHistory(){
       </div>
       <div class="fuel-grid">
         ${r.distance?'<div class="fuel-stat"><div class="fuel-stat-label">Distance</div><div class="fuel-stat-val">'+r.distance+' km</div></div>':''}
-        ${r.consumption?`<div class="fuel-stat"><div class="fuel-stat-label">Consumption</div><div class="fuel-stat-val">${(()=>{const c=parseFloat(r.consumption);return c>0&&c<1?(1/c).toFixed(2):c.toFixed(2)})()+'  km/L'}</div></div>`:''}
+        ${r.consumption?'<div class="fuel-stat"><div class="fuel-stat-label">Consumption</div><div class="fuel-stat-val">'+r.consumption+' km/L</div></div>':''}
         ${r.discountPct?'<div class="fuel-stat"><div class="fuel-stat-label">Discount</div><div class="fuel-stat-val">'+r.discountPct+'%</div></div>':''}
         ${r.daysSinceLast?'<div class="fuel-stat"><div class="fuel-stat-label">Days Since Last</div><div class="fuel-stat-val">'+r.daysSinceLast+'d</div></div>':''}
       </div>
