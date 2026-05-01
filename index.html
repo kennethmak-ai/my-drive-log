@@ -221,14 +221,14 @@ textarea.inp{resize:none;height:80px}
 
 /* ── TODAY BANNER ────────────────────────────────── */
 .today-banner{
-  display:grid;grid-template-columns:1fr 1fr 1fr;
+  display:grid;grid-template-columns:repeat(4,1fr);
   background:var(--card);border:1px solid var(--border);border-radius:var(--r);
   margin:10px 12px 0;overflow:hidden
 }
-.tb-cell{padding:12px 10px;text-align:center}
+.tb-cell{padding:10px 6px;text-align:center;display:flex;flex-direction:column;justify-content:space-between;align-items:center;min-height:64px}
 .tb-cell:not(:last-child){border-right:1px solid var(--border)}
-.tb-label{font-size:9px;font-weight:600;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px}
-.tb-val{font-family:'Space Mono',monospace;font-size:15px;font-weight:700;color:var(--text)}
+.tb-label{font-size:8px;font-weight:600;color:var(--muted);letter-spacing:.6px;text-transform:uppercase;min-height:28px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.3}
+.tb-val{font-family:'Space Mono',monospace;font-size:14px;font-weight:700;color:var(--text)}
 
 /* ── MONTH NAV ───────────────────────────────────── */
 .mnav{
@@ -607,19 +607,23 @@ body.light-mode .fuel-stat{background:var(--card)}
     <button class="mnav-btn" onclick="changeMonth(1)">›</button>
   </div>
 
-  <!-- Today banner -->
+  <!-- Summary banner — 4 key monthly metrics, whole dollars -->
   <div class="today-banner">
     <div class="tb-cell">
-      <div class="tb-label">Today Gross</div>
-      <div class="tb-val" id="tb-gross">$0.00</div>
+      <div class="tb-label">Gross So Far</div>
+      <div class="tb-val" id="tb-gross">$0</div>
     </div>
     <div class="tb-cell">
-      <div class="tb-label">Distance</div>
-      <div class="tb-val" id="tb-dist">0 km</div>
+      <div class="tb-label">Est. Net So Far</div>
+      <div class="tb-val" id="tb-net">$0</div>
     </div>
     <div class="tb-cell">
-      <div class="tb-label">Net Today</div>
-      <div class="tb-val" id="tb-net">$0.00</div>
+      <div class="tb-label">Rem. Gross Needed</div>
+      <div class="tb-val" id="tb-rem-gross">$0</div>
+    </div>
+    <div class="tb-cell">
+      <div class="tb-label">Bal. Gross / Day</div>
+      <div class="tb-val" id="tb-dist">$0</div>
     </div>
   </div>
 
@@ -655,6 +659,7 @@ body.light-mode .fuel-stat{background:var(--card)}
     <button class="theme-toggle" id="theme-btn-history" onclick="toggleTheme()">&#9728; Light</button>
   </div>
   <div class="chips" id="hist-chips"></div>
+  <div id="hist-plat-summary" style="margin:0 12px 8px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px;display:none"></div>
   <div id="hist-list"></div>
   <div style="padding:12px 16px 20px" id="clear-btn-wrap">
     <!-- Step 1: initial button -->
@@ -864,7 +869,13 @@ body.light-mode .fuel-stat{background:var(--card)}
      SCREEN 5 — SETTINGS
 ══════════════════════════════════════════════════ -->
 <div class="screen" id="screen-settings">
-  <div class="ph"><div class="ph-title">Settings</div><div class="ph-sub" id="set-sub"></div></div>
+  <div class="ph"><div class="ph-title">Settings</div></div>
+  <div class="mnav">
+    <button class="mnav-btn" onclick="changeSettingsMonth(-1)">‹</button>
+    <span class="mnav-title" id="set-month-label"></span>
+    <button class="mnav-btn" onclick="changeSettingsMonth(1)">›</button>
+    <button onclick="changeSettingsMonthToday()" style="font-size:11px;font-weight:700;color:var(--accent);background:none;border:none;cursor:pointer;padding:4px 8px;touch-action:manipulation">This Month</button>
+  </div>
 
   <div class="set-section-title">Monthly Targets</div>
   <div class="set-row">
@@ -1249,7 +1260,7 @@ const SG_HOL = {
 };
 
 // ── STATE ─────────────────────────────────────────
-let isDriving = true, sessCount = 1, sumMonth = new Date();
+let isDriving = true, sessCount = 1, sumMonth = new Date(), settingsMonth = new Date();
 let _isLoading = false;
 let histMonth = {y:new Date().getFullYear(), m:new Date().getMonth()};
 let activeTrip = null, timerInt = null, tripPlatform = 'TADA', tripMode = 'Manual';
@@ -2018,13 +2029,6 @@ function renderSummary(){
   const ym=y+'_'+(mo+1);
   const s=getSettings(ym);
   const data=getData();
-  const today=fmtDate(new Date());
-  const te=data[today];
-
-  document.getElementById('tb-gross').textContent=fmtMoney(te?.earnings?.total||0);
-  document.getElementById('tb-dist').textContent=(te?.distance||0)+' km';
-  // Update GPS distance label in gross card
-  document.getElementById('tb-net').textContent=fmtMoney(te?.estNet||0);
 
   const prefix=y+'-'+String(mo+1).padStart(2,'0')+'-';
   const entries=Object.values(data).filter(e=>e.date?.startsWith(prefix));
@@ -2039,6 +2043,13 @@ function renderSummary(){
   const totalOtherSoFar=driven*(s.other||0);
   const k5=k3-k4-totalOtherSoFar, k6=Math.max(0,k2-k3), k7=Math.max(0,k1-k5);
   const k8=k2/Math.max(1,s.days), k9=k6/Math.max(1,rem);
+
+  // Banner — whole dollars only
+  const fmInt=v=>'$'+Math.round(v);
+  document.getElementById('tb-gross').textContent=fmInt(k3);
+  document.getElementById('tb-net').textContent=fmInt(k5);
+  document.getElementById('tb-rem-gross').textContent=fmInt(k6);
+  document.getElementById('tb-dist').textContent=fmInt(k9);
 
   const fm=v=>fmtMoney(v);
   document.getElementById('k1').textContent=fm(k1);
@@ -2103,27 +2114,60 @@ function renderHistList(){
   const today=fmtDate(new Date());
   list.innerHTML='';
   let any=false;
+
+  // Monthly platform summary from Trip Log
+  const allMonthTrips=getTrips().filter(t=>t.date?.startsWith(prefix));
+  const mPlat={TADA:{earn:0,trips:0},Grab:{earn:0,trips:0},Gojek:{earn:0,trips:0}};
+  allMonthTrips.forEach(t=>{ if(mPlat[t.platform]){mPlat[t.platform].earn+=t.fare||0;mPlat[t.platform].trips++;} });
+  const mTotal=allMonthTrips.reduce((a,t)=>a+(t.fare||0),0);
+  const platSumEl=document.getElementById('hist-plat-summary');
+  if(platSumEl){
+    const pc={TADA:'var(--tada)',Grab:'var(--grab)',Gojek:'var(--gojek)'};
+    const rows=Object.entries(mPlat).filter(([,v])=>v.trips>0).map(([p,v])=>
+      `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:12px;font-weight:600;color:${pc[p]}">${p}</span>
+        <span style="font-size:12px;color:var(--muted)">${v.trips} trip${v.trips!==1?'s':''}</span>
+        <span style="font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:var(--text)">${fmtMoney(v.earn)}</span>
+      </div>`).join('');
+    if(rows){
+      platSumEl.style.display='block';
+      platSumEl.innerHTML=`<div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.06em;margin-bottom:6px">MONTH — ${MONTHS[m].toUpperCase()} ${y}</div>${rows}
+        <div style="display:flex;justify-content:space-between;padding:4px 0 0">
+          <span style="font-size:12px;font-weight:700;color:var(--text)">Total</span>
+          <span style="font-size:12px;color:var(--muted)">${allMonthTrips.length} trips</span>
+          <span style="font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:var(--accent)">${fmtMoney(mTotal)}</span>
+        </div>`;
+    } else { platSumEl.style.display='none'; }
+  }
+
   for(let d=daysInMonth;d>=1;d--){
     const ds=prefix+String(d).padStart(2,'0');
-    // Skip future dates
     if(ds>today) continue;
     const e=data[ds];
     const isHol=!!SG_HOL[ds];
     if(!e&&!isHol) continue;
     any=true;
     const dow=DAYS[new Date(ds+'T00:00:00').getDay()];
-    const gross=e?.earnings?.total||0, net=e?.estNet||0;
-    const tag=e?.driving===false?
-      (isHol?`<span style="font-size:10px;color:var(--warn)">🎉 ${SG_HOL[ds]}</span>`:`<span style="font-size:10px;color:var(--danger)">🚫 Rest</span>`):
-      `<span style="font-size:10px;color:var(--accent)">🟢 Driving</span>`;
 
-    const platHtml=e?.driving?(['TADA','Grab','Gojek'].filter(p=>(e.earnings?.[p.toLowerCase()]||0)>0)
-      .map(p=>`<span class="ppill ppill-${p}">${p}</span>`).join('')):'';
-
-    // Trip stats from trip log
+    // Read earnings from Trip Log
     const dayTrips=getTrips().filter(t=>t.date===ds);
+    const gross=dayTrips.reduce((a,t)=>a+(t.fare||0),0);
     const tripCount=dayTrips.length;
     const tripKm=dayTrips.reduce((a,t)=>a+(t.distanceKm||0),0);
+
+    // Per-day platform breakdown
+    const dPlat={TADA:{earn:0,trips:0},Grab:{earn:0,trips:0},Gojek:{earn:0,trips:0}};
+    dayTrips.forEach(t=>{ if(dPlat[t.platform]){dPlat[t.platform].earn+=t.fare||0;dPlat[t.platform].trips++;} });
+    const pc2={TADA:'var(--tada)',Grab:'var(--grab)',Gojek:'var(--gojek)'};
+    const platHtml=tripCount>0?Object.entries(dPlat).filter(([,v])=>v.trips>0)
+      .map(([p])=>`<span class="ppill ppill-${p}">${p}</span>`).join(''):'';
+    const platBreakdown=tripCount>0?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:3px">
+      ${Object.entries(dPlat).filter(([,v])=>v.trips>0).map(([p,v])=>
+        `<span style="font-size:11px;font-weight:600;color:${pc2[p]}">${p}: ${v.trips}t · ${fmtMoney(v.earn)}</span>`).join('<span style="color:var(--border)"> | </span>')}
+    </div>`:'';
+    const tag=e?.driving===false&&tripCount===0?
+      (isHol?`<span style="font-size:10px;color:var(--warn)">🎉 ${SG_HOL[ds]}</span>`:`<span style="font-size:10px;color:var(--danger)">🚫 Rest</span>`):
+      `<span style="font-size:10px;color:var(--accent)">🟢 Driving</span>`;
     let sessMins=0;
     if(e && e.sessions && e.sessions.length>0){
       e.sessions.forEach(function(s){
@@ -2142,6 +2186,7 @@ function renderHistList(){
         <div>
           <div style="font-family:'Space Mono',monospace;font-size:12px;font-weight:700">${dow}, ${String(d).padStart(2,'0')} ${MONTHS[m]}</div>
           <div style="margin-top:3px">${tag} ${platHtml}</div>
+          ${platBreakdown}
         </div>
         <div style="text-align:right">
           <div style="font-family:'Space Mono',monospace;font-size:14px;font-weight:700">${fmtMoney(gross)}</div>
@@ -2600,9 +2645,20 @@ function syncDailyEntry(date){
 // ══════════════════════════════════════════════════
 // SETTINGS
 // ══════════════════════════════════════════════════
+function changeSettingsMonth(dir){
+  settingsMonth=new Date(settingsMonth.getFullYear(),settingsMonth.getMonth()+dir,1);
+  initSettings();
+}
+function changeSettingsMonthToday(){
+  settingsMonth=new Date();
+  initSettings();
+}
+
 function initSettings(){
-  const now=new Date(), ym=now.getFullYear()+'_'+(now.getMonth()+1);
-  document.getElementById('set-sub').textContent='Settings for '+MONTHS[now.getMonth()]+' '+now.getFullYear();
+  const now=settingsMonth, ym=now.getFullYear()+'_'+(now.getMonth()+1);
+  const isCurrent=now.getFullYear()===new Date().getFullYear()&&now.getMonth()===new Date().getMonth();
+  const lbl=document.getElementById('set-month-label');
+  if(lbl) lbl.textContent=MONTHS[now.getMonth()]+' '+now.getFullYear()+(isCurrent?' (Current)':'');
   const s=getSettings(ym);
   document.getElementById('s-net').value=s.net;
   document.getElementById('s-days').value=s.days;
@@ -2711,7 +2767,7 @@ function saveApiKeys(){
 }
 
 function saveSettings(){
-  const now=new Date(), ym=now.getFullYear()+'_'+(now.getMonth()+1);
+  const now=settingsMonth, ym=now.getFullYear()+'_'+(now.getMonth()+1);
   putSettings(ym,{
     net:parseFloat(document.getElementById('s-net').value)||7000,
     days:parseInt(document.getElementById('s-days').value)||27,
@@ -3188,11 +3244,18 @@ function renderFuelHistory(){
     <div style="font-size:12px;color:var(--muted);letter-spacing:.08em;margin-bottom:8px">TOP-UP RECORDS</div>
   `;
 
-  list.innerHTML=summaryTable+records.map(r=>`
+  // Group records by month
+  const MN2=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const nowYM2=new Date().toISOString().slice(0,7);
+  const cYear=new Date().getFullYear().toString();
+  const grouped={};
+  records.forEach(r=>{ const ym=r.date.slice(0,7); if(!grouped[ym])grouped[ym]=[]; grouped[ym].push(r); });
+
+  const recordItems=r=>`
     <div class="fuel-record">
       <div class="fuel-record-header">
         <div>
-          <div class="fuel-record-date">${r.date}</div>
+          <div class="fuel-record-date">${(([y,mo,d])=>`${d}/${mo}/${y}`)(r.date.split('-'))}</div>
           <div style="font-size:12px;color:var(--muted);margin-top:2px">${r.brand?r.brand+' · ':''}${r.volume?r.volume.toFixed(1)+'L':''} ${r.pricePerL?'@ $'+r.pricePerL.toFixed(3)+'/L':''} ${r.petrolType?'· '+r.petrolType:''}</div>
         </div>
         <div style="text-align:right">
@@ -3202,17 +3265,67 @@ function renderFuelHistory(){
       </div>
       <div class="fuel-grid">
         ${r.distance?'<div class="fuel-stat"><div class="fuel-stat-label">Distance</div><div class="fuel-stat-val">'+r.distance+' km</div></div>':''}
-        ${r.consumption?'<div class="fuel-stat"><div class="fuel-stat-label">Consumption</div><div class="fuel-stat-val">'+r.consumption+' km/L</div></div>':''}
+        ${r.consumption?`<div class="fuel-stat"><div class="fuel-stat-label">Consumption</div><div class="fuel-stat-val">${(c=>{return c>0&&c<1?(1/c).toFixed(2):parseFloat(c).toFixed(2)})(r.consumption)} km/L</div></div>`:''}
         ${r.discountPct?'<div class="fuel-stat"><div class="fuel-stat-label">Discount</div><div class="fuel-stat-val">'+r.discountPct+'%</div></div>':''}
         ${r.daysSinceLast?'<div class="fuel-stat"><div class="fuel-stat-label">Days Since Last</div><div class="fuel-stat-val">'+r.daysSinceLast+'d</div></div>':''}
       </div>
-      ${r.periodFrom?'<div style="font-size:11px;color:var(--muted);margin-top:6px">Period: '+r.periodFrom+' → '+r.date+'</div>':''}
+      ${r.periodFrom?'<div style="font-size:11px;color:var(--muted);margin-top:6px">Period: '+(([y,mo,d])=>`${d}/${mo}/${y}`)(r.periodFrom.split('-'))+' → '+(([y,mo,d])=>`${d}/${mo}/${y}`)(r.date.split('-'))+'</div>':''}
       <div style="margin-top:8px;display:flex;justify-content:flex-end;gap:12px">
         <button onclick="editFuelRecord(${r.id})" style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;touch-action:manipulation">✎ Edit</button>
         <button onclick="deleteFuelRecord(${r.id})" style="background:none;border:none;color:var(--danger);font-size:12px;cursor:pointer;touch-action:manipulation">✕ Delete</button>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+
+  const groupedHTML=Object.keys(grouped).sort().reverse().map((ym,idx)=>{
+    const [y2,mo2]=ym.split('-');
+    const shortY=y2.slice(2);
+    const mLabel=y2===cYear?MN2[parseInt(mo2)-1]:MN2[parseInt(mo2)-1]+' '+shortY;
+    const isCurr=ym===nowYM2;
+    const grp=grouped[ym];
+    const grpTotal=grp.reduce((a,r)=>a+(r.costAfter||0),0);
+    const isOpen=idx===0;
+    return `<div style="margin-bottom:8px">
+      <div onclick="toggleFuelMonth('${ym}')" style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;touch-action:manipulation">
+        <span style="font-size:13px;font-weight:700;color:${isCurr?'var(--accent)':'var(--text)'}">${mLabel}${isCurr?' ◀':''}</span>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:12px;color:var(--muted)">${grp.length} top-up${grp.length!==1?'s':''} · $${grpTotal.toFixed(2)}</span>
+          <span id="fuel-arrow-${ym}" style="font-size:10px;color:var(--muted)">${isOpen?'▲':'▼'}</span>
+        </div>
+      </div>
+      <div id="fuel-month-${ym}" style="display:${isOpen?'block':'none'}">${grp.map(recordItems).join('')}</div>
+    </div>`;
+  }).join('');
+
+  list.innerHTML=summaryTable+'<div style="font-size:12px;color:var(--muted);letter-spacing:.08em;margin-bottom:8px">TOP-UP RECORDS</div>'+groupedHTML;
+}
+
+function toggleFuelMonth(ym){
+  const el=document.getElementById('fuel-month-'+ym);
+  const arrow=document.getElementById('fuel-arrow-'+ym);
+  if(!el) return;
+  const hidden=el.style.display==='none';
+  el.style.display=hidden?'block':'none';
+  if(arrow) arrow.textContent=hidden?'▲':'▼';
+}
+
+function editFuelRecord(id){
+  const records=getFuelRecords();
+  const r=records.find(x=>x.id===id);
+  if(!r) return;
+  document.getElementById('fuel-date').value=r.date||'';
+  document.getElementById('fuel-price-per-l').value=r.pricePerL||'';
+  document.getElementById('fuel-volume').value=r.volume||'';
+  document.getElementById('fuel-cost-before').value=r.costBefore||'';
+  document.getElementById('fuel-discount').value=r.discount||'';
+  document.getElementById('fuel-cost-after').value=r.costAfter||'';
+  document.getElementById('fuel-distance').value=r.distance||'';
+  const fb=document.getElementById('fuel-brand'); if(fb) fb.value=r.brand||'';
+  const fpt=document.getElementById('fuel-petrol-type'); if(fpt) fpt.value=r.petrolType||'';
+  saveFuelRecords(records.filter(x=>x.id!==id));
+  renderFuelHistory();
+  calcFuelFields();
+  document.getElementById('screen-petrol').scrollTop=0;
+  toast('Record loaded for editing — make changes and save');
 }
 
 function deleteFuelRecord(id){
