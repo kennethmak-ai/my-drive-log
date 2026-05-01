@@ -221,14 +221,14 @@ textarea.inp{resize:none;height:80px}
 
 /* ── TODAY BANNER ────────────────────────────────── */
 .today-banner{
-  display:grid;grid-template-columns:1fr 1fr 1fr;
+  display:grid;grid-template-columns:repeat(4,1fr);
   background:var(--card);border:1px solid var(--border);border-radius:var(--r);
   margin:10px 12px 0;overflow:hidden
 }
-.tb-cell{padding:12px 10px;text-align:center}
+.tb-cell{padding:10px 6px 10px;text-align:center;display:flex;flex-direction:column;justify-content:space-between;align-items:center}
 .tb-cell:not(:last-child){border-right:1px solid var(--border)}
-.tb-label{font-size:9px;font-weight:600;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px}
-.tb-val{font-family:'Space Mono',monospace;font-size:15px;font-weight:700;color:var(--text)}
+.tb-label{font-size:8px;font-weight:600;color:var(--muted);letter-spacing:.6px;text-transform:uppercase;min-height:24px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.3}
+.tb-val{font-family:'Space Mono',monospace;font-size:14px;font-weight:700;color:var(--text);margin-top:4px}
 
 /* ── MONTH NAV ───────────────────────────────────── */
 .mnav{
@@ -607,23 +607,23 @@ body.light-mode .fuel-stat{background:var(--card)}
     <button class="mnav-btn" onclick="changeMonth(1)">›</button>
   </div>
 
-  <!-- Key metrics banner -->
-  <div class="today-banner" style="grid-template-columns:repeat(4,1fr)">
+  <!-- Summary banner — 4 key monthly metrics -->
+  <div class="today-banner">
     <div class="tb-cell">
       <div class="tb-label">Gross So Far</div>
-      <div class="tb-val" id="tb-gross">$0.00</div>
+      <div class="tb-val" id="tb-gross">$0</div>
     </div>
     <div class="tb-cell">
       <div class="tb-label">Est. Net So Far</div>
-      <div class="tb-val" id="tb-net">$0.00</div>
+      <div class="tb-val" id="tb-net">$0</div>
     </div>
     <div class="tb-cell">
-      <div class="tb-label">Rem. Gross</div>
-      <div class="tb-val" id="tb-rem-gross">$0.00</div>
+      <div class="tb-label">Rem. Gross Needed</div>
+      <div class="tb-val" id="tb-rem-gross">$0</div>
     </div>
     <div class="tb-cell">
-      <div class="tb-label">Bal. Gross/Day</div>
-      <div class="tb-val" id="tb-dist">$0.00</div>
+      <div class="tb-label">Bal. Gross / Day</div>
+      <div class="tb-val" id="tb-dist">$0</div>
     </div>
   </div>
 
@@ -645,14 +645,10 @@ body.light-mode .fuel-stat{background:var(--card)}
     <div class="kpi-row" style="margin:0"><span class="kpi-lbl" style="font-size:12px">K10 &middot; Planned Days</span><span class="kpi-val" id="k10">0</span></div>
     <div class="kpi-row" style="margin:0"><span class="kpi-lbl" style="font-size:12px">K11 &middot; Remaining</span><span class="kpi-val" id="k11">0</span></div>
   </div>
-
-  <!-- K12 Petrol Budget -->
-  <div class="kpi-row" id="k12-row" style="margin-top:6px"><span class="kpi-lbl">K12 &middot; Petrol Budget Variance</span><span class="kpi-val" id="k12">$0</span></div>
-
-  <!-- Platform breakdown -->
-  <div style="margin:10px 12px 0;background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
-    <div style="padding:8px 12px;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.06em;border-bottom:1px solid var(--border)">PLATFORM BREAKDOWN — THIS MONTH</div>
-    <div id="sum-plat-breakdown" style="padding:8px 12px"></div>
+  <!-- K12 Petrol Budget Variance -->
+  <div class="kpi-row" id="k12-row" style="margin-top:6px">
+    <span class="kpi-lbl">K12 &middot; Petrol Budget Variance<br><span style="font-size:10px;color:var(--muted);font-weight:400">+ve = planned &gt; actual (under budget)</span></span>
+    <span class="kpi-val" id="k12">$0</span>
   </div>
   <div style="height:100vh"></div>
 </div>
@@ -875,14 +871,7 @@ body.light-mode .fuel-stat{background:var(--card)}
      SCREEN 5 — SETTINGS
 ══════════════════════════════════════════════════ -->
 <div class="screen" id="screen-settings">
-  <div class="ph"><div class="ph-title">Settings</div></div>
-  <!-- Month navigation for Settings -->
-  <div class="mnav">
-    <button class="mnav-btn" onclick="changeSettingsMonth(-1)">‹</button>
-    <span class="mnav-title" id="set-month-label"></span>
-    <button class="mnav-btn" onclick="changeSettingsMonth(1)">›</button>
-    <button onclick="changeSettingsMonthToday()" style="font-size:11px;font-weight:700;color:var(--accent);background:none;border:none;cursor:pointer;padding:4px 8px;touch-action:manipulation">This Month</button>
-  </div>
+  <div class="ph"><div class="ph-title">Settings</div><div class="ph-sub" id="set-sub"></div></div>
 
   <div class="set-section-title">Monthly Targets</div>
   <div class="set-row">
@@ -1267,7 +1256,7 @@ const SG_HOL = {
 };
 
 // ── STATE ─────────────────────────────────────────
-let isDriving = true, sessCount = 1, sumMonth = new Date(), settingsMonth = new Date();
+let isDriving = true, sessCount = 1, sumMonth = new Date();
 let _isLoading = false;
 let histMonth = {y:new Date().getFullYear(), m:new Date().getMonth()};
 let activeTrip = null, timerInt = null, tripPlatform = 'TADA', tripMode = 'Manual';
@@ -2051,11 +2040,12 @@ function renderSummary(){
   const k5=k3-k4-totalOtherSoFar, k6=Math.max(0,k2-k3), k7=Math.max(0,k1-k5);
   const k8=k2/Math.max(1,s.days), k9=k6/Math.max(1,rem);
 
-  // Banner — 4 key metrics
-  document.getElementById('tb-gross').textContent=fmtMoney(k3);
-  document.getElementById('tb-net').textContent=fmtMoney(k5);
-  document.getElementById('tb-rem-gross').textContent=fmtMoney(k6);
-  document.getElementById('tb-dist').textContent=fmtMoney(k9);
+  // Banner — 4 metrics, whole dollars only
+  const fmInt=v=>'$'+Math.round(v);
+  document.getElementById('tb-gross').textContent=fmInt(k3);
+  document.getElementById('tb-net').textContent=fmInt(k5);
+  document.getElementById('tb-rem-gross').textContent=fmInt(k6);
+  document.getElementById('tb-dist').textContent=fmInt(k9);
 
   const fm=v=>fmtMoney(v);
   document.getElementById('k1').textContent=fm(k1);
@@ -2070,35 +2060,14 @@ function renderSummary(){
   document.getElementById('k10').textContent=s.days;
   document.getElementById('k11').textContent=rem;
 
-  // K12 — Petrol Budget Variance (planned - actual)
-  const plannedPetrol=s.days*s.petrol;
-  const k12=plannedPetrol-k4;
+  // K12 — Petrol Budget Variance
+  const k12=(s.days*s.petrol)-k4;
   const k12El=document.getElementById('k12');
   const k12Row=document.getElementById('k12-row');
   if(k12El){
-    k12El.textContent=(k12>=0?'+':'')+fmtMoney(k12);
+    k12El.textContent=(k12>=0?'+':'')+fm(k12);
     k12El.style.color=k12<0?'var(--danger)':'var(--accent)';
     k12El.style.fontWeight=k12<0?'700':'400';
-    if(k12Row) k12Row.style.color=k12<0?'var(--danger)':'';
-  }
-
-  // Platform breakdown
-  const platEl=document.getElementById('sum-plat-breakdown');
-  if(platEl){
-    const pd={TADA:{earn:0,trips:0},Gojek:{earn:0,trips:0},Grab:{earn:0,trips:0}};
-    monthTrips.forEach(t=>{ if(pd[t.platform]){pd[t.platform].earn+=t.fare||0;pd[t.platform].trips++;} });
-    const platColors={TADA:'var(--tada)',Gojek:'var(--gojek)',Grab:'var(--grab)'};
-    platEl.innerHTML=Object.entries(pd).map(([p,v])=>`
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border)">
-        <span style="font-size:13px;font-weight:600;color:${platColors[p]}">${p}</span>
-        <span style="font-size:12px;color:var(--muted)">${v.trips} trip${v.trips!==1?'s':''}</span>
-        <span style="font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--text)">${fmtMoney(v.earn)}</span>
-      </div>`).join('')+`
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0">
-        <span style="font-size:13px;font-weight:700;color:var(--text)">Total</span>
-        <span style="font-size:12px;color:var(--muted)">${monthTrips.length} trips</span>
-        <span style="font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--accent)">${fmtMoney(k3)}</span>
-      </div>`;
   }
 }
 
@@ -2148,27 +2117,18 @@ function renderHistList(){
     if(!e&&!isHol) continue;
     any=true;
     const dow=DAYS[new Date(ds+'T00:00:00').getDay()];
-    const dayTrips=getTrips().filter(t=>t.date===ds);
-    const gross=dayTrips.reduce((a,t)=>a+(t.fare||0),0);
-    const dayFuel=getFuelRecords().filter(r=>r.date===ds);
-    const petrol=dayFuel.reduce((a,r)=>a+(r.costAfter||0),0);
-    const net=gross-petrol;
-    const tripCount=dayTrips.length;
-    const tripKm=dayTrips.reduce((a,t)=>a+(t.distanceKm||0),0);
-    const tag=e?.driving===false&&tripCount===0?
+    const gross=e?.earnings?.total||0, net=e?.estNet||0;
+    const tag=e?.driving===false?
       (isHol?`<span style="font-size:10px;color:var(--warn)">🎉 ${SG_HOL[ds]}</span>`:`<span style="font-size:10px;color:var(--danger)">🚫 Rest</span>`):
       `<span style="font-size:10px;color:var(--accent)">🟢 Driving</span>`;
 
-    // Platform breakdown from Trip Log
-    const platTotals={TADA:{earn:0,trips:0},Grab:{earn:0,trips:0},Gojek:{earn:0,trips:0}};
-    dayTrips.forEach(t=>{ if(platTotals[t.platform]){platTotals[t.platform].earn+=t.fare||0;platTotals[t.platform].trips++;} });
-    const platColors={TADA:'var(--tada)',Grab:'var(--grab)',Gojek:'var(--gojek)'};
-    const platHtml=tripCount>0?Object.entries(platTotals).filter(([,v])=>v.trips>0).map(([p,v])=>
-      `<span class="ppill ppill-${p}">${p}</span>`).join(''):'';
-    const platBreakdown=tripCount>0?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
-      ${Object.entries(platTotals).filter(([,v])=>v.trips>0).map(([p,v])=>
-        `<span style="font-size:11px;color:${platColors[p]};font-weight:600">${p}: ${v.trips}t · $${v.earn.toFixed(2)}</span>`).join('<span style="color:var(--border)"> | </span>')}
-    </div>`:'';
+    const platHtml=e?.driving?(['TADA','Grab','Gojek'].filter(p=>(e.earnings?.[p.toLowerCase()]||0)>0)
+      .map(p=>`<span class="ppill ppill-${p}">${p}</span>`).join('')):'';
+
+    // Trip stats from trip log
+    const dayTrips=getTrips().filter(t=>t.date===ds);
+    const tripCount=dayTrips.length;
+    const tripKm=dayTrips.reduce((a,t)=>a+(t.distanceKm||0),0);
     let sessMins=0;
     if(e && e.sessions && e.sessions.length>0){
       e.sessions.forEach(function(s){
@@ -2187,7 +2147,6 @@ function renderHistList(){
         <div>
           <div style="font-family:'Space Mono',monospace;font-size:12px;font-weight:700">${dow}, ${String(d).padStart(2,'0')} ${MONTHS[m]}</div>
           <div style="margin-top:3px">${tag} ${platHtml}</div>
-          ${platBreakdown}
         </div>
         <div style="text-align:right">
           <div style="font-family:'Space Mono',monospace;font-size:14px;font-weight:700">${fmtMoney(gross)}</div>
@@ -2646,21 +2605,9 @@ function syncDailyEntry(date){
 // ══════════════════════════════════════════════════
 // SETTINGS
 // ══════════════════════════════════════════════════
-function changeSettingsMonth(dir){
-  settingsMonth=new Date(settingsMonth.getFullYear(),settingsMonth.getMonth()+dir,1);
-  initSettings();
-}
-function changeSettingsMonthToday(){
-  settingsMonth=new Date();
-  initSettings();
-}
-
 function initSettings(){
-  const now=settingsMonth, ym=now.getFullYear()+'_'+(now.getMonth()+1);
-  const isCurrentMonth=now.getFullYear()===new Date().getFullYear()&&now.getMonth()===new Date().getMonth();
-  const monthLabel=MONTHS[now.getMonth()]+' '+now.getFullYear()+(isCurrentMonth?' (Current)':'');
-  const labelEl=document.getElementById('set-month-label');
-  if(labelEl) labelEl.textContent=monthLabel;
+  const now=new Date(), ym=now.getFullYear()+'_'+(now.getMonth()+1);
+  document.getElementById('set-sub').textContent='Settings for '+MONTHS[now.getMonth()]+' '+now.getFullYear();
   const s=getSettings(ym);
   document.getElementById('s-net').value=s.net;
   document.getElementById('s-days').value=s.days;
@@ -2769,7 +2716,7 @@ function saveApiKeys(){
 }
 
 function saveSettings(){
-  const now=settingsMonth, ym=now.getFullYear()+'_'+(now.getMonth()+1);
+  const now=new Date(), ym=now.getFullYear()+'_'+(now.getMonth()+1);
   putSettings(ym,{
     net:parseFloat(document.getElementById('s-net').value)||7000,
     days:parseInt(document.getElementById('s-days').value)||27,
@@ -2802,20 +2749,16 @@ function clearMonth(){
   const{y,m}=histMonth;
   const label=MONTHS[m]+' '+y;
   const prefix=y+'-'+String(m+1).padStart(2,'0')+'-';
-  // Clear entry data
   const data=getData();
   Object.keys(data).filter(k=>k.startsWith(prefix)).forEach(k=>delete data[k]);
-  saveData(data);
-  // Clear trips
   const trips=getTrips().filter(t=>!t.date.startsWith(prefix));
   saveTrips(trips);
-  // Clear fuel records
-  const fuels=getFuelRecords().filter(r=>!r.date.startsWith(prefix));
-  saveFuelRecords(fuels);
-  toast(label+' data cleared ✓');
+  saveData(data);
+  toast(label+' data cleared');
   resetClearBtn();
+  // Refresh all screens so deleted data is gone everywhere immediately
   renderHistory();
-  renderFuelHistory();
+  refreshEntryEarnings();
   renderTrips();
   renderSummary();
 }
@@ -3172,21 +3115,6 @@ function syncFuelToEntry(date, costAfter){
   }
 }
 
-function fmtFuelDate(iso){
-  if(!iso) return '';
-  const[y,m,d]=iso.split('-');
-  return `${d}/${m}/${y}`;
-}
-
-function toggleFuelMonth(ym){
-  const el=document.getElementById('fuel-month-'+ym);
-  const arrow=document.getElementById('fuel-arrow-'+ym);
-  if(!el) return;
-  const hidden=el.style.display==='none';
-  el.style.display=hidden?'block':'none';
-  if(arrow) arrow.textContent=hidden?'▲':'▼';
-}
-
 function renderFuelHistory(){
   const list=document.getElementById('fuel-history-list');
   if(!list) return;
@@ -3262,90 +3190,34 @@ function renderFuelHistory(){
         </tfoot>
       </table>
     </div>
+    <div style="font-size:12px;color:var(--muted);letter-spacing:.08em;margin-bottom:8px">TOP-UP RECORDS</div>
   `;
 
-  // Group records by month for expandable sections
-  const grouped={};
-  records.forEach(r=>{
-    const ym=r.date.slice(0,7);
-    if(!grouped[ym]) grouped[ym]=[];
-    grouped[ym].push(r);
-  });
-
-  const recordsHTML=Object.keys(grouped).sort().reverse().map((ym,idx)=>{
-    const [y,m]=ym.split('-');
-    const shortY=y.slice(2);
-    const mLabel=y===currentYear?MN[parseInt(m)-1]:MN[parseInt(m)-1]+' '+shortY;
-    const isCurrentMonth=ym===nowYM;
-    const isOpen=idx===0; // only current/latest month open by default
-    const grp=grouped[ym];
-    const grpTotal=grp.reduce((a,r)=>a+(r.costAfter||0),0);
-
-    const recordItems=grp.map(r=>`
-      <div class="fuel-record">
-        <div class="fuel-record-header">
-          <div>
-            <div class="fuel-record-date">${fmtFuelDate(r.date)}</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:2px">${r.brand?r.brand+' · ':''}${r.volume?r.volume.toFixed(1)+'L':''} ${r.pricePerL?'@ $'+r.pricePerL.toFixed(3)+'/L':''} ${r.petrolType?'· '+r.petrolType:''}</div>
-          </div>
-          <div style="text-align:right">
-            <div class="fuel-record-cost">$${r.costAfter.toFixed(2)}</div>
-            ${r.discount>0?'<div style="font-size:12px;color:var(--muted)">saved $'+r.discount.toFixed(2)+'</div>':''}
-          </div>
+  list.innerHTML=summaryTable+records.map(r=>`
+    <div class="fuel-record">
+      <div class="fuel-record-header">
+        <div>
+          <div class="fuel-record-date">${r.date}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">${r.brand?r.brand+' · ':''}${r.volume?r.volume.toFixed(1)+'L':''} ${r.pricePerL?'@ $'+r.pricePerL.toFixed(3)+'/L':''} ${r.petrolType?'· '+r.petrolType:''}</div>
         </div>
-        <div class="fuel-grid">
-          ${r.distance?'<div class="fuel-stat"><div class="fuel-stat-label">Distance</div><div class="fuel-stat-val">'+r.distance+' km</div></div>':''}
-          ${r.consumption?'<div class="fuel-stat"><div class="fuel-stat-label">Consumption</div><div class="fuel-stat-val">'+r.consumption+' km/L</div></div>':''}
-          ${r.discountPct?'<div class="fuel-stat"><div class="fuel-stat-label">Discount</div><div class="fuel-stat-val">'+r.discountPct+'%</div></div>':''}
-          ${r.daysSinceLast?'<div class="fuel-stat"><div class="fuel-stat-label">Days Since Last</div><div class="fuel-stat-val">'+r.daysSinceLast+'d</div></div>':''}
-        </div>
-        ${r.periodFrom?'<div style="font-size:11px;color:var(--muted);margin-top:6px">Period: '+fmtFuelDate(r.periodFrom)+' → '+fmtFuelDate(r.date)+'</div>':''}
-        <div style="margin-top:8px;display:flex;justify-content:flex-end;gap:12px">
-          <button onclick="editFuelRecord(${r.id})" style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;touch-action:manipulation">✎ Edit</button>
-          <button onclick="deleteFuelRecord(${r.id})" style="background:none;border:none;color:var(--danger);font-size:12px;cursor:pointer;touch-action:manipulation">✕ Delete</button>
+        <div style="text-align:right">
+          <div class="fuel-record-cost">$${r.costAfter.toFixed(2)}</div>
+          ${r.discount>0?'<div style="font-size:12px;color:var(--muted)">saved $'+r.discount.toFixed(2)+'</div>':''}
         </div>
       </div>
-    `).join('');
-
-    return `
-      <div style="margin-bottom:8px">
-        <div onclick="toggleFuelMonth('${ym}')" style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;touch-action:manipulation">
-          <span style="font-size:13px;font-weight:700;color:${isCurrentMonth?'var(--accent)':'var(--text)'}">${mLabel}${isCurrentMonth?' ◀':''}</span>
-          <div style="display:flex;align-items:center;gap:10px">
-            <span style="font-size:12px;color:var(--muted)">${grp.length} top-up${grp.length!==1?'s':''} · $${grpTotal.toFixed(2)}</span>
-            <span id="fuel-arrow-${ym}" style="font-size:10px;color:var(--muted)">${isOpen?'▲':'▼'}</span>
-          </div>
-        </div>
-        <div id="fuel-month-${ym}" style="display:${isOpen?'block':'none'}">
-          ${recordItems}
-        </div>
+      <div class="fuel-grid">
+        ${r.distance?'<div class="fuel-stat"><div class="fuel-stat-label">Distance</div><div class="fuel-stat-val">'+r.distance+' km</div></div>':''}
+        ${r.consumption?`<div class="fuel-stat"><div class="fuel-stat-label">Consumption</div><div class="fuel-stat-val">${(()=>{const c=parseFloat(r.consumption);return c>0&&c<1?(1/c).toFixed(2):c.toFixed(2)})()+'  km/L'}</div></div>`:''}
+        ${r.discountPct?'<div class="fuel-stat"><div class="fuel-stat-label">Discount</div><div class="fuel-stat-val">'+r.discountPct+'%</div></div>':''}
+        ${r.daysSinceLast?'<div class="fuel-stat"><div class="fuel-stat-label">Days Since Last</div><div class="fuel-stat-val">'+r.daysSinceLast+'d</div></div>':''}
       </div>
-    `;
-  }).join('');
-
-  list.innerHTML=summaryTable+'<div style="font-size:12px;color:var(--muted);letter-spacing:.08em;margin-bottom:8px">TOP-UP RECORDS</div>'+recordsHTML;
-}
-
-
-function editFuelRecord(id){
-  const records=getFuelRecords();
-  const r=records.find(x=>x.id===id);
-  if(!r) return;
-  document.getElementById('fuel-date').value=r.date||'';
-  document.getElementById('fuel-price-per-l').value=r.pricePerL||'';
-  document.getElementById('fuel-volume').value=r.volume||'';
-  document.getElementById('fuel-cost-before').value=r.costBefore||'';
-  document.getElementById('fuel-discount').value=r.discount||'';
-  document.getElementById('fuel-cost-after').value=r.costAfter||'';
-  document.getElementById('fuel-distance').value=r.distance||'';
-  const fb=document.getElementById('fuel-brand'); if(fb) fb.value=r.brand||'';
-  const fpt=document.getElementById('fuel-petrol-type'); if(fpt) fpt.value=r.petrolType||'';
-  // Remove old record so saving creates a fresh corrected one
-  saveFuelRecords(records.filter(x=>x.id!==id));
-  renderFuelHistory();
-  calcFuelFields();
-  document.getElementById('screen-petrol').scrollTop=0;
-  toast('Record loaded for editing — make changes and save');
+      ${r.periodFrom?'<div style="font-size:11px;color:var(--muted);margin-top:6px">Period: '+r.periodFrom+' → '+r.date+'</div>':''}
+      <div style="margin-top:8px;display:flex;justify-content:flex-end;gap:12px">
+        <button onclick="editFuelRecord(${r.id})" style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;touch-action:manipulation">✎ Edit</button>
+        <button onclick="deleteFuelRecord(${r.id})" style="background:none;border:none;color:var(--danger);font-size:12px;cursor:pointer;touch-action:manipulation">✕ Delete</button>
+      </div>
+    </div>
+  `).join('');
 }
 
 function deleteFuelRecord(id){
