@@ -934,7 +934,7 @@ body.light-mode .fuel-stat{background:var(--card)}
     <input type="text" class="set-inp" id="s-maps-key" placeholder="Paste key here" oninput="saveApiKeys()" style="font-size:11px;width:160px">
   </div>
   <div class="set-row">
-    <div><div class="set-label">Gemini API Key</div><div class="set-sub">Required for petrol receipt scanning</div></div>
+    <div><div class="set-label">OpenAI API Key</div><div class="set-sub">Required for petrol receipt scanning</div></div>
     <input type="text" class="set-inp" id="s-gemini-key" placeholder="Paste key here" oninput="saveApiKeys()" style="font-size:11px;width:160px">
   </div>
   <div style="padding:0 12px;font-size:11px;color:var(--muted);margin-top:-4px">Keys are saved on this device only and never uploaded anywhere.</div>
@@ -3015,10 +3015,9 @@ function calcFuelFields(){
 async function extractFuelReceipt(input){
   const file=input.files[0]; if(!file) return;
 
-  // Check key is set — read fresh from localStorage each time
-  const GEMINI_API_KEY = localStorage.getItem('mdl_gemini_api_key') || '';
-  if(!GEMINI_API_KEY){
-    toast('Gemini API key not set — please go to Settings and paste your key');
+  const OPENAI_API_KEY = localStorage.getItem('mdl_gemini_api_key') || '';
+  if(!OPENAI_API_KEY){
+    toast('OpenAI API key not set — please go to Settings and paste your key');
     input.value=''; return;
   }
 
@@ -3036,39 +3035,48 @@ async function extractFuelReceipt(input){
     const prompt=`You are reading a petrol/fuel receipt from Singapore. Extract the following fields and return ONLY a JSON object with no markdown, no explanation:
 {
   "date": "YYYY-MM-DD or empty string if not found",
+  "brand": "petrol station brand e.g. Esso, Shell, Caltex, SPC, Sinopec or empty string if not found",
+  "petrolType": "RON 92, RON 95, or RON 98 or empty string if not found",
   "pricePerLitre": number or null,
   "volumeLitres": number or null,
   "costBeforeDiscount": number or null,
   "fuelDiscount": number or null,
   "actualCostAfterDiscount": number or null
 }
-If a field is not visible or unclear, use null. For date, convert any format to YYYY-MM-DD.`;
+IMPORTANT: Singapore receipts print dates as DD/MM/YY — e.g. 21/03/26 means 2026-03-21. Always convert to YYYY-MM-DD.
+If a field is unclear use null for numbers or empty string for text.`;
 
-    const resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='+GEMINI_API_KEY,{
+    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':'Bearer '+OPENAI_API_KEY
+      },
       body:JSON.stringify({
-        contents:[{parts:[
-          {inline_data:{mime_type:file.type,data:base64}},
-          {text:prompt}
-        ]}]
+        model:'gpt-4o',
+        max_tokens:500,
+        messages:[{
+          role:'user',
+          content:[
+            {type:'image_url',image_url:{url:'data:'+file.type+';base64,'+base64,detail:'high'}},
+            {type:'text',text:prompt}
+          ]
+        }]
       })
     });
 
     const data=await resp.json();
 
-    // Check for API-level errors
     if(data.error){
-      toast('Gemini error: '+data.error.message);
-      console.error('Gemini API error:',data.error);
+      toast('OpenAI error: '+data.error.message);
       document.getElementById('fuel-extracting').style.display='none';
       document.getElementById('fuel-form').style.display='block';
       input.value=''; return;
     }
 
-    const raw=data?.candidates?.[0]?.content?.parts?.[0]?.text||'';
+    const raw=data?.choices?.[0]?.message?.content||'';
     if(!raw){
-      toast('Gemini returned empty response — try again');
+      toast('OpenAI returned empty response — try again');
       document.getElementById('fuel-extracting').style.display='none';
       document.getElementById('fuel-form').style.display='block';
       input.value=''; return;
@@ -3077,8 +3085,9 @@ If a field is not visible or unclear, use null. For date, convert any format to 
     const clean=raw.replace(/```json|```/g,'').trim();
     const extracted=JSON.parse(clean);
 
-    // Populate form fields
     if(extracted.date) document.getElementById('fuel-date').value=extracted.date;
+    if(extracted.brand){ const fb=document.getElementById('fuel-brand'); if(fb) fb.value=extracted.brand; }
+    if(extracted.petrolType){ const fpt=document.getElementById('fuel-petrol-type'); if(fpt) fpt.value=extracted.petrolType; }
     if(extracted.pricePerLitre!=null) document.getElementById('fuel-price-per-l').value=extracted.pricePerLitre.toFixed(3);
     if(extracted.volumeLitres!=null) document.getElementById('fuel-volume').value=extracted.volumeLitres.toFixed(2);
     if(extracted.costBeforeDiscount!=null) document.getElementById('fuel-cost-before').value=extracted.costBeforeDiscount.toFixed(2);
