@@ -849,9 +849,12 @@ body.light-mode .fuel-stat{background:var(--card)}
           </div>
         </div>
 
-        <button class="btn btn-green" onclick="saveFuelRecord()" style="margin-top:4px">
+        <button class="btn btn-green" id="fuel-save-btn" onclick="saveFuelRecord()" style="margin-top:4px">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
-          Save Top-Up Record
+          <span id="fuel-save-label">Save Top-Up Record</span>
+        </button>
+        <button class="btn btn-gray" id="fuel-cancel-edit-btn" onclick="cancelFuelEdit()" style="margin-top:8px;display:none">
+          Cancel Edit — Keep Original
         </button>
       </div>
     </div>
@@ -941,7 +944,7 @@ body.light-mode .fuel-stat{background:var(--card)}
 
   <div class="set-section-title" style="margin-top:18px">App Info</div>
   <div class="card" style="margin-top:0">
-    <div class="ai-row"><span class="ai-key">Version</span><span class="ai-val">v3.0.5</span></div>
+    <div class="ai-row"><span class="ai-key">Version</span><span class="ai-val">v3.0.6</span></div>
     <div class="ai-row"><span class="ai-key">Storage</span><span class="ai-val">Local (phone)</span></div>
     <div class="ai-row"><span class="ai-key">Daily Entries</span><span class="ai-val" id="s-entries">0</span></div>
     <div class="ai-row"><span class="ai-key">Trips Recorded</span><span class="ai-val" id="s-trips">0</span></div>
@@ -953,7 +956,14 @@ body.light-mode .fuel-stat{background:var(--card)}
       ⬇ Backup + Export Excel
     </button>
     <div style="font-size:11px;color:var(--muted);padding:0 4px">
-      Downloads two files: a JSON backup (for restoring your data) and an Excel file with all your entries and trips for analysis.
+      Downloads two files: a full backup (entries, trips, petrol records and monthly settings) and an Excel file with your entries and trips for analysis. API keys are not included in the backup.
+    </div>
+    <button class="btn btn-gray" onclick="document.getElementById('restore-input').click()" id="restore-btn" style="margin-top:6px">
+      ⬆ Restore from Backup
+    </button>
+    <input type="file" id="restore-input" accept=".json,application/json" style="display:none" onchange="restoreBackup(this)">
+    <div style="font-size:11px;color:var(--muted);padding:0 4px">
+      Loads a backup file back into the app. A safety copy of your current data is downloaded first, so nothing is lost.
     </div>
   </div>
   <div style="height:20px"></div>
@@ -1251,13 +1261,6 @@ const GEMINI_API_KEY = localStorage.getItem('mdl_gemini_api_key') || '';
 // ── CONSTANTS ─────────────────────────────────────
 const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-const SG_HOL = {
-  '2026-01-01':"New Year's Day",'2026-01-29':'Chinese New Year',
-  '2026-01-30':'Chinese New Year (Day 2)','2026-04-03':'Good Friday',
-  '2026-05-01':'Labour Day','2026-05-13':'Vesak Day',
-  '2026-06-02':'Hari Raya Haji','2026-08-09':'National Day',
-  '2026-10-20':'Deepavali','2026-12-25':'Christmas Day'
-};
 
 // ── STATE ─────────────────────────────────────────
 let isDriving = true, sessCount = 1, sumMonth = new Date(), settingsMonth = new Date();
@@ -1907,14 +1910,12 @@ function autoSaveEntry(){
   const data=getData();
   const d=new Date(date+'T00:00:00');
   const dow=DAYS[d.getDay()];
-  const isHol=!!SG_HOL[date];
 
   if(!isDriving){
     // Save rest day state
     const existing=data[date]||{};
     data[date]={...existing, date, dayOfWeek:dow, driving:false,
-      notes:document.getElementById('e-rest-notes')?.value||'',
-      isHoliday:isHol, holidayName:SG_HOL[date]||''};
+      notes:document.getElementById('e-rest-notes')?.value||''};
     saveData(data);
     return;
   }
@@ -1951,8 +1952,7 @@ function autoSaveEntry(){
   data[date]={...existing, date, dayOfWeek:dow, driving:true, sessions, earnings,
     petrol, distance:parseFloat(distance.toFixed(1)),
     estNet:earnings.total-petrol,
-    notes:document.getElementById('e-notes')?.value||'',
-    isHoliday:isHol, holidayName:SG_HOL[date]||''};
+    notes:document.getElementById('e-notes')?.value||''};
   saveData(data);
 }
 
@@ -1962,10 +1962,9 @@ function saveEntry(){
   const data=getData();
   const d=new Date(date+'T00:00:00');
   const dow=DAYS[d.getDay()];
-  const isHol=!!SG_HOL[date];
 
   if(!isDriving){
-    data[date]={date,dayOfWeek:dow,driving:false,notes:document.getElementById('e-rest-notes').value,isHoliday:isHol,holidayName:SG_HOL[date]||''};
+    data[date]={date,dayOfWeek:dow,driving:false,notes:document.getElementById('e-rest-notes').value};
     saveData(data); toast('Rest day saved ✓');
     return;
   }
@@ -2007,8 +2006,7 @@ function saveEntry(){
     date,dayOfWeek:dow,driving:true,sessions,earnings,
     petrol,distance:parseFloat(distance.toFixed(1)),
     estNet:earnings.total-petrol,
-    notes:document.getElementById('e-notes').value,
-    isHoliday:isHol,holidayName:SG_HOL[date]||''
+    notes:document.getElementById('e-notes').value
   };
   saveData(data); toast('Entry saved ✓');
   // Clear persisted session times — now saved in entry
@@ -2144,8 +2142,7 @@ function renderHistList(){
     const ds=prefix+String(d).padStart(2,'0');
     if(ds>today) continue;
     const e=data[ds];
-    const isHol=!!SG_HOL[ds];
-    if(!e&&!isHol) continue;
+    if(!e) continue;
     any=true;
     const dow=DAYS[new Date(ds+'T00:00:00').getDay()];
 
@@ -2166,7 +2163,7 @@ function renderHistList(){
         `<span style="font-size:11px;font-weight:600;color:${pc2[p]}">${p}: ${v.trips}t · ${fmtMoney(v.earn)}</span>`).join('<span style="color:var(--border)"> | </span>')}
     </div>`:'';
     const tag=e?.driving===false&&tripCount===0?
-      (isHol?`<span style="font-size:10px;color:var(--warn)">🎉 ${SG_HOL[ds]}</span>`:`<span style="font-size:10px;color:var(--danger)">🚫 Rest</span>`):
+      `<span style="font-size:10px;color:var(--danger)">🚫 Rest</span>`:
       `<span style="font-size:10px;color:var(--accent)">🟢 Driving</span>`;
     let sessMins=0;
     if(e && e.sessions && e.sessions.length>0){
@@ -2264,14 +2261,15 @@ function renderTrips(){
       `<span class="ppill ppill-${activeTrip.platform}">${activeTrip.platform}</span>
        <span style="font-size:11px;color:var(--muted);margin-left:8px">${activeTrip.mode}</span>`;
   } else {
-    btn.disabled=false; ac.style.display='none';
+    ac.style.display='none';
   }
-  // Disable start on past dates
-  if(viewDate!==today){ btn.disabled=true; btn.style.opacity='0.4'; }
-  else { btn.style.opacity='1'; }
+  // Start is only allowed on today's date AND when no trip is in progress
+  const isPastDate=viewDate!==today;
+  btn.disabled=!!activeTrip||isPastDate;
+  btn.style.opacity=btn.disabled?'0.4':'1';
 
   // Only show active-trip card when viewing today
-  if(viewDate!==today){ btn.disabled=false; ac.style.display='none'; }
+  if(isPastDate){ ac.style.display='none'; }
 
   const ts=document.getElementById('trip-summary');
   if(trips.length>0){
@@ -2470,6 +2468,8 @@ function resetStartSheet(){
 }
 
 function openStartSheet(){
+  if(activeTrip){ toast('A trip is already in progress — end or cancel it first',3000); return; }
+  if(tripViewDate&&tripViewDate!==fmtDate(new Date())){ toast('Switch to Today to start a trip',3000); return; }
   document.getElementById('start-gps').style.display='none';
   tripStops = 1;
   document.querySelectorAll('#stops-tog .tog').forEach((b,i)=>b.classList.toggle('on', i===0));
@@ -2487,6 +2487,7 @@ function openStartSheet(){
 
 async function captureAndStart(){
   const btn=document.getElementById('capture-btn');
+  if(activeTrip){ toast('A trip is already in progress — end or cancel it first',3000); closeOverlay('start-overlay'); return; }
   btn.disabled=true; btn.textContent='Getting GPS...';
   const gps=document.getElementById('start-gps');
   gps.style.display='block';
@@ -2524,6 +2525,8 @@ async function captureAndStart(){
     stops: tripStops,
     pickup:{lat,lng,...loc}
   };
+  // Save straight away so the trip survives the app closing unexpectedly
+  try{ localStorage.setItem('mdl_active',JSON.stringify(activeTrip)); }catch(e){}
   startTimer();
   btn.disabled=false; btn.textContent='Capture Pickup & Start Trip';
   setTimeout(()=>{ closeOverlay('start-overlay'); renderTrips(); toast('Trip started! 🚗'); },700);
@@ -2630,7 +2633,7 @@ function saveTrip(){
 function syncDailyEntry(date){
   const trips=getTrips().filter(t=>t.date===date);
   const data=getData(), entry=data[date]||{};
-  const e={tada:0,grab:0,gojek:0}; let km=0;
+  const e={tada:0,grab:0,gojek:0,others:0}; let km=0;
   trips.forEach(t=>{
     const p=(t.platform||'').toLowerCase();
     e[p in e?p:'others']+=t.fare||0; km+=t.distanceKm||0;
@@ -2814,6 +2817,128 @@ function clearMonth(){
   renderSummary();
 }
 
+// ── FULL BACKUP + RESTORE ────────────────────────
+// Backup holds everything except API keys and any trip in progress
+function buildBackup(){
+  const settings={}, petrolSlots={};
+  const keys=[];
+  for(let i=0;i<localStorage.length;i++) keys.push(localStorage.key(i));
+  keys.forEach(function(k){
+    if(k.indexOf('mdl_set_v305_')===0){
+      try{ settings[k.slice('mdl_set_v305_'.length)]=JSON.parse(localStorage.getItem(k)); }catch(e){}
+    } else if(k.indexOf('mdl_petrol_')===0){
+      petrolSlots[k.slice('mdl_petrol_'.length)]=localStorage.getItem(k);
+    }
+  });
+  return {
+    app:'My Drive Log',
+    version:'2.0',
+    exported:new Date().toISOString(),
+    data:getData(),
+    trips:getTrips(),
+    fuel:getFuelRecords(),
+    settings:settings,
+    petrolSlots:petrolSlots,
+    estDistance:localStorage.getItem('mdl_est_distance')||'',
+    theme:localStorage.getItem('mdl_theme')||''
+  };
+}
+
+function downloadJSON(obj, filename){
+  const blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
+
+function _removeKeysWithPrefix(prefix){
+  const keys=[];
+  for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k&&k.indexOf(prefix)===0) keys.push(k); }
+  keys.forEach(k=>localStorage.removeItem(k));
+}
+
+async function restoreBackup(input){
+  const file=input.files&&input.files[0];
+  if(!file) return;
+  let b;
+  try{
+    const text=await new Promise((res,rej)=>{
+      const r=new FileReader();
+      r.onload=()=>res(r.result);
+      r.onerror=()=>rej(new Error('Read failed'));
+      r.readAsText(file);
+    });
+    b=JSON.parse(text);
+  }catch(e){
+    input.value='';
+    toast('This file could not be read — please choose a My Drive Log backup file',3500);
+    return;
+  }
+  input.value='';
+
+  const hasData=b&&typeof b.data==='object'&&b.data!==null&&!Array.isArray(b.data);
+  const hasTrips=b&&Array.isArray(b.trips);
+  if(!hasData&&!hasTrips){
+    toast('This is not a My Drive Log backup file',3500);
+    return;
+  }
+  const hasFuel=Array.isArray(b.fuel);
+  const hasSettings=b.settings&&typeof b.settings==='object';
+  const isOld=!hasFuel&&!hasSettings;
+
+  let when='';
+  try{ const d=new Date(b.exported); if(!isNaN(d)) when=fmtDate(d)+' '+d.toTimeString().slice(0,5); }catch(e){}
+
+  let msg='Restore this backup?\n\n';
+  if(when) msg+='Backup made: '+when+'\n\n';
+  msg+='It contains:\n';
+  if(hasData)  msg+='• '+Object.keys(b.data).length+' daily entries\n';
+  if(hasTrips) msg+='• '+b.trips.length+' trips\n';
+  if(hasFuel)  msg+='• '+b.fuel.length+' petrol top-ups\n';
+  if(hasSettings) msg+='• '+Object.keys(b.settings).length+' months of settings\n';
+  msg+='\nThis will REPLACE the same kinds of data on this phone.';
+  if(isOld) msg+='\n\nThis is an older backup with entries and trips only. Your petrol records and monthly settings on this phone will be kept as they are.';
+  msg+='\n\nA safety copy of your current data will be downloaded first.';
+  if(!confirm(msg)) return;
+
+  // Safety copy of what is on the phone right now
+  try{ downloadJSON(buildBackup(),'MyDriveLog_SafetyCopy_'+fmtDate(new Date())+'.json'); }catch(e){}
+
+  try{
+    if(hasData)  saveData(b.data);
+    if(hasTrips) saveTrips(b.trips);
+    if(hasFuel)  saveFuelRecords(b.fuel);
+    if(hasSettings){
+      _removeKeysWithPrefix('mdl_set_v305_');
+      Object.keys(b.settings).forEach(function(ym){
+        localStorage.setItem('mdl_set_v305_'+ym, JSON.stringify(b.settings[ym]));
+      });
+    }
+    if(b.petrolSlots&&typeof b.petrolSlots==='object'){
+      _removeKeysWithPrefix('mdl_petrol_');
+      Object.keys(b.petrolSlots).forEach(function(date){
+        localStorage.setItem('mdl_petrol_'+date, b.petrolSlots[date]);
+      });
+    }
+    if(b.estDistance) localStorage.setItem('mdl_est_distance', b.estDistance);
+    if(b.theme==='light'||b.theme==='dark'){
+      localStorage.setItem('mdl_theme', b.theme);
+      const isLight=document.body.classList.contains('light-mode');
+      if((b.theme==='light')!==isLight) toggleTheme();
+    }
+  }catch(e){
+    toast('Restore failed: '+e.message+' — your safety copy has your previous data',4000);
+    return;
+  }
+
+  // Refresh the app so restored data shows everywhere
+  entryInitDone=false;
+  initSettings();
+  toast('Backup restored ✓',3000);
+}
+
 function exportAll(){
   const dateStr=fmtDate(new Date());
   const btn=document.getElementById('export-all-btn');
@@ -2821,19 +2946,7 @@ function exportAll(){
 
   try{
     // ── FILE 1: JSON Backup ──────────────────────────
-    const backup={
-      version:'1.0',
-      exported:new Date().toISOString(),
-      data:getData(),
-      trips:getTrips()
-    };
-    const jsonBlob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
-    const jsonUrl=URL.createObjectURL(jsonBlob);
-    const jsonLink=document.createElement('a');
-    jsonLink.href=jsonUrl;
-    jsonLink.download='MyDriveLog_Backup_'+dateStr+'.json';
-    jsonLink.click();
-    setTimeout(()=>URL.revokeObjectURL(jsonUrl),1000);
+    downloadJSON(buildBackup(),'MyDriveLog_Backup_'+dateStr+'.json');
 
     // ── FILE 2: Excel ────────────────────────────────
     setTimeout(function(){
@@ -2965,7 +3078,51 @@ function startShift(){
 // ══════════════════════════════════════════════════════
 
 function getFuelRecords(){
-  try{ return JSON.parse(localStorage.getItem('mdl_fuel')||'[]'); }catch{ return []; }
+  // Always newest date first (same date: most recently added first)
+  let arr;
+  try{ arr=JSON.parse(localStorage.getItem('mdl_fuel')||'[]'); }catch{ return []; }
+  if(!Array.isArray(arr)) return [];
+  return arr.sort((a,b)=>(b.date||'').localeCompare(a.date||'')||((b.id||0)-(a.id||0)));
+}
+
+let editingFuelId=null; // id of the top-up being edited, or null
+
+// Work out "days since last top-up" for every record from the record before it (by date)
+function recalcFuelChain(records){
+  const asc=records.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')||((a.id||0)-(b.id||0)));
+  asc.forEach(function(r){
+    let prev=null;
+    for(let i=asc.length-1;i>=0;i--){ if(asc[i].date<r.date){ prev=asc[i]; break; } }
+    r.daysSinceLast=null; r.periodFrom=null;
+    if(prev){
+      const d=Math.round((new Date(r.date+'T00:00:00')-new Date(prev.date+'T00:00:00'))/(1000*60*60*24));
+      if(d>0){ r.daysSinceLast=d; r.periodFrom=prev.date; }
+    }
+  });
+  return asc.reverse(); // newest first
+}
+
+function clearFuelForm(){
+  ['fuel-date','fuel-price-per-l','fuel-volume','fuel-cost-before',
+   'fuel-discount','fuel-cost-after','fuel-distance'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('fuel-calc-display').style.display='none';
+}
+
+function setFuelEditMode(on){
+  const lbl=document.getElementById('fuel-save-label');
+  const cancel=document.getElementById('fuel-cancel-edit-btn');
+  if(lbl) lbl.textContent=on?'Update Top-Up Record':'Save Top-Up Record';
+  if(cancel) cancel.style.display=on?'block':'none';
+}
+
+function cancelFuelEdit(){
+  editingFuelId=null;
+  setFuelEditMode(false);
+  clearFuelForm();
+  renderFuelHistory();
+  toast('Edit cancelled — record unchanged');
 }
 function saveFuelRecords(arr){
   try{ localStorage.setItem('mdl_fuel',JSON.stringify(arr)); }catch{}
@@ -2998,9 +3155,10 @@ function calcFuelFields(){
   const daysEl=document.getElementById('fc-days');
   const periodEl=document.getElementById('fc-period');
   if(date){
-    const records=getFuelRecords();
-    if(records.length>0){
-      const prev=records[0]; // newest is first
+    const records=getFuelRecords().filter(r=>r.id!==editingFuelId);
+    const prev=records.find(r=>r.date<date)||null; // newest record before this date
+    if(records.length>0&&!prev){ daysEl.textContent='—'; periodEl.textContent='—'; }
+    else if(prev){
       const prevDate=new Date(prev.date+'T00:00:00');
       const thisDate=new Date(date+'T00:00:00');
       const days=Math.round((thisDate-prevDate)/(1000*60*60*24));
@@ -3121,36 +3279,31 @@ function saveFuelRecord(){
   // Calculated fields
   const discountPct=costBefore>0&&discount>0?((discount/costBefore)*100).toFixed(1):null;
   const consumption=volume>0&&distance>0?(volume/distance).toFixed(3):null;
-  const records=getFuelRecords();
-  const prevRecord=records[0]||null;
-  let daysSinceLast=null, periodFrom=null;
-  if(prevRecord){
-    const prev=new Date(prevRecord.date+'T00:00:00');
-    const curr=new Date(date+'T00:00:00');
-    const d=Math.round((curr-prev)/(1000*60*60*24));
-    if(d>0){ daysSinceLast=d; periodFrom=prevRecord.date; }
-  }
-
+  let records=getFuelRecords();
+  const wasEditing=editingFuelId!==null&&records.some(r=>r.id===editingFuelId);
   const record={
-    id:Date.now(), date, pricePerL, volume, costBefore, discount,
+    id:wasEditing?editingFuelId:Date.now(), date, pricePerL, volume, costBefore, discount,
     costAfter, distance, discountPct, consumption,
-    daysSinceLast, periodFrom
+    daysSinceLast:null, periodFrom:null
   };
-
-  records.unshift(record); // newest first
-  saveFuelRecords(records);
+  if(wasEditing){
+    const old=records.find(r=>r.id===editingFuelId);
+    if(old&&old.brand) record.brand=old.brand;
+    if(old&&old.petrolType) record.petrolType=old.petrolType;
+    records=records.map(r=>r.id===editingFuelId?record:r); // replace in place
+  } else {
+    records.push(record);
+  }
+  saveFuelRecords(recalcFuelChain(records));
 
   // Auto-fill Entry page petrol field for this date
   syncFuelToEntry(date, costAfter);
 
-  // Clear form
-  ['fuel-date','fuel-price-per-l','fuel-volume','fuel-cost-before',
-   'fuel-discount','fuel-cost-after','fuel-distance'].forEach(id=>{
-    document.getElementById(id).value='';
-  });
-  document.getElementById('fuel-calc-display').style.display='none';
+  editingFuelId=null;
+  setFuelEditMode(false);
+  clearFuelForm();
 
-  toast('Top-up saved ✓ — petrol cost updated in Entry page');
+  toast(wasEditing?'Top-up updated ✓':'Top-up saved ✓ — petrol cost updated in Entry page');
   renderFuelHistory();
 }
 
@@ -3330,16 +3483,22 @@ function editFuelRecord(id){
   document.getElementById('fuel-distance').value=r.distance||'';
   const fb=document.getElementById('fuel-brand'); if(fb) fb.value=r.brand||'';
   const fpt=document.getElementById('fuel-petrol-type'); if(fpt) fpt.value=r.petrolType||'';
-  saveFuelRecords(records.filter(x=>x.id!==id));
-  renderFuelHistory();
+  // Record stays saved until Update is pressed — nothing is deleted here
+  editingFuelId=id;
+  setFuelEditMode(true);
   calcFuelFields();
   document.getElementById('screen-petrol').scrollTop=0;
-  toast('Record loaded for editing — make changes and save');
+  toast('Editing top-up — change details, then tap Update');
 }
 
 function deleteFuelRecord(id){
-  const records=getFuelRecords().filter(r=>r.id!==id);
-  saveFuelRecords(records);
+  const r=getFuelRecords().find(x=>x.id===id);
+  if(!r) return;
+  const label=(([y,mo,d])=>`${d}/${mo}/${y}`)(r.date.split('-'));
+  if(!confirm('Delete the top-up on '+label+' ($'+(r.costAfter||0).toFixed(2)+')?')) return;
+  const records=getFuelRecords().filter(x=>x.id!==id);
+  saveFuelRecords(recalcFuelChain(records));
+  if(editingFuelId===id){ editingFuelId=null; setFuelEditMode(false); clearFuelForm(); }
   renderFuelHistory();
   toast('Record deleted');
 }
@@ -3355,6 +3514,7 @@ function checkFuelAutoFill(date){
 }
 
 window.addEventListener('load',()=>{
+  try{ repairEditedTripAddresses(); }catch(e){ console.error('repair error',e); }
   // Restore session times from localStorage before initEntry runs
   try{
     const saved=localStorage.getItem('mdl_sess_times');
@@ -3451,7 +3611,7 @@ function openEditTrip(){
   if(!t) return;
   editTripVals={
     plat:t.platform, mode:t.mode, sess:t.sessionNum||1, stops:t.stops||1,
-    pickupAddr:t.pickup||{}, dropoffAddr:t.dropoff||{}
+    pickupAddr:null, dropoffAddr:null // only set when a new location is looked up
   };
   document.getElementById('edit-fare').value=(t.fare||0).toFixed(2);
   document.querySelectorAll('#edit-plat-tog .tog').forEach(function(b){b.classList.toggle('on',b.textContent===t.platform);});
@@ -3465,13 +3625,13 @@ function openEditTrip(){
   const pickupPostal=t.pickup?.postal||'';
   document.getElementById('edit-pickup-postal').value=pickupPostal;
   const pickupResult=document.getElementById('edit-pickup-result');
-  if(t.pickup?.address){ pickupResult.textContent=t.pickup.address; pickupResult.style.display='block'; }
+  if(t.pickup?.addr){ pickupResult.textContent=t.pickup.addr; pickupResult.style.color='var(--muted)'; pickupResult.style.display='block'; }
   else{ pickupResult.style.display='none'; }
   // Dropoff
   const dropoffPostal=t.dropoff?.postal||'';
   document.getElementById('edit-dropoff-postal').value=dropoffPostal;
   const dropoffResult=document.getElementById('edit-dropoff-result');
-  if(t.dropoff?.address){ dropoffResult.textContent=t.dropoff.address; dropoffResult.style.display='block'; }
+  if(t.dropoff?.addr){ dropoffResult.textContent=t.dropoff.addr; dropoffResult.style.color='var(--muted)'; dropoffResult.style.display='block'; }
   else{ dropoffResult.style.display='none'; }
   closeOverlay('detail-overlay');
   document.getElementById('edit-overlay').classList.add('open');
@@ -3498,9 +3658,24 @@ function editSetStops(n,btn){
   btn.classList.add('on');
 }
 
-function saveEditTrip(){
+let _savingEdit=false;
+async function saveEditTrip(){
   const fare=parseFloat(document.getElementById('edit-fare').value);
   if(isNaN(fare)||fare<=0){toast('Please enter a valid fare');return;}
+  if(_savingEdit) return;
+  _savingEdit=true;
+  try{
+  // If pickup or dropoff was changed, recalculate road distance first
+  let newDist=null;
+  if(editTripVals.pickupAddr||editTripVals.dropoffAddr){
+    const orig=getTrips().find(x=>String(x.id)===String(detailTripId));
+    const pu=editTripVals.pickupAddr||orig?.pickup||{};
+    const dr=editTripVals.dropoffAddr||orig?.dropoff||{};
+    if(pu.lat&&pu.lng&&dr.lat&&dr.lng){
+      toast('Recalculating distance...',4000);
+      try{ newDist=await getRoadDist(pu.lat,pu.lng,dr.lat,dr.lng); }catch(e){ newDist=null; }
+    }
+  }
   const trips=getTrips();
   const idx=trips.findIndex(function(x){return String(x.id)===String(detailTripId);});
   if(idx<0){toast('Trip not found');return;}
@@ -3521,18 +3696,36 @@ function saveEditTrip(){
     let mins=(eh*60+em)-(sh*60+sm); if(mins<0) mins+=1440;
     trips[idx].durationMins=mins;
   }
-  // Save location if geocoded result exists
-  if(editTripVals.pickupAddr&&editTripVals.pickupAddr.address){
-    trips[idx].pickup=editTripVals.pickupAddr;
-  }
-  if(editTripVals.dropoffAddr&&editTripVals.dropoffAddr.address){
-    trips[idx].dropoff=editTripVals.dropoffAddr;
-  }
-  try{ localStorage.setItem('mdl_trips_v305',JSON.stringify(trips)); }catch{}
+  // Save location only if a new one was looked up
+  if(editTripVals.pickupAddr) trips[idx].pickup=editTripVals.pickupAddr;
+  if(editTripVals.dropoffAddr) trips[idx].dropoff=editTripVals.dropoffAddr;
+  if(newDist!==null&&newDist>0) trips[idx].distanceKm=parseFloat(newDist.toFixed(2));
+  saveTrips(trips);
+  syncDailyEntry(trips[idx].date); // keep the day's saved totals in step
   closeOverlay('edit-overlay');
   renderTrips();
   refreshEntryEarnings();
-  toast('Trip updated \u2713');
+  toast(newDist!==null?'Trip updated \u2713 — distance '+newDist.toFixed(1)+' km':'Trip updated \u2713');
+  } finally { _savingEdit=false; }
+}
+
+// One-time repair: trips edited before this fix saved the address under the wrong label
+function repairEditedTripAddresses(){
+  const trips=getTrips(); let changed=false;
+  trips.forEach(function(t){
+    ['pickup','dropoff'].forEach(function(k){
+      const loc=t[k];
+      if(loc&&loc.address&&!loc.addr){
+        let a=String(loc.address);
+        const dash=a.indexOf(' — ');
+        if(dash>=0) a=a.slice(dash+3);
+        a=a.replace(/,?\s*Singapore/,'').replace(/,\s*\d{6}$/,'').trim();
+        if(loc.postal) a+=' S('+loc.postal+')';
+        loc.addr=a; delete loc.address; changed=true;
+      }
+    });
+  });
+  if(changed) saveTrips(trips);
 }
 
 // Geocode a postal code entered in the edit overlay
@@ -3571,7 +3764,7 @@ async function _geocodeAndStore(type, query, resultEl){
     const fullAddress=result.formatted_address||'';
     const displayAddr=fullAddress.replace(', Singapore','').replace(/, \d{6}$/, '').trim();
     const addrObj={
-      address:(postalComp?postalComp+' ':'')+town+' — '+displayAddr,
+      addr:displayAddr+(postalComp?' S('+postalComp+')':''),
       town:town,
       postal:postalComp,
       lat:result.geometry.location.lat(),
