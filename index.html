@@ -817,18 +817,24 @@ body.light-mode .fuel-stat{background:var(--card)}
       <input type="file" id="fuel-library-input" accept="image/*" style="display:none" onchange="extractFuelReceipt(this)">
       <div id="fuel-extracting" style="display:none" class="fuel-extracting">
         <div style="margin-bottom:6px">⏳ Reading receipt...</div>
-        <div style="font-size:12px">Gemini AI is extracting the details</div>
+        <div style="font-size:12px">OpenAI is extracting the details</div>
       </div>
 
       <!-- Extracted fields -->
       <div id="fuel-form">
+        <label class="lbl">Country</label>
+        <div class="tog-row" style="margin-bottom:6px">
+          <button class="tog on" id="fuel-ctry-SG" type="button" onclick="setFuelCountry('SG')">🇸🇬 Singapore</button>
+          <button class="tog" id="fuel-ctry-MY" type="button" onclick="setFuelCountry('MY')">🇲🇾 Malaysia</button>
+        </div>
+        <div id="fuel-rate-note" style="display:none;font-size:11px;margin:0 0 8px"></div>
         <div class="two-col" style="margin-bottom:8px">
           <div>
             <label class="lbl">Date</label>
             <input class="inp" type="date" id="fuel-date" oninput="fuelFormChanged()">
           </div>
           <div>
-            <label class="lbl">Price ($/L)</label>
+            <label class="lbl" id="lbl-fuel-price">Price ($/L)</label>
             <input class="inp" type="number" inputmode="decimal" id="fuel-price-per-l" placeholder="e.g. 2.85" step="0.01" oninput="calcFuelFields()">
           </div>
         </div>
@@ -838,17 +844,17 @@ body.light-mode .fuel-stat{background:var(--card)}
             <input class="inp" type="number" inputmode="decimal" id="fuel-volume" placeholder="e.g. 35.5" step="0.1" oninput="calcFuelFields()">
           </div>
           <div>
-            <label class="lbl">Cost Before Discount ($)</label>
+            <label class="lbl" id="lbl-fuel-before">Cost Before Discount ($)</label>
             <input class="inp" type="number" inputmode="decimal" id="fuel-cost-before" placeholder="e.g. 101.18" step="0.01" oninput="calcFuelFields()">
           </div>
         </div>
         <div class="two-col" style="margin-bottom:8px">
           <div>
-            <label class="lbl">Fuel Discount ($)</label>
+            <label class="lbl" id="lbl-fuel-disc">Fuel Discount ($)</label>
             <input class="inp" type="number" inputmode="decimal" id="fuel-discount" placeholder="e.g. 5.00" step="0.01" oninput="calcFuelFields()">
           </div>
           <div>
-            <label class="lbl">Actual Cost After Discount ($)</label>
+            <label class="lbl" id="lbl-fuel-after">Actual Cost After Discount ($)</label>
             <input class="inp" type="number" inputmode="decimal" id="fuel-cost-after" placeholder="e.g. 96.18" step="0.01" oninput="calcFuelFields()">
           </div>
         </div>
@@ -860,12 +866,7 @@ body.light-mode .fuel-stat{background:var(--card)}
         <!-- Calculated fields display -->
         <div id="fuel-calc-display" style="display:none;background:var(--card);border-radius:var(--r);padding:10px;margin-bottom:10px">
           <div style="font-size:11px;color:var(--muted);margin-bottom:6px;letter-spacing:.05em">CALCULATED</div>
-          <div class="fuel-grid">
-            <div class="fuel-stat"><div class="fuel-stat-label">Discount %</div><div class="fuel-stat-val" id="fc-discount-pct">—</div></div>
-            <div class="fuel-stat"><div class="fuel-stat-label">Consumption (L/km)</div><div class="fuel-stat-val" id="fc-consumption">—</div></div>
-            <div class="fuel-stat"><div class="fuel-stat-label">Days Since Last Top-Up</div><div class="fuel-stat-val" id="fc-days">—</div></div>
-            <div class="fuel-stat"><div class="fuel-stat-label">Period</div><div class="fuel-stat-val" id="fc-period" style="font-size:11px">—</div></div>
-          </div>
+          <div class="fuel-grid" id="fuel-calc-grid"></div>
         </div>
 
         <button class="btn btn-green" id="fuel-save-btn" onclick="saveFuelRecord()" style="margin-top:4px">
@@ -951,6 +952,12 @@ body.light-mode .fuel-stat{background:var(--card)}
     <div style="font-size:11px;color:var(--muted);padding:0 2px 8px">Apply writes the calculated figure into Est. Petrol / Day above. Each new month, Est. Petrol / Day is worked out automatically from these figures.</div>
   </div>
 
+  <div class="set-section-title" style="margin-top:18px">Malaysia Petrol</div>
+  <div class="set-row">
+    <div><div class="set-label">Exchange Rate (RM per S$1)</div><div class="set-sub">For Malaysian receipts. Stays for every month until you change it.</div></div>
+    <input type="number" class="set-inp" id="s-myr-rate" placeholder="Not set" step="0.01" inputmode="decimal" oninput="saveMyrRate(this.value)">
+  </div>
+
   <div class="set-section-title" style="margin-top:18px">API Keys</div>
   <div class="set-row">
     <div><div class="set-label">Google Maps API Key</div><div class="set-sub">Required for GPS and address lookup</div></div>
@@ -964,7 +971,7 @@ body.light-mode .fuel-stat{background:var(--card)}
 
   <div class="set-section-title" style="margin-top:18px">App Info</div>
   <div class="card" style="margin-top:0">
-    <div class="ai-row"><span class="ai-key">Version</span><span class="ai-val">v3.0.8</span></div>
+    <div class="ai-row"><span class="ai-key">Version</span><span class="ai-val">v3.0.9</span></div>
     <div class="ai-row"><span class="ai-key">Storage</span><span class="ai-val">Local (phone)</span></div>
     <div class="ai-row"><span class="ai-key">Daily Entries</span><span class="ai-val" id="s-entries">0</span></div>
     <div class="ai-row"><span class="ai-key">Trips Recorded</span><span class="ai-val" id="s-trips">0</span></div>
@@ -1371,8 +1378,11 @@ function getEstimatorValues(){
   const v={price:null,priceSrc:'',distance:null,consumption:null,consSrc:'',discount:null,discSrc:''};
   // Price
   if(ov.price!=null){ v.price=ov.price; v.priceSrc='Entered by you'; }
-  else if(allFuel.length&&allFuel[0].pricePerL){ v.price=allFuel[0].pricePerL; v.priceSrc='From latest top-up ('+_dmy(allFuel[0].date)+')'; }
-  else v.priceSrc='No records yet — enter manually';
+  else {
+    const sg=allFuel.find(r=>r.country!=='MY'&&r.pricePerL>0);
+    if(sg){ v.price=sg.pricePerL; v.priceSrc='From latest Singapore top-up ('+_dmy(sg.date)+')'; }
+    else v.priceSrc='No Singapore records yet — enter manually';
+  }
   // Distance (always entered by you)
   const d=parseFloat(localStorage.getItem('mdl_est_distance'));
   if(d>0) v.distance=d;
@@ -1390,7 +1400,7 @@ function getEstimatorValues(){
   // Discount
   if(ov.discount!=null){ v.discount=ov.discount; v.discSrc='Entered by you'; }
   else {
-    const withDisc=allFuel.find(r=>r.discountPct&&parseFloat(r.discountPct)>0);
+    const withDisc=allFuel.find(r=>r.country!=='MY'&&r.discountPct&&parseFloat(r.discountPct)>0);
     if(withDisc){ v.discount=parseFloat(parseFloat(withDisc.discountPct).toFixed(0)); v.discSrc='From top-up on '+_dmy(withDisc.date); }
     else v.discSrc='No discount records — enter if any';
   }
@@ -2850,6 +2860,7 @@ function initSettings(){
   document.getElementById('s-trips').textContent=getTrips().length;
   document.getElementById('s-maps-key').value=localStorage.getItem('mdl_maps_api_key')||'';
   document.getElementById('s-gemini-key').value=localStorage.getItem('mdl_gemini_api_key')||'';
+  const rateEl=document.getElementById('s-myr-rate'); if(rateEl) rateEl.value=getMyrRate()||'';
 
   // Petrol Cost Estimator — typed figures kept, otherwise from petrol records
   const v=getEstimatorValues();
@@ -3001,6 +3012,7 @@ function buildBackup(){
     petrolSlots:petrolSlots,
     estDistance:localStorage.getItem('mdl_est_distance')||'',
     estOverrides:_getEstOverrides(),
+    myrRate:localStorage.getItem('mdl_myr_rate')||'',
     theme:localStorage.getItem('mdl_theme')||''
   };
 }
@@ -3084,6 +3096,7 @@ async function restoreBackup(input){
       });
     }
     if(b.estDistance) localStorage.setItem('mdl_est_distance', b.estDistance);
+    if(b.myrRate) localStorage.setItem('mdl_myr_rate', b.myrRate);
     if(b.estOverrides&&typeof b.estOverrides==='object') localStorage.setItem('mdl_est_overrides', JSON.stringify(b.estOverrides));
     if(b.theme==='light'||b.theme==='dark'){
       localStorage.setItem('mdl_theme', b.theme);
@@ -3269,7 +3282,40 @@ function clearFuelForm(){
    'fuel-discount','fuel-cost-after','fuel-distance'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value='';
   });
+  editingFuelRate=null; scanBrand=''; scanPetrolType='';
+  setFuelCountry('SG');
   document.getElementById('fuel-calc-display').style.display='none';
+}
+
+// ── MALAYSIA PETROL ──────────────────────────────
+let fuelCountry='SG';        // country of the top-up in the form
+let editingFuelRate=null;    // rate saved with a Malaysian record being edited
+let scanBrand='', scanPetrolType='';
+function getMyrRate(){ const v=parseFloat(localStorage.getItem('mdl_myr_rate')); return v>0?v:null; }
+function saveMyrRate(val){
+  const v=parseFloat(val);
+  if(v>0) localStorage.setItem('mdl_myr_rate',String(v)); else localStorage.removeItem('mdl_myr_rate');
+}
+function _fuelRate(){ return (fuelCountry==='MY'&&editingFuelRate)?editingFuelRate:getMyrRate(); }
+function setFuelCountry(c){
+  fuelCountry=c==='MY'?'MY':'SG';
+  ['SG','MY'].forEach(k=>{ const b=document.getElementById('fuel-ctry-'+k); if(b) b.className='tog'+(k===fuelCountry?' on':''); });
+  const cur=fuelCountry==='MY'?'RM':'$';
+  const L=(id,t)=>{ const el=document.getElementById(id); if(el) el.textContent=t; };
+  L('lbl-fuel-price','Price ('+cur+'/L)');
+  L('lbl-fuel-before','Cost Before Discount ('+cur+')');
+  L('lbl-fuel-disc','Fuel Discount ('+cur+')');
+  L('lbl-fuel-after','Actual Cost After Discount ('+cur+')');
+  const note=document.getElementById('fuel-rate-note');
+  if(note){
+    if(fuelCountry==='MY'){
+      const r=_fuelRate();
+      note.style.display='block';
+      note.style.color=r?'var(--muted)':'var(--danger)';
+      note.textContent=r?('Enter amounts in RM — converted at RM '+r+' = S$1'):'Exchange rate not set — enter it in Settings → Malaysia Petrol before saving';
+    } else note.style.display='none';
+  }
+  calcFuelFields();
 }
 
 function setFuelEditMode(on){
@@ -3295,41 +3341,25 @@ function fuelFormChanged(){
 }
 
 function calcFuelFields(){
+  const price=parseFloat(document.getElementById('fuel-price-per-l').value)||0;
   const before=parseFloat(document.getElementById('fuel-cost-before').value)||0;
   const disc=parseFloat(document.getElementById('fuel-discount').value)||0;
+  const after=parseFloat(document.getElementById('fuel-cost-after').value)||0;
   const vol=parseFloat(document.getElementById('fuel-volume').value)||0;
   const dist=parseFloat(document.getElementById('fuel-distance').value)||0;
-  const date=document.getElementById('fuel-date').value;
-  const hasData=before>0||disc>0||vol>0||dist>0;
-  document.getElementById('fuel-calc-display').style.display=hasData?'block':'none';
-
-  // Discount %
-  const pctEl=document.getElementById('fc-discount-pct');
-  if(before>0&&disc>0) pctEl.textContent=((disc/before)*100).toFixed(1)+'%';
-  else pctEl.textContent='—';
-
-  // Consumption L/km
-  const consEl=document.getElementById('fc-consumption');
-  if(vol>0&&dist>0) consEl.textContent=(vol/dist).toFixed(3)+' L/km';
-  else consEl.textContent='—';
-
-  // Days since last top-up
-  const daysEl=document.getElementById('fc-days');
-  const periodEl=document.getElementById('fc-period');
-  if(date){
-    const records=getFuelRecords().filter(r=>r.id!==editingFuelId);
-    const prev=records.find(r=>r.date<date)||null; // newest record before this date
-    if(records.length>0&&!prev){ daysEl.textContent='—'; periodEl.textContent='—'; }
-    else if(prev){
-      const prevDate=new Date(prev.date+'T00:00:00');
-      const thisDate=new Date(date+'T00:00:00');
-      const days=Math.round((thisDate-prevDate)/(1000*60*60*24));
-      if(days>0){
-        daysEl.textContent=days+' day'+(days!==1?'s':'');
-        periodEl.textContent=prev.date+' → '+date;
-      } else { daysEl.textContent='—'; periodEl.textContent='—'; }
-    } else { daysEl.textContent='First record'; periodEl.textContent='—'; }
+  const hasData=price>0||before>0||disc>0||after>0||vol>0||dist>0;
+  const box=document.getElementById('fuel-calc-display');
+  const grid=document.getElementById('fuel-calc-grid');
+  if(!box||!grid) return;
+  box.style.display=hasData?'block':'none';
+  const stat=(l,v)=>'<div class="fuel-stat"><div class="fuel-stat-label">'+l+'</div><div class="fuel-stat-val">'+v+'</div></div>';
+  let html=stat('Consumption (km/L)', vol>0&&dist>0?(dist/vol).toFixed(2)+' km/L':'—');
+  if(fuelCountry==='MY'){
+    const r=_fuelRate();
+    html+=stat('Price (S$/L)', r&&price>0?'S$'+(price/r).toFixed(3):'—');
+    html+=stat('Actual Cost (S$)', r&&after>0?'S$'+(after/r).toFixed(2):'—');
   }
+  grid.innerHTML=html;
 }
 
 async function extractFuelReceipt(input){
@@ -3352,18 +3382,20 @@ async function extractFuelReceipt(input){
       r.readAsDataURL(file);
     });
 
-    const prompt=`You are reading a petrol/fuel receipt from Singapore. Extract the following fields and return ONLY a JSON object with no markdown, no explanation:
+    const prompt=`You are reading a petrol/fuel receipt from either Singapore or Malaysia. Extract the following fields and return ONLY a JSON object with no markdown, no explanation:
 {
+  "country": "MY if the receipt is Malaysian (amounts in RM, a Malaysian company e.g. Sdn Bhd, SST, or brands like Petronas, Petron, BHPetrol, or a Malaysian address), otherwise SG",
   "date": "YYYY-MM-DD or empty string if not found",
-  "brand": "petrol station brand e.g. Esso, Shell, Caltex, SPC, Sinopec or empty string if not found",
-  "petrolType": "RON 92, RON 95, or RON 98 or empty string if not found",
+  "brand": "petrol station brand e.g. Esso, Shell, Caltex, SPC, Sinopec, Petronas, Petron, BHPetrol or empty string if not found",
+  "petrolType": "e.g. RON 92, RON 95, RON 97, RON 98, RON 100 or empty string if not found",
   "pricePerLitre": number or null,
   "volumeLitres": number or null,
   "costBeforeDiscount": number or null,
   "fuelDiscount": number or null,
   "actualCostAfterDiscount": number or null
 }
-IMPORTANT: Singapore receipts print dates as DD/MM/YY — e.g. 21/03/26 means 2026-03-21. Always convert to YYYY-MM-DD.
+IMPORTANT: Give all amounts exactly as printed, in the receipt's own currency (RM for Malaysia, S$ for Singapore). Do NOT convert currency.
+IMPORTANT: Singapore and Malaysian receipts print dates day first — DD/MM/YY or DD/MM/YYYY — e.g. 21/03/26 means 2026-03-21. Always convert to YYYY-MM-DD.
 If a field is unclear use null for numbers or empty string for text.`;
 
     const resp=await fetch('https://api.openai.com/v1/chat/completions',{
@@ -3405,6 +3437,8 @@ If a field is unclear use null for numbers or empty string for text.`;
     const clean=raw.replace(/```json|```/g,'').trim();
     const extracted=JSON.parse(clean);
 
+    setFuelCountry(String(extracted.country||'').toUpperCase()==='MY'?'MY':'SG');
+    scanBrand=extracted.brand||''; scanPetrolType=extracted.petrolType||'';
     if(extracted.date) document.getElementById('fuel-date').value=extracted.date;
     if(extracted.brand){ const fb=document.getElementById('fuel-brand'); if(fb) fb.value=extracted.brand; }
     if(extracted.petrolType){ const fpt=document.getElementById('fuel-petrol-type'); if(fpt) fpt.value=extracted.petrolType; }
@@ -3414,7 +3448,7 @@ If a field is unclear use null for numbers or empty string for text.`;
     if(extracted.fuelDiscount!=null) document.getElementById('fuel-discount').value=extracted.fuelDiscount.toFixed(2);
     if(extracted.actualCostAfterDiscount!=null) document.getElementById('fuel-cost-after').value=extracted.actualCostAfterDiscount.toFixed(2);
 
-    toast('Receipt extracted ✓ — please check and fill distance');
+    toast(fuelCountry==='MY'?'Malaysian receipt ✓ — amounts in RM, please check and fill distance':'Receipt extracted ✓ — please check and fill distance',3000);
     calcFuelFields();
   } catch(err){
     toast('Extraction failed: '+err.message);
@@ -3429,14 +3463,21 @@ If a field is unclear use null for numbers or empty string for text.`;
 function saveFuelRecord(){
   const date=document.getElementById('fuel-date').value;
   if(!date){ toast('Please enter a date'); return; }
-  const pricePerL=parseFloat(document.getElementById('fuel-price-per-l').value)||0;
+  // Amounts typed in the form: S$ for Singapore, RM for Malaysia
+  const fPrice=parseFloat(document.getElementById('fuel-price-per-l').value)||0;
   const volume=parseFloat(document.getElementById('fuel-volume').value)||0;
-  const costBefore=parseFloat(document.getElementById('fuel-cost-before').value)||0;
-  const discount=parseFloat(document.getElementById('fuel-discount').value)||0;
-  const costAfter=parseFloat(document.getElementById('fuel-cost-after').value)||0;
+  const fBefore=parseFloat(document.getElementById('fuel-cost-before').value)||0;
+  const fDisc=parseFloat(document.getElementById('fuel-discount').value)||0;
+  const fAfter=parseFloat(document.getElementById('fuel-cost-after').value)||0;
   const distance=parseFloat(document.getElementById('fuel-distance').value)||0;
 
-  if(costAfter<=0){ toast('Please enter actual fuel cost'); return; }
+  if(fAfter<=0){ toast('Please enter actual fuel cost'); return; }
+  const isMY=fuelCountry==='MY';
+  const rate=isMY?_fuelRate():null;
+  if(isMY&&!rate){ toast('Enter the exchange rate in Settings → Malaysia Petrol first',3500); return; }
+  // Everything stored in S$ so all totals stay in one currency
+  const toSGD=(v,dp)=>isMY?parseFloat((v/rate).toFixed(dp)):v;
+  const pricePerL=toSGD(fPrice,3), costBefore=toSGD(fBefore,2), discount=toSGD(fDisc,2), costAfter=toSGD(fAfter,2);
 
   // Calculated fields
   const discountPct=costBefore>0&&discount>0?((discount/costBefore)*100).toFixed(1):null;
@@ -3446,12 +3487,18 @@ function saveFuelRecord(){
   const record={
     id:wasEditing?editingFuelId:Date.now(), date, pricePerL, volume, costBefore, discount,
     costAfter, distance, discountPct, consumption,
-    daysSinceLast:null, periodFrom:null
+    daysSinceLast:null, periodFrom:null, country:isMY?'MY':'SG'
   };
+  if(isMY){
+    record.rate=rate;
+    record.rmPricePerL=fPrice; record.rmCostBefore=fBefore; record.rmDiscount=fDisc; record.rmCostAfter=fAfter;
+  }
+  if(scanBrand) record.brand=scanBrand;
+  if(scanPetrolType) record.petrolType=scanPetrolType;
   if(wasEditing){
     const old=records.find(r=>r.id===editingFuelId);
-    if(old&&old.brand) record.brand=old.brand;
-    if(old&&old.petrolType) record.petrolType=old.petrolType;
+    if(old&&old.brand&&!record.brand) record.brand=old.brand;
+    if(old&&old.petrolType&&!record.petrolType) record.petrolType=old.petrolType;
     records=records.map(r=>r.id===editingFuelId?record:r); // replace in place
   } else {
     records.push(record);
@@ -3565,7 +3612,6 @@ function renderFuelHistory(){
         </tfoot>
       </table>
     </div>
-    <div style="font-size:12px;color:var(--muted);letter-spacing:.08em;margin-bottom:8px">TOP-UP RECORDS</div>
   `;
 
   // Group records by month
@@ -3579,11 +3625,13 @@ function renderFuelHistory(){
     <div class="fuel-record">
       <div class="fuel-record-header">
         <div>
-          <div class="fuel-record-date">${(([y,mo,d])=>`${d}/${mo}/${y}`)(r.date.split('-'))}</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:2px">${r.brand?r.brand+' · ':''}${r.volume?r.volume.toFixed(1)+'L':''} ${r.pricePerL?'@ $'+r.pricePerL.toFixed(3)+'/L':''} ${r.petrolType?'· '+r.petrolType:''}</div>
+          <div class="fuel-record-date">${(([y,mo,d])=>`${d}/${mo}/${y}`)(r.date.split('-'))}${r.country==='MY'?' <span style="font-size:11px;font-weight:600;color:var(--warn)">🇲🇾 Malaysia</span>':''}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">${r.brand?r.brand+' · ':''}${r.volume?r.volume.toFixed(1)+'L':''} ${r.country==='MY'&&r.rmPricePerL?'@ RM'+r.rmPricePerL.toFixed(3)+'/L (S$'+(r.pricePerL||0).toFixed(3)+')':(r.pricePerL?'@ $'+r.pricePerL.toFixed(3)+'/L':'')} ${r.petrolType?'· '+r.petrolType:''}</div>
+          ${r.country==='MY'&&r.rate?'<div style="font-size:11px;color:var(--muted);margin-top:2px">Rate RM '+r.rate+' = S$1</div>':''}
         </div>
         <div style="text-align:right">
           <div class="fuel-record-cost">$${r.costAfter.toFixed(2)}</div>
+          ${r.country==='MY'&&r.rmCostAfter?'<div style="font-size:12px;color:var(--muted)">RM '+r.rmCostAfter.toFixed(2)+'</div>':''}
           ${r.discount>0?'<div style="font-size:12px;color:var(--muted)">saved $'+r.discount.toFixed(2)+'</div>':''}
         </div>
       </div>
@@ -3636,12 +3684,16 @@ function editFuelRecord(id){
   const records=getFuelRecords();
   const r=records.find(x=>x.id===id);
   if(!r) return;
+  const my=r.country==='MY';
+  scanBrand=''; scanPetrolType='';
+  editingFuelRate=my?(r.rate||null):null;
   document.getElementById('fuel-date').value=r.date||'';
-  document.getElementById('fuel-price-per-l').value=r.pricePerL||'';
+  document.getElementById('fuel-price-per-l').value=(my?r.rmPricePerL:r.pricePerL)||'';
   document.getElementById('fuel-volume').value=r.volume||'';
-  document.getElementById('fuel-cost-before').value=r.costBefore||'';
-  document.getElementById('fuel-discount').value=r.discount||'';
-  document.getElementById('fuel-cost-after').value=r.costAfter||'';
+  document.getElementById('fuel-cost-before').value=(my?r.rmCostBefore:r.costBefore)||'';
+  document.getElementById('fuel-discount').value=(my?r.rmDiscount:r.discount)||'';
+  document.getElementById('fuel-cost-after').value=(my?r.rmCostAfter:r.costAfter)||'';
+  setFuelCountry(my?'MY':'SG');
   document.getElementById('fuel-distance').value=r.distance||'';
   const fb=document.getElementById('fuel-brand'); if(fb) fb.value=r.brand||'';
   const fpt=document.getElementById('fuel-petrol-type'); if(fpt) fpt.value=r.petrolType||'';
