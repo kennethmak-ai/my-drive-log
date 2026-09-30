@@ -642,6 +642,9 @@ body.light-mode .fuel-stat{background:var(--card)}
       <div class="tb-val" id="tb-dist">$0</div>
     </div>
   </div>
+  <div id="sum-setup-note" style="display:none;margin:10px 0 0;padding:10px 12px;border:1px dashed var(--warn);border-radius:var(--r);font-size:12px;color:var(--warn)">
+    Targets not set for this month. Enter Target Monthly Net, Planned Driving Days and Est. Petrol / Day in the Settings tab to see your targets.
+  </div>
 
   <div style="height:10px"></div>
 
@@ -899,39 +902,39 @@ body.light-mode .fuel-stat{background:var(--card)}
   <div class="set-section-title">Monthly Targets</div>
   <div class="set-row">
     <div><div class="set-label">Target Monthly Net ($)</div><div class="set-sub">Take-home income goal</div></div>
-    <input type="number" class="set-inp" id="s-net" value="7000" oninput="saveSettings()">
+    <input type="number" class="set-inp" id="s-net" placeholder="Not set" inputmode="decimal" oninput="saveSettings('net')">
   </div>
   <div class="set-row">
     <div><div class="set-label">Planned Driving Days</div><div class="set-sub">Days driving this month</div></div>
-    <input type="number" class="set-inp" id="s-days" value="27" oninput="saveSettings()">
+    <input type="number" class="set-inp" id="s-days" placeholder="Not set" inputmode="numeric" oninput="saveSettings('days')">
   </div>
   <div class="set-row">
-    <div><div class="set-label">Est. Petrol / Day ($)</div><div class="set-sub">Average daily petrol spend</div></div>
-    <input type="number" class="set-inp" id="s-petrol" value="40" oninput="saveSettings()">
+    <div><div class="set-label">Est. Petrol / Day ($)</div><div class="set-sub" id="s-petrol-sub">Average daily petrol spend</div><div class="set-sub" id="s-petrol-actual" style="margin-top:2px"></div></div>
+    <input type="number" class="set-inp" id="s-petrol" placeholder="Not set" step="0.01" inputmode="decimal" oninput="saveSettings('petrol')">
   </div>
   <div class="set-row">
     <div><div class="set-label">Other Fixed Cost / Day ($)</div><div class="set-sub">Insurance, parking, instalment</div></div>
-    <input type="number" class="set-inp" id="s-other" value="0" step="0.01" oninput="saveSettings()">
+    <input type="number" class="set-inp" id="s-other" value="0" step="0.01" inputmode="decimal" oninput="saveSettings('other')">
   </div>
 
   <div class="set-section-title" style="margin-top:18px">Petrol Cost Estimator</div>
   <div style="padding:0 12px 0">
-    <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Auto-filled from your petrol records. Edit any field then tap Calculate.</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Price, consumption and discount fill from your petrol records. Anything you type is kept until you tap Refill.</div>
     <div class="set-row">
       <div><div class="set-label">Petrol Price ($/L)</div><div class="set-sub" id="est-price-sub">From latest top-up record</div></div>
-      <input type="number" class="set-inp" id="est-price" placeholder="e.g. 3.47" step="0.01" inputmode="decimal">
+      <input type="number" class="set-inp" id="est-price" placeholder="Not set" step="0.01" inputmode="decimal" oninput="saveEstOverride('price',this.value)">
     </div>
     <div class="set-row">
-      <div><div class="set-label">Est. Distance / Day (km)</div><div class="set-sub">Saved automatically</div></div>
-      <input type="number" class="set-inp" id="est-distance" placeholder="350" step="1" inputmode="decimal" oninput="localStorage.setItem('mdl_est_distance',this.value)">
+      <div><div class="set-label">Est. Distance / Day (km)</div><div class="set-sub">Entered by you — saved automatically</div></div>
+      <input type="number" class="set-inp" id="est-distance" placeholder="Not set" step="1" inputmode="decimal" oninput="saveEstDistance(this.value)">
     </div>
     <div class="set-row">
       <div><div class="set-label">Consumption (km/L)</div><div class="set-sub" id="est-consumption-sub">From last month avg</div></div>
-      <input type="number" class="set-inp" id="est-consumption" placeholder="e.g. 12.0" step="0.1" inputmode="decimal">
+      <input type="number" class="set-inp" id="est-consumption" placeholder="Not set" step="0.1" inputmode="decimal" oninput="saveEstOverride('consumption',this.value)">
     </div>
     <div class="set-row">
       <div><div class="set-label">Petrol Discount (%)</div><div class="set-sub" id="est-discount-sub">From latest top-up record</div></div>
-      <input type="number" class="set-inp" id="est-discount" placeholder="e.g. 25" step="1" inputmode="decimal">
+      <input type="number" class="set-inp" id="est-discount" placeholder="Not set" step="1" inputmode="decimal" oninput="saveEstOverride('discount',this.value)">
     </div>
     <div style="margin:12px 0 8px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px">
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
@@ -944,7 +947,8 @@ body.light-mode .fuel-stat{background:var(--card)}
       <button onclick="calcPetrolEstimate()" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:10px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;touch-action:manipulation">Calculate</button>
       <button onclick="applyPetrolEstimate()" style="flex:1;background:var(--accent);border:none;border-radius:var(--r);padding:10px;font-size:13px;font-weight:700;color:#0D1117;cursor:pointer;touch-action:manipulation">Apply to Monthly Target</button>
     </div>
-    <div style="font-size:11px;color:var(--muted);padding:0 2px 8px">Apply writes the calculated figure into Est. Petrol / Day above.</div>
+    <button onclick="refillEstimator()" style="width:100%;background:none;border:1px dashed var(--border);border-radius:var(--r);padding:9px;font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;touch-action:manipulation;margin:4px 0 6px">↻ Refill from my petrol records</button>
+    <div style="font-size:11px;color:var(--muted);padding:0 2px 8px">Apply writes the calculated figure into Est. Petrol / Day above. Each new month, Est. Petrol / Day is worked out automatically from these figures.</div>
   </div>
 
   <div class="set-section-title" style="margin-top:18px">API Keys</div>
@@ -960,7 +964,7 @@ body.light-mode .fuel-stat{background:var(--card)}
 
   <div class="set-section-title" style="margin-top:18px">App Info</div>
   <div class="card" style="margin-top:0">
-    <div class="ai-row"><span class="ai-key">Version</span><span class="ai-val">v3.0.7</span></div>
+    <div class="ai-row"><span class="ai-key">Version</span><span class="ai-val">v3.0.8</span></div>
     <div class="ai-row"><span class="ai-key">Storage</span><span class="ai-val">Local (phone)</span></div>
     <div class="ai-row"><span class="ai-key">Daily Entries</span><span class="ai-val" id="s-entries">0</span></div>
     <div class="ai-row"><span class="ai-key">Trips Recorded</span><span class="ai-val" id="s-trips">0</span></div>
@@ -1295,9 +1299,121 @@ function getData()  { try{return JSON.parse(localStorage.getItem(DATA_KEY)||'{}'
 function saveData(d){ localStorage.setItem(DATA_KEY, JSON.stringify(d)) }
 function getTrips() { try{return JSON.parse(localStorage.getItem(TRIPS_KEY)||'[]')}catch{return[]} }
 function saveTrips(t){ localStorage.setItem(TRIPS_KEY, JSON.stringify(t)) }
+// ── MONTHLY SETTINGS ─────────────────────────────
+// No preset figures. A month with nothing saved follows the most recent earlier
+// month that has figures. Est. Petrol / Day is worked out from the Petrol Cost
+// Estimator (distance ÷ km/L × price − discount). Once a month has started, its
+// figures are fixed.
+function _ymNum(ym){ const a=String(ym).split('_').map(Number); return a[0]*12+(a[1]-1); }
+function _ymFromNum(n){ return Math.floor(n/12)+'_'+(n%12+1); }
+function _curYM(){ const d=new Date(); return d.getFullYear()+'_'+(d.getMonth()+1); }
+function _ymLabel(ym){ const a=String(ym).split('_').map(Number); return MONTHS[a[1]-1]+' '+a[0]; }
+function _numOrNull(v){ if(v===null||v===undefined||v==='') return null; const n=Number(v); return isNaN(n)?null:n; }
+function _readSet(ym){ try{ const r=localStorage.getItem(SET_KEY(ym)); return r?JSON.parse(r):null; }catch(e){ return null; } }
+function _normSet(o){
+  const other=_numOrNull(o.other);
+  return { net:_numOrNull(o.net), days:_numOrNull(o.days), petrol:_numOrNull(o.petrol),
+    other:other===null?0:other, petrolSrc:o.petrolSrc||'manual', petrolNote:o.petrolNote||'', locked:!!o.locked };
+}
+function _storeSet(ym,o){
+  putSettings(ym,{net:o.net,days:o.days,petrol:o.petrol,other:o.other,petrolSrc:o.petrolSrc,petrolNote:o.petrolNote,locked:!!o.locked});
+}
+
 function getSettings(ym){
-  try{return JSON.parse(localStorage.getItem(SET_KEY(ym))||'{"net":7000,"days":27,"petrol":40,"other":0}')}
-  catch{return{net:7000,days:27,petrol:40}}
+  const n=_ymNum(ym), cur=_ymNum(_curYM());
+  const own=_readSet(ym);
+  if(own){
+    const s=_normSet(own); s.saved=true;
+    // Auto petrol keeps following the estimator until the month starts, then is fixed
+    if(s.petrolSrc==='auto'&&!s.locked){
+      const a=calcAutoPetrol();
+      if(a){ s.petrol=a.value; s.petrolNote=a.note; }
+      if(n<=cur){ s.locked=true; _storeSet(ym,s); }
+    }
+    return s;
+  }
+  // Nothing saved for this month: follow the most recent earlier month
+  let base=null, baseYM=null;
+  for(let i=n-1;i>=n-60;i--){ const r=_readSet(_ymFromNum(i)); if(r){ base=_normSet(r); baseYM=_ymFromNum(i); break; } }
+  const s={ net:base?base.net:null, days:base?base.days:null, other:base?base.other:0,
+    petrol:base?base.petrol:null, petrolSrc:base?base.petrolSrc:'manual',
+    petrolNote:base?('Carried from '+_ymLabel(baseYM)):'', locked:false, saved:false };
+  if(n>=cur){
+    const a=calcAutoPetrol();
+    if(a){ s.petrol=a.value; s.petrolSrc='auto'; s.petrolNote=a.note; }
+  }
+  // This month has started: fix its figures from now on
+  if(n===cur&&(base||s.petrol!==null)){
+    s.locked=true; _storeSet(ym,s); s.saved=true;
+  }
+  return s;
+}
+
+// ── PETROL COST ESTIMATOR VALUES ─────────────────
+// Typed figures are kept (overrides) until Refill; otherwise taken from petrol records
+function _getEstOverrides(){ try{ return JSON.parse(localStorage.getItem('mdl_est_overrides')||'{}')||{}; }catch(e){ return {}; } }
+function saveEstOverride(field,val){
+  const o=_getEstOverrides();
+  if(val===''||val===null||isNaN(parseFloat(val))) delete o[field]; else o[field]=parseFloat(val);
+  localStorage.setItem('mdl_est_overrides',JSON.stringify(o));
+  const sub=document.getElementById('est-'+field+'-sub');
+  if(sub) sub.textContent=(field in o)?'Entered by you':'Cleared — tap Refill to reload';
+}
+function saveEstDistance(val){
+  if(val===''||isNaN(parseFloat(val))) localStorage.removeItem('mdl_est_distance');
+  else localStorage.setItem('mdl_est_distance',String(parseFloat(val)));
+}
+function _dmy(ds){ const a=String(ds).split('-'); return a.length===3?a[2]+'/'+a[1]+'/'+a[0]:ds; }
+
+function getEstimatorValues(){
+  const ov=_getEstOverrides();
+  const allFuel=getFuelRecords(); // newest first
+  const v={price:null,priceSrc:'',distance:null,consumption:null,consSrc:'',discount:null,discSrc:''};
+  // Price
+  if(ov.price!=null){ v.price=ov.price; v.priceSrc='Entered by you'; }
+  else if(allFuel.length&&allFuel[0].pricePerL){ v.price=allFuel[0].pricePerL; v.priceSrc='From latest top-up ('+_dmy(allFuel[0].date)+')'; }
+  else v.priceSrc='No records yet — enter manually';
+  // Distance (always entered by you)
+  const d=parseFloat(localStorage.getItem('mdl_est_distance'));
+  if(d>0) v.distance=d;
+  // Consumption
+  if(ov.consumption!=null){ v.consumption=ov.consumption; v.consSrc='Entered by you'; }
+  else {
+    const t=new Date(); const lm=new Date(t.getFullYear(),t.getMonth()-1,1);
+    const lmPrefix=lm.getFullYear()+'-'+String(lm.getMonth()+1).padStart(2,'0');
+    const avg=recs=>{ const dist=recs.reduce((a,r)=>a+(r.distance||0),0), vol=recs.reduce((a,r)=>a+((r.distance||0)>0?(r.volume||0):0),0); return (dist>0&&vol>0)?parseFloat((dist/vol).toFixed(1)):null; };
+    const lmRecs=allFuel.filter(r=>r.date&&r.date.startsWith(lmPrefix));
+    const lmAvg=avg(lmRecs);
+    if(lmAvg){ v.consumption=lmAvg; v.consSrc='Last month avg ('+lmRecs.length+' record'+(lmRecs.length>1?'s':'')+')'; }
+    else { const allAvg=avg(allFuel); if(allAvg){ v.consumption=allAvg; v.consSrc='All-time avg (no last month data)'; } else v.consSrc='No records with distance — enter manually'; }
+  }
+  // Discount
+  if(ov.discount!=null){ v.discount=ov.discount; v.discSrc='Entered by you'; }
+  else {
+    const withDisc=allFuel.find(r=>r.discountPct&&parseFloat(r.discountPct)>0);
+    if(withDisc){ v.discount=parseFloat(parseFloat(withDisc.discountPct).toFixed(0)); v.discSrc='From top-up on '+_dmy(withDisc.date); }
+    else v.discSrc='No discount records — enter if any';
+  }
+  return v;
+}
+
+// Option B: distance ÷ km/L × price × (1 − discount). Returns null if a figure is missing.
+function calcAutoPetrol(){
+  const v=getEstimatorValues();
+  if(!(v.price>0)||!(v.distance>0)||!(v.consumption>0)) return null;
+  const disc=v.discount||0;
+  const cost=v.distance/v.consumption*v.price*(1-disc/100);
+  return { value:parseFloat(cost.toFixed(2)),
+    note:'Auto: '+v.distance+' km at $'+v.price.toFixed(2)+'/L, '+v.consumption+' km/L'+(disc?', '+disc+'% off':'') };
+}
+
+// Reality check: actual petrol spend per driving day in the month before ym
+function lastMonthActualPetrol(ym){
+  const pv=_ymFromNum(_ymNum(ym)-1).split('_').map(Number);
+  const prefix=pv[0]+'-'+String(pv[1]).padStart(2,'0')+'-';
+  const cost=getFuelRecords().filter(r=>r.date&&r.date.startsWith(prefix)).reduce((a,r)=>a+(r.costAfter||0),0);
+  const days=new Set(getTrips().filter(t=>t.date&&t.date.startsWith(prefix)).map(t=>t.date)).size;
+  return {label:MONTHS[pv[1]-1], cost, days, perDay:(cost>0&&days>0)?cost/days:null};
 }
 function putSettings(ym,s){ localStorage.setItem(SET_KEY(ym),JSON.stringify(s)) }
 
@@ -2090,37 +2206,43 @@ function renderSummary(){
   const fuelRecords=getFuelRecords().filter(r=>r.date?.startsWith(prefix));
   const k4=fuelRecords.reduce((a,r)=>a+(r.costAfter||0),0);
   const driven=entries.filter(e=>e.driving&&monthTrips.filter(t=>t.date===e.date).length>0).length;
-  const rem=Math.max(0,s.days-driven);
+  const ready=s.net!==null&&s.days!==null&&s.days>0&&s.petrol!==null;
+  const note=document.getElementById('sum-setup-note');
+  if(note) note.style.display=ready?'none':'block';
+  const days=s.days||0, net=s.net||0, petrolDay=s.petrol||0;
+  const rem=Math.max(0,days-driven);
 
-  const k1=s.net, k2=k1+s.days*(s.petrol+(s.other||0));
+  const k1=net, k2=k1+days*(petrolDay+(s.other||0));
   const totalOtherSoFar=driven*(s.other||0);
   const k5=k3-k4-totalOtherSoFar, k6=Math.max(0,k2-k3), k7=Math.max(0,k1-k5);
-  const k8=k2/Math.max(1,s.days), k9=k6/Math.max(1,rem);
+  const k8=k2/Math.max(1,days), k9=k6/Math.max(1,rem);
 
   // Banner — whole dollars only
   const fmInt=v=>'$'+Math.round(v);
   document.getElementById('tb-gross').textContent=fmInt(k3);
   document.getElementById('tb-net').textContent=fmInt(k5);
-  document.getElementById('tb-rem-gross').textContent=fmInt(k6);
-  document.getElementById('tb-dist').textContent=fmInt(k9);
+  document.getElementById('tb-rem-gross').textContent=ready?fmInt(k6):'—';
+  document.getElementById('tb-dist').textContent=ready?fmInt(k9):'—';
 
   const fm=v=>fmtMoney(v);
-  document.getElementById('k1').textContent=fm(k1);
-  document.getElementById('k2').textContent=fm(k2);
+  const fmT=v=>ready?fm(v):'—';
+  document.getElementById('k1').textContent=s.net!==null?fm(k1):'—';
+  document.getElementById('k2').textContent=fmT(k2);
   document.getElementById('k3').textContent=fm(k3);
   document.getElementById('k4').textContent=fm(k4);
   document.getElementById('k5').textContent=fm(k5);
-  document.getElementById('k6').textContent=fm(k6);
-  document.getElementById('k7').textContent=fm(k7);
-  document.getElementById('k8').textContent=fm(k8);
-  document.getElementById('k9').textContent=fm(k9);
-  document.getElementById('k10').textContent=s.days;
-  document.getElementById('k11').textContent=rem;
+  document.getElementById('k6').textContent=fmT(k6);
+  document.getElementById('k7').textContent=s.net!==null?fm(k7):'—';
+  document.getElementById('k8').textContent=fmT(k8);
+  document.getElementById('k9').textContent=fmT(k9);
+  document.getElementById('k10').textContent=s.days!==null?s.days:'—';
+  document.getElementById('k11').textContent=s.days!==null?rem:'—';
 
   // K12 — Petrol Budget Variance (planned petrol - actual petrol)
-  const k12=(s.days*s.petrol)-k4;
+  const k12=(days*petrolDay)-k4;
   const k12El=document.getElementById('k12');
-  if(k12El){
+  if(k12El&&!ready){ k12El.textContent='—'; k12El.style.color='var(--muted)'; k12El.style.fontWeight='400'; }
+  else if(k12El){
     k12El.textContent=(k12>=0?'+':'')+fmtMoney(k12);
     k12El.style.color=k12<0?'var(--danger)':'var(--accent)';
     k12El.style.fontWeight=k12<0?'700':'400';
@@ -2718,70 +2840,46 @@ function initSettings(){
   const lbl=document.getElementById('set-month-label');
   if(lbl) lbl.textContent=MONTHS[now.getMonth()]+' '+now.getFullYear()+(isCurrent?' (Current)':'');
   const s=getSettings(ym);
-  document.getElementById('s-net').value=s.net;
-  document.getElementById('s-days').value=s.days;
-  document.getElementById('s-petrol').value=s.petrol;
-  document.getElementById('s-other').value=s.other||0;
+  const show=v=>(v===null||v===undefined)?'':v;
+  document.getElementById('s-net').value=show(s.net);
+  document.getElementById('s-days').value=show(s.days);
+  document.getElementById('s-petrol').value=show(s.petrol);
+  document.getElementById('s-other').value=show(s.other);
+  updatePetrolNotes(ym,s);
   document.getElementById('s-entries').textContent=Object.keys(getData()).length;
   document.getElementById('s-trips').textContent=getTrips().length;
   document.getElementById('s-maps-key').value=localStorage.getItem('mdl_maps_api_key')||'';
   document.getElementById('s-gemini-key').value=localStorage.getItem('mdl_gemini_api_key')||'';
 
-  // Pre-fill Petrol Cost Estimator defaults
-  const allFuel=getFuelRecords();
+  // Petrol Cost Estimator — typed figures kept, otherwise from petrol records
+  const v=getEstimatorValues();
+  const setF=(id,val,subId,sub)=>{ const el=document.getElementById(id); if(el) el.value=show(val); const se=subId&&document.getElementById(subId); if(se) se.textContent=sub; };
+  setF('est-price', v.price!==null?v.price.toFixed(3):null, 'est-price-sub', v.priceSrc);
+  setF('est-distance', v.distance, null, '');
+  setF('est-consumption', v.consumption, 'est-consumption-sub', v.consSrc);
+  setF('est-discount', v.discount, 'est-discount-sub', v.discSrc);
+}
 
-  // 1. Latest petrol price from most recent record
-  const latestPrice=allFuel.length>0&&allFuel[0].pricePerL?allFuel[0].pricePerL:null;
-  const priceEl=document.getElementById('est-price');
-  const priceSubEl=document.getElementById('est-price-sub');
-  if(priceEl){
-    if(latestPrice){ priceEl.value=latestPrice.toFixed(3); priceSubEl.textContent='From latest top-up ('+allFuel[0].date+')'; }
-    else { priceEl.value=''; priceSubEl.textContent='No records yet — enter manually'; }
+function updatePetrolNotes(ym,s){
+  const sub=document.getElementById('s-petrol-sub');
+  if(sub){
+    if(s.petrol===null) sub.textContent='Not set — fill the estimator below, or type a figure';
+    else if(s.petrolSrc==='auto') sub.textContent=s.petrolNote||'Auto from estimator';
+    else sub.textContent=s.petrolNote&&!s.saved?s.petrolNote:'Entered by you';
   }
-
-  // 2. Distance — load from localStorage so it persists across sessions
-  const distEl=document.getElementById('est-distance');
-  if(distEl) distEl.value=localStorage.getItem('mdl_est_distance')||'350';
-
-  // 3. Last month avg km/L
-  const lastMonthYM=(()=>{const d=new Date();d.setMonth(d.getMonth()-1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');})();
-  const lastMonthFuel=allFuel.filter(r=>r.date&&r.date.startsWith(lastMonthYM));
-  const consEl=document.getElementById('est-consumption');
-  const consSubEl=document.getElementById('est-consumption-sub');
-  if(consEl){
-    if(lastMonthFuel.length>0){
-      const totalDist=lastMonthFuel.reduce((a,r)=>a+(r.distance||0),0);
-      const totalVol=lastMonthFuel.reduce((a,r)=>a+(r.volume||0),0);
-      if(totalDist>0&&totalVol>0){
-        const avg=(totalDist/totalVol).toFixed(1);
-        consEl.value=avg;
-        consSubEl.textContent='Last month avg ('+lastMonthFuel.length+' record'+(lastMonthFuel.length>1?'s':'')+')';
-      } else { consEl.value='12.0'; consSubEl.textContent='Last month — no distance data, using 12.0'; }
-    } else {
-      // Fall back to all-time avg
-      const totalDist=allFuel.reduce((a,r)=>a+(r.distance||0),0);
-      const totalVol=allFuel.reduce((a,r)=>a+(r.volume||0),0);
-      if(totalDist>0&&totalVol>0){
-        const avg=(totalDist/totalVol).toFixed(1);
-        consEl.value=avg;
-        consSubEl.textContent='All-time avg (no last month records)';
-      } else { consEl.value='12.0'; consSubEl.textContent='Default — no records available'; }
-    }
+  const act=document.getElementById('s-petrol-actual');
+  if(act){
+    const a=lastMonthActualPetrol(ym);
+    act.textContent=a.perDay!==null
+      ? a.label+' actual: $'+a.perDay.toFixed(2)+'/day over '+a.days+' driving day'+(a.days!==1?'s':'')
+      : a.label+' actual: no petrol records';
   }
+}
 
-  // 4. Discount % from latest fuel record that has a discount
-  const discEl=document.getElementById('est-discount');
-  const discSubEl=document.getElementById('est-discount-sub');
-  if(discEl){
-    const latestWithDisc=allFuel.find(r=>r.discountPct&&parseFloat(r.discountPct)>0);
-    if(latestWithDisc){
-      discEl.value=parseFloat(latestWithDisc.discountPct).toFixed(0);
-      discSubEl.textContent='From top-up on '+latestWithDisc.date;
-    } else {
-      discEl.value='0';
-      discSubEl.textContent='No discount records found — enter manually';
-    }
-  }
+function refillEstimator(){
+  localStorage.removeItem('mdl_est_overrides');
+  initSettings();
+  toast('Estimator refilled from your petrol records ✓');
 }
 
 function calcPetrolEstimate(){
@@ -2792,7 +2890,7 @@ function calcPetrolEstimate(){
   const resultEl=document.getElementById('est-result');
   const formulaEl=document.getElementById('est-formula');
   if(!price||!distance||!consumption||consumption<=0){
-    toast('Please fill in all three fields');
+    toast('Please fill in Petrol Price, Est. Distance and Consumption',3000);
     return;
   }
   const litresPerDay=distance/consumption;
@@ -2811,7 +2909,7 @@ function applyPetrolEstimate(){
   const petrolEl=document.getElementById('s-petrol');
   if(petrolEl){
     petrolEl.value=cost.toFixed(2);
-    saveSettings();
+    saveSettings('apply');
     toast('Est. Petrol / Day updated to $'+cost.toFixed(2)+' ✓');
   }
 }
@@ -2824,14 +2922,21 @@ function saveApiKeys(){
   toast('API keys saved ✓');
 }
 
-function saveSettings(){
+function saveSettings(changed){
   const now=settingsMonth, ym=now.getFullYear()+'_'+(now.getMonth()+1);
-  putSettings(ym,{
-    net:parseFloat(document.getElementById('s-net').value)||7000,
-    days:parseInt(document.getElementById('s-days').value)||27,
-    petrol:parseFloat(document.getElementById('s-petrol').value)||40,
-    other:parseFloat(document.getElementById('s-other').value)||0
-  });
+  const cur=getSettings(ym);
+  const val=id=>{ const v=document.getElementById(id).value; if(v==='') return null; const n=parseFloat(v); return isNaN(n)?null:n; };
+  let src=cur.petrolSrc, note=cur.petrolNote, locked=cur.locked;
+  if(changed==='petrol'){ src='manual'; note=''; }
+  if(changed==='apply'){ const a=calcAutoPetrol(); src='auto'; note=a?a.note:'From estimator'; locked=true; }
+  const other=val('s-other');
+  const obj={ net:val('s-net'), days:val('s-days'), petrol:val('s-petrol'), other:other===null?0:other,
+    petrolSrc:src, petrolNote:note, locked:locked };
+  // A future month keeps following the estimator for petrol unless you typed it
+  if(src==='auto'&&changed!=='apply'&&_ymNum(ym)>_ymNum(_curYM())) obj.locked=false;
+  _storeSet(ym,obj);
+  obj.saved=true;
+  updatePetrolNotes(ym,obj);
   toast('Settings saved ✓');
 }
 
@@ -2895,6 +3000,7 @@ function buildBackup(){
     settings:settings,
     petrolSlots:petrolSlots,
     estDistance:localStorage.getItem('mdl_est_distance')||'',
+    estOverrides:_getEstOverrides(),
     theme:localStorage.getItem('mdl_theme')||''
   };
 }
@@ -2978,6 +3084,7 @@ async function restoreBackup(input){
       });
     }
     if(b.estDistance) localStorage.setItem('mdl_est_distance', b.estDistance);
+    if(b.estOverrides&&typeof b.estOverrides==='object') localStorage.setItem('mdl_est_overrides', JSON.stringify(b.estOverrides));
     if(b.theme==='light'||b.theme==='dark'){
       localStorage.setItem('mdl_theme', b.theme);
       const isLight=document.body.classList.contains('light-mode');
