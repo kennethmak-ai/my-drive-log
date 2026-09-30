@@ -971,7 +971,7 @@ body.light-mode .fuel-stat{background:var(--card)}
 
   <div class="set-section-title" style="margin-top:18px">App Info</div>
   <div class="card" style="margin-top:0">
-    <div class="ai-row"><span class="ai-key">Version</span><span class="ai-val">v3.0.9</span></div>
+    <div class="ai-row"><span class="ai-key">Version</span><span class="ai-val">v3.0.11</span></div>
     <div class="ai-row"><span class="ai-key">Storage</span><span class="ai-val">Local (phone)</span></div>
     <div class="ai-row"><span class="ai-key">Daily Entries</span><span class="ai-val" id="s-entries">0</span></div>
     <div class="ai-row"><span class="ai-key">Trips Recorded</span><span class="ai-val" id="s-trips">0</span></div>
@@ -3639,9 +3639,7 @@ function renderFuelHistory(){
         ${r.distance?'<div class="fuel-stat"><div class="fuel-stat-label">Distance</div><div class="fuel-stat-val">'+r.distance+' km</div></div>':''}
         ${r.consumption?`<div class="fuel-stat"><div class="fuel-stat-label">Consumption</div><div class="fuel-stat-val">${(c=>{return c>0&&c<1?(1/c).toFixed(2):parseFloat(c).toFixed(2)})(r.consumption)} km/L</div></div>`:''}
         ${r.discountPct?'<div class="fuel-stat"><div class="fuel-stat-label">Discount</div><div class="fuel-stat-val">'+r.discountPct+'%</div></div>':''}
-        ${r.daysSinceLast?'<div class="fuel-stat"><div class="fuel-stat-label">Days Since Last</div><div class="fuel-stat-val">'+r.daysSinceLast+'d</div></div>':''}
       </div>
-      ${r.periodFrom?'<div style="font-size:11px;color:var(--muted);margin-top:6px">Period: '+(([y,mo,d])=>`${d}/${mo}/${y}`)(r.periodFrom.split('-'))+' → '+(([y,mo,d])=>`${d}/${mo}/${y}`)(r.date.split('-'))+'</div>':''}
       <div style="margin-top:8px;display:flex;justify-content:flex-end;gap:12px">
         <button onclick="editFuelRecord(${r.id})" style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;touch-action:manipulation">✎ Edit</button>
         <button onclick="deleteFuelRecord(${r.id})" style="background:none;border:none;color:var(--danger);font-size:12px;cursor:pointer;touch-action:manipulation">✕ Delete</button>
