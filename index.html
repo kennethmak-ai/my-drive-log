@@ -623,25 +623,6 @@ body.light-mode .fuel-stat{background:var(--card)}
     <button class="mnav-btn" onclick="changeMonth(1)">›</button>
   </div>
 
-  <!-- Summary banner — 4 key monthly metrics, whole dollars -->
-  <div class="today-banner">
-    <div class="tb-cell">
-      <div class="tb-label">Gross So Far</div>
-      <div class="tb-val" id="tb-gross">$0</div>
-    </div>
-    <div class="tb-cell">
-      <div class="tb-label">Est. Net So Far</div>
-      <div class="tb-val" id="tb-net">$0</div>
-    </div>
-    <div class="tb-cell">
-      <div class="tb-label">Rem. Gross Needed</div>
-      <div class="tb-val" id="tb-rem-gross">$0</div>
-    </div>
-    <div class="tb-cell">
-      <div class="tb-label">Bal. Gross / Day</div>
-      <div class="tb-val" id="tb-dist">$0</div>
-    </div>
-  </div>
   <div id="sum-setup-note" style="display:none;margin:10px 0 0;padding:10px 12px;border:1px dashed var(--warn);border-radius:var(--r);font-size:12px;color:var(--warn)">
     Targets not set for this month. Enter Target Monthly Net, Planned Driving Days and Est. Petrol / Day in the Settings tab to see your targets.
   </div>
@@ -653,18 +634,19 @@ body.light-mode .fuel-stat{background:var(--card)}
   <div class="kpi-row" style="margin-top:6px"><span class="kpi-lbl">K2 &middot; Target Gross Earning</span><span class="kpi-val" id="k2">$0</span></div>
   <div class="kpi-row" style="margin-top:6px"><span class="kpi-lbl">K3 &middot; Total Gross So Far</span><span class="kpi-val" id="k3">$0</span></div>
   <div class="kpi-row" style="margin-top:6px"><span class="kpi-lbl">K4 &middot; Total Petrol So Far</span><span class="kpi-val" id="k4">$0</span></div>
-  <div class="kpi-row star-yellow" style="margin-top:6px"><span class="kpi-lbl">⭐ K5 &middot; Est. Net So Far</span><span class="kpi-val yellow" id="k5">$0</span></div>
-  <div class="kpi-row star-green" style="margin-top:6px"><span class="kpi-lbl">⭐ K6 &middot; Remaining Gross Needed</span><span class="kpi-val green" id="k6">$0</span></div>
-  <div class="kpi-row" style="margin-top:6px"><span class="kpi-lbl">K7 &middot; Remaining Net Needed</span><span class="kpi-val" id="k7">$0</span></div>
-  <div class="kpi-row" style="margin-top:6px"><span class="kpi-lbl">K8 &middot; Req. Avg Gross / Planned Day</span><span class="kpi-val" id="k8">$0</span></div>
-  <div class="kpi-row star-amber" style="margin-top:6px"><span class="kpi-lbl">⭐ K9 &middot; Balance Gross / Remaining Day</span><span class="kpi-val amber" id="k9">$0</span></div>
+  <div class="kpi-row" style="margin-top:6px"><span class="kpi-lbl">K5 &middot; Total Fixed Cost So Far</span><span class="kpi-val" id="kfix">$0</span></div>
+  <div class="kpi-row star-yellow" style="margin-top:6px"><span class="kpi-lbl">⭐ K6 &middot; Est. Net So Far</span><span class="kpi-val yellow" id="k5">$0</span></div>
+  <div class="kpi-row star-green" style="margin-top:6px"><span class="kpi-lbl">⭐ K7 &middot; Remaining Gross Needed</span><span class="kpi-val green" id="k6">$0</span></div>
+  <div class="kpi-row" style="margin-top:6px"><span class="kpi-lbl">K8 &middot; Remaining Net Needed</span><span class="kpi-val" id="k7">$0</span></div>
+  <div class="kpi-row" style="margin-top:6px"><span class="kpi-lbl">K9 &middot; Req. Avg Gross / Planned Day</span><span class="kpi-val" id="k8">$0</span></div>
+  <div class="kpi-row star-amber" style="margin-top:6px"><span class="kpi-lbl">⭐ K10 &middot; Balance Gross / Remaining Day</span><span class="kpi-val amber" id="k9">$0</span></div>
 
   <!-- K10 + K11 side by side -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 12px 0">
-    <div class="kpi-row" style="margin:0"><span class="kpi-lbl" style="font-size:12px">K10 &middot; Planned Days</span><span class="kpi-val" id="k10">0</span></div>
-    <div class="kpi-row" style="margin:0"><span class="kpi-lbl" style="font-size:12px">K11 &middot; Remaining</span><span class="kpi-val" id="k11">0</span></div>
+    <div class="kpi-row" style="margin:0"><span class="kpi-lbl" style="font-size:12px">K11 &middot; Planned Days</span><span class="kpi-val" id="k10">0</span></div>
+    <div class="kpi-row" style="margin:0"><span class="kpi-lbl" style="font-size:12px">K12 &middot; Remaining</span><span class="kpi-val" id="k11">0</span></div>
   </div>
-  <div class="kpi-row" id="k12-row" style="margin-top:6px"><span class="kpi-lbl">K12 &middot; Petrol Budget Variance</span><span class="kpi-val" id="k12">$0</span></div>
+  <div class="kpi-row" id="k12-row" style="margin-top:6px"><span class="kpi-lbl">K13 &middot; Petrol Budget Variance</span><span class="kpi-val" id="k12">$0</span></div>
   <div style="margin:2px 12px 0;font-size:11px;color:var(--muted)">+ve = planned &gt; actual</div>
   <div style="height:100vh"></div>
 </div>
@@ -802,8 +784,14 @@ body.light-mode .fuel-stat{background:var(--card)}
     <div class="fuel-card">
       <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px;letter-spacing:.05em">NEW TOP-UP</div>
 
+      <!-- Single / Multiple receipts -->
+      <div class="tog-row" style="margin-bottom:10px">
+        <button class="tog on" id="fuel-mode-single" type="button" onclick="setFuelMode('single')">Single Receipt</button>
+        <button class="tog" id="fuel-mode-multi" type="button" onclick="setFuelMode('multi')">Multiple Receipts</button>
+      </div>
+
       <!-- Photo capture options -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <div id="fuel-photo-row" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
         <button class="fuel-photo-btn" onclick="document.getElementById('fuel-camera-input').click()" style="flex-direction:column;gap:6px;padding:12px 8px">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
           <span style="font-size:12px">Take Photo</span>
@@ -820,6 +808,9 @@ body.light-mode .fuel-stat{background:var(--card)}
         <div style="font-size:12px">OpenAI is extracting the details</div>
       </div>
 
+      <!-- Multiple receipts: list, prompt and combined screen -->
+      <div id="fuel-multi-panel" style="display:none"></div>
+
       <!-- Extracted fields -->
       <div id="fuel-form">
         <label class="lbl">Country</label>
@@ -828,10 +819,11 @@ body.light-mode .fuel-stat{background:var(--card)}
           <button class="tog" id="fuel-ctry-MY" type="button" onclick="setFuelCountry('MY')">🇲🇾 Malaysia</button>
         </div>
         <div id="fuel-rate-note" style="display:none;font-size:11px;margin:0 0 8px"></div>
+        <div id="fuel-date-warn" style="display:none;font-size:12px;font-weight:600;color:var(--danger);margin:0 0 8px;padding:8px 10px;border:1px solid var(--danger);border-radius:var(--r)"></div>
         <div class="two-col" style="margin-bottom:8px">
           <div>
             <label class="lbl">Date</label>
-            <input class="inp" type="date" id="fuel-date" oninput="fuelFormChanged()">
+            <input class="inp" type="date" id="fuel-date" oninput="hideFuelDateWarn();fuelFormChanged()">
           </div>
           <div>
             <label class="lbl" id="lbl-fuel-price">Price ($/L)</label>
@@ -858,7 +850,7 @@ body.light-mode .fuel-stat{background:var(--card)}
             <input class="inp" type="number" inputmode="decimal" id="fuel-cost-after" placeholder="e.g. 96.18" step="0.01" oninput="calcFuelFields()">
           </div>
         </div>
-        <div style="margin-bottom:8px">
+        <div id="fuel-distance-wrap" style="margin-bottom:8px">
           <label class="lbl">Distance Since Last Top-Up (km)</label>
           <input class="inp" type="number" inputmode="decimal" id="fuel-distance" placeholder="e.g. 420" step="1" oninput="calcFuelFields()" style="font-family:'Space Mono',monospace">
         </div>
@@ -971,7 +963,7 @@ body.light-mode .fuel-stat{background:var(--card)}
 
   <div class="set-section-title" style="margin-top:18px">App Info</div>
   <div class="card" style="margin-top:0">
-    <div class="ai-row"><span class="ai-key">Version</span><span class="ai-val">v3.0.11</span></div>
+    <div class="ai-row"><span class="ai-key">Version</span><span class="ai-val">v3.0.12</span></div>
     <div class="ai-row"><span class="ai-key">Storage</span><span class="ai-val">Local (phone)</span></div>
     <div class="ai-row"><span class="ai-key">Daily Entries</span><span class="ai-val" id="s-entries">0</span></div>
     <div class="ai-row"><span class="ai-key">Trips Recorded</span><span class="ai-val" id="s-trips">0</span></div>
@@ -1379,7 +1371,7 @@ function getEstimatorValues(){
   // Price
   if(ov.price!=null){ v.price=ov.price; v.priceSrc='Entered by you'; }
   else {
-    const sg=allFuel.find(r=>r.country!=='MY'&&r.pricePerL>0);
+    const sg=_fuelLines(allFuel).find(r=>r.country!=='MY'&&r.pricePerL>0);
     if(sg){ v.price=sg.pricePerL; v.priceSrc='From latest Singapore top-up ('+_dmy(sg.date)+')'; }
     else v.priceSrc='No Singapore records yet — enter manually';
   }
@@ -1400,7 +1392,7 @@ function getEstimatorValues(){
   // Discount
   if(ov.discount!=null){ v.discount=ov.discount; v.discSrc='Entered by you'; }
   else {
-    const withDisc=allFuel.find(r=>r.country!=='MY'&&r.discountPct&&parseFloat(r.discountPct)>0);
+    const withDisc=_fuelLines(allFuel).find(r=>r.country!=='MY'&&r.discountPct&&parseFloat(r.discountPct)>0);
     if(withDisc){ v.discount=parseFloat(parseFloat(withDisc.discountPct).toFixed(0)); v.discSrc='From top-up on '+_dmy(withDisc.date); }
     else v.discSrc='No discount records — enter if any';
   }
@@ -2227,19 +2219,13 @@ function renderSummary(){
   const k5=k3-k4-totalOtherSoFar, k6=Math.max(0,k2-k3), k7=Math.max(0,k1-k5);
   const k8=k2/Math.max(1,days), k9=k6/Math.max(1,rem);
 
-  // Banner — whole dollars only
-  const fmInt=v=>'$'+Math.round(v);
-  document.getElementById('tb-gross').textContent=fmInt(k3);
-  document.getElementById('tb-net').textContent=fmInt(k5);
-  document.getElementById('tb-rem-gross').textContent=ready?fmInt(k6):'—';
-  document.getElementById('tb-dist').textContent=ready?fmInt(k9):'—';
-
   const fm=v=>fmtMoney(v);
   const fmT=v=>ready?fm(v):'—';
   document.getElementById('k1').textContent=s.net!==null?fm(k1):'—';
   document.getElementById('k2').textContent=fmT(k2);
   document.getElementById('k3').textContent=fm(k3);
   document.getElementById('k4').textContent=fm(k4);
+  document.getElementById('kfix').textContent=fm(totalOtherSoFar); // K5 Total Fixed Cost So Far
   document.getElementById('k5').textContent=fm(k5);
   document.getElementById('k6').textContent=fmT(k6);
   document.getElementById('k7').textContent=s.net!==null?fm(k7):'—';
@@ -2888,6 +2874,24 @@ function updatePetrolNotes(ym,s){
 }
 
 function refillEstimator(){
+  const ov=_getEstOverrides();
+  if(!Object.keys(ov).length){
+    initSettings();
+    toast('Nothing to replace — these figures already come from your petrol records',3500);
+    return;
+  }
+  // Work out what the boxes would show without your typed figures
+  const before=getEstimatorValues();
+  localStorage.removeItem('mdl_est_overrides');
+  const after=getEstimatorValues();
+  localStorage.setItem('mdl_est_overrides',JSON.stringify(ov));
+  const f=(v,d,pre,suf)=>v===null||v===undefined?'not set':(pre||'')+Number(v).toFixed(d)+(suf||'');
+  let msg='Refill from your petrol records?\n\n';
+  msg+='Petrol Price: '+f(before.price,3,'$','/L')+'  →  '+f(after.price,3,'$','/L')+'\n';
+  msg+='Petrol Discount: '+f(before.discount,0,'','%')+'  →  '+f(after.discount,0,'','%')+'\n';
+  msg+='Consumption: '+f(before.consumption,1,'',' km/L')+'  →  '+f(after.consumption,1,'',' km/L')+'\n\n';
+  msg+='Your typed figures will be replaced. Est. Distance / Day is not changed.';
+  if(!confirm(msg)){ toast('Refill cancelled — your figures are unchanged'); return; }
   localStorage.removeItem('mdl_est_overrides');
   initSettings();
   toast('Estimator refilled from your petrol records ✓');
@@ -3283,6 +3287,7 @@ function clearFuelForm(){
     const el=document.getElementById(id); if(el) el.value='';
   });
   editingFuelRate=null; scanBrand=''; scanPetrolType='';
+  hideFuelDateWarn();
   setFuelCountry('SG');
   document.getElementById('fuel-calc-display').style.display='none';
 }
@@ -3319,6 +3324,7 @@ function setFuelCountry(c){
 }
 
 function setFuelEditMode(on){
+  if(fuelMode==='multi'){ renderMulti(); return; }
   const lbl=document.getElementById('fuel-save-label');
   const cancel=document.getElementById('fuel-cancel-edit-btn');
   if(lbl) lbl.textContent=on?'Update Top-Up Record':'Save Top-Up Record';
@@ -3326,7 +3332,10 @@ function setFuelEditMode(on){
 }
 
 function cancelFuelEdit(){
+  if(fuelMode==='multi'&&editingLineIdx!==null){ cancelLineEdit(); return; }
+  if(fuelMode==='multi'&&editingFuelId===null){ multiStage='combined'; clearFuelForm(); renderMulti(); return; }
   editingFuelId=null;
+  if(fuelMode==='multi'){ setFuelMode('single',true); renderFuelHistory(); toast('Edit cancelled — record unchanged'); return; }
   setFuelEditMode(false);
   clearFuelForm();
   renderFuelHistory();
@@ -3353,13 +3362,14 @@ function calcFuelFields(){
   if(!box||!grid) return;
   box.style.display=hasData?'block':'none';
   const stat=(l,v)=>'<div class="fuel-stat"><div class="fuel-stat-label">'+l+'</div><div class="fuel-stat-val">'+v+'</div></div>';
-  let html=stat('Consumption (km/L)', vol>0&&dist>0?(dist/vol).toFixed(2)+' km/L':'—');
+  let html=fuelMode==='multi'?'':stat('Consumption (km/L)', vol>0&&dist>0?(dist/vol).toFixed(2)+' km/L':'—');
   if(fuelCountry==='MY'){
     const r=_fuelRate();
     html+=stat('Price (S$/L)', r&&price>0?'S$'+(price/r).toFixed(3):'—');
     html+=stat('Actual Cost (S$)', r&&after>0?'S$'+(after/r).toFixed(2):'—');
   }
   grid.innerHTML=html;
+  if(!html) box.style.display='none';
 }
 
 async function extractFuelReceipt(input){
@@ -3385,6 +3395,7 @@ async function extractFuelReceipt(input){
     const prompt=`You are reading a petrol/fuel receipt from either Singapore or Malaysia. Extract the following fields and return ONLY a JSON object with no markdown, no explanation:
 {
   "country": "MY if the receipt is Malaysian (amounts in RM, a Malaysian company e.g. Sdn Bhd, SST, or brands like Petronas, Petron, BHPetrol, or a Malaysian address), otherwise SG",
+  "dateText": "the transaction date copied EXACTLY as printed on the receipt, character for character (e.g. 05/10/26 or 05-10-2026 or 05 OCT 2026), or empty string",
   "date": "YYYY-MM-DD or empty string if not found",
   "brand": "petrol station brand e.g. Esso, Shell, Caltex, SPC, Sinopec, Petronas, Petron, BHPetrol or empty string if not found",
   "petrolType": "e.g. RON 92, RON 95, RON 97, RON 98, RON 100 or empty string if not found",
@@ -3395,6 +3406,7 @@ async function extractFuelReceipt(input){
   "actualCostAfterDiscount": number or null
 }
 IMPORTANT: Give all amounts exactly as printed, in the receipt's own currency (RM for Malaysia, S$ for Singapore). Do NOT convert currency.
+IMPORTANT: This receipt is recent — it was issued within the last few weeks, in the current year or late last year. A two-digit year such as 26 means 2026.
 IMPORTANT: Singapore and Malaysian receipts print dates day first — DD/MM/YY or DD/MM/YYYY — e.g. 21/03/26 means 2026-03-21. Always convert to YYYY-MM-DD.
 If a field is unclear use null for numbers or empty string for text.`;
 
@@ -3439,7 +3451,15 @@ If a field is unclear use null for numbers or empty string for text.`;
 
     setFuelCountry(String(extracted.country||'').toUpperCase()==='MY'?'MY':'SG');
     scanBrand=extracted.brand||''; scanPetrolType=extracted.petrolType||'';
-    if(extracted.date) document.getElementById('fuel-date').value=extracted.date;
+    // Date: the app converts the printed date itself, then checks it is sensible
+    const scannedDate=parseReceiptDate(extracted.dateText)||parseReceiptDate(extracted.date);
+    if(scannedDate){
+      const chk=checkScannedDate(scannedDate);
+      document.getElementById('fuel-date').value=chk.date;
+      if(chk.warn) showFuelDateWarn(chk.warn); else hideFuelDateWarn();
+    } else if(extracted.dateText||extracted.date){
+      showFuelDateWarn('Could not read the date on the receipt — please enter it');
+    }
     if(extracted.brand){ const fb=document.getElementById('fuel-brand'); if(fb) fb.value=extracted.brand; }
     if(extracted.petrolType){ const fpt=document.getElementById('fuel-petrol-type'); if(fpt) fpt.value=extracted.petrolType; }
     if(extracted.pricePerLitre!=null) document.getElementById('fuel-price-per-l').value=extracted.pricePerLitre.toFixed(3);
@@ -3460,41 +3480,45 @@ If a field is unclear use null for numbers or empty string for text.`;
   input.value='';
 }
 
-function saveFuelRecord(){
+// Reads one receipt from the form. Amounts typed in S$ (Singapore) or RM (Malaysia);
+// returned in S$ with the RM figures and rate kept for Malaysian receipts.
+function readFuelForm(requireVolume){
   const date=document.getElementById('fuel-date').value;
-  if(!date){ toast('Please enter a date'); return; }
-  // Amounts typed in the form: S$ for Singapore, RM for Malaysia
+  if(!date){ toast('Please enter a date'); return null; }
   const fPrice=parseFloat(document.getElementById('fuel-price-per-l').value)||0;
   const volume=parseFloat(document.getElementById('fuel-volume').value)||0;
   const fBefore=parseFloat(document.getElementById('fuel-cost-before').value)||0;
   const fDisc=parseFloat(document.getElementById('fuel-discount').value)||0;
   const fAfter=parseFloat(document.getElementById('fuel-cost-after').value)||0;
-  const distance=parseFloat(document.getElementById('fuel-distance').value)||0;
-
-  if(fAfter<=0){ toast('Please enter actual fuel cost'); return; }
+  if(fAfter<=0){ toast('Please enter actual fuel cost'); return null; }
+  if(requireVolume&&!(volume>0)){ toast('Please enter the volume (litres) — needed to work out km/L',3000); return null; }
   const isMY=fuelCountry==='MY';
   const rate=isMY?_fuelRate():null;
-  if(isMY&&!rate){ toast('Enter the exchange rate in Settings → Malaysia Petrol first',3500); return; }
+  if(isMY&&!rate){ toast('Enter the exchange rate in Settings → Malaysia Petrol first',3500); return null; }
   // Everything stored in S$ so all totals stay in one currency
   const toSGD=(v,dp)=>isMY?parseFloat((v/rate).toFixed(dp)):v;
-  const pricePerL=toSGD(fPrice,3), costBefore=toSGD(fBefore,2), discount=toSGD(fDisc,2), costAfter=toSGD(fAfter,2);
+  const line={ date, country:isMY?'MY':'SG', pricePerL:toSGD(fPrice,3), volume,
+    costBefore:toSGD(fBefore,2), discount:toSGD(fDisc,2), costAfter:toSGD(fAfter,2) };
+  if(isMY){ line.rate=rate; line.rmPricePerL=fPrice; line.rmCostBefore=fBefore; line.rmDiscount=fDisc; line.rmCostAfter=fAfter; }
+  if(scanBrand) line.brand=scanBrand;
+  if(scanPetrolType) line.petrolType=scanPetrolType;
+  return line;
+}
+
+function saveFuelRecord(){
+  if(fuelMode==='multi'){ addMultiLine(); return; }
+  const line=readFuelForm(false);
+  if(!line) return;
+  const date=line.date, costAfter=line.costAfter;
+  const distance=parseFloat(document.getElementById('fuel-distance').value)||0;
 
   // Calculated fields
-  const discountPct=costBefore>0&&discount>0?((discount/costBefore)*100).toFixed(1):null;
-  const consumption=volume>0&&distance>0?(volume/distance).toFixed(3):null;
+  const discountPct=line.costBefore>0&&line.discount>0?((line.discount/line.costBefore)*100).toFixed(1):null;
+  const consumption=line.volume>0&&distance>0?(line.volume/distance).toFixed(3):null;
   let records=getFuelRecords();
   const wasEditing=editingFuelId!==null&&records.some(r=>r.id===editingFuelId);
-  const record={
-    id:wasEditing?editingFuelId:Date.now(), date, pricePerL, volume, costBefore, discount,
-    costAfter, distance, discountPct, consumption,
-    daysSinceLast:null, periodFrom:null, country:isMY?'MY':'SG'
-  };
-  if(isMY){
-    record.rate=rate;
-    record.rmPricePerL=fPrice; record.rmCostBefore=fBefore; record.rmDiscount=fDisc; record.rmCostAfter=fAfter;
-  }
-  if(scanBrand) record.brand=scanBrand;
-  if(scanPetrolType) record.petrolType=scanPetrolType;
+  const record=Object.assign({ id:wasEditing?editingFuelId:newFuelId(records) }, line,
+    { distance, discountPct, consumption, daysSinceLast:null, periodFrom:null });
   if(wasEditing){
     const old=records.find(r=>r.id===editingFuelId);
     if(old&&old.brand&&!record.brand) record.brand=old.brand;
@@ -3514,6 +3538,356 @@ function saveFuelRecord(){
 
   toast(wasEditing?'Top-up updated ✓':'Top-up saved ✓ — petrol cost updated in Entry page');
   renderFuelHistory();
+}
+
+// ── RECEIPT DATE CHECKS ──────────────────────────
+// Converts the date as printed on the receipt (day first) into YYYY-MM-DD
+function parseReceiptDate(text){
+  if(!text) return null;
+  const t=String(text).trim();
+  const ok=(y,m,d)=>{
+    if(!(y>=2000&&y<=2099&&m>=1&&m<=12&&d>=1&&d<=31)) return null;
+    const dt=new Date(y,m-1,d);
+    if(dt.getMonth()!==m-1) return null;
+    return y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+  };
+  const yr=v=>{ const n=parseInt(v,10); return String(v).length<=2?2000+n:n; };
+  let m;
+  // 2026-10-05 (year first)
+  if((m=t.match(/(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/))) return ok(+m[1],+m[2],+m[3]);
+  // 05/10/26, 05-10-2026, 05.10.26 (day first)
+  if((m=t.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/))){
+    let d=+m[1], mo=+m[2]; const y=yr(m[3]);
+    if(mo>12&&d<=12){ const x=d; d=mo; mo=x; }
+    return ok(y,mo,d);
+  }
+  // 05 OCT 2026, 05-Oct-26
+  const MON={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+  if((m=t.match(/(\d{1,2})[\s\-\/.,]*([A-Za-z]{3})[A-Za-z]*[\s\-\/.,]*(\d{2,4})/))){
+    const mo=MON[m[2].toLowerCase()];
+    if(mo) return ok(yr(m[3]),mo,+m[1]);
+  }
+  return null;
+}
+
+// A scanned date more than 60 days ago or in the future gets the current year
+function checkScannedDate(ds){
+  const DAY=86400000;
+  const today=new Date(); today.setHours(0,0,0,0);
+  const toDate=x=>{ const a=x.split('-').map(Number); return new Date(a[0],a[1]-1,a[2]); };
+  const diff=d=>Math.round((toDate(d)-today)/DAY);
+  const bad=d=>diff(d)>1||diff(d)< -60;
+  if(!bad(ds)) return {date:ds,warn:null};
+  const oldY=ds.slice(0,4), md=ds.slice(4);
+  let y=today.getFullYear();
+  let fixed=y+md;
+  if(diff(fixed)>1){ y-=1; fixed=y+md; }
+  if(!bad(fixed)&&String(y)!==oldY){
+    return {date:fixed,warn:'Year corrected from '+oldY+' to '+y+' — please check the date before saving'};
+  }
+  return {date:ds,warn:'Scanned date '+_dmy(ds)+' looks unusual — please check before saving'};
+}
+function showFuelDateWarn(msg){
+  const w=document.getElementById('fuel-date-warn'), d=document.getElementById('fuel-date');
+  if(w){ w.textContent='⚠ '+msg; w.style.display='block'; }
+  if(d){ d.style.borderColor='var(--danger)'; d.style.color='var(--danger)'; }
+}
+function hideFuelDateWarn(){
+  const w=document.getElementById('fuel-date-warn'), d=document.getElementById('fuel-date');
+  if(w){ w.textContent=''; w.style.display='none'; }
+  if(d){ d.style.borderColor=''; d.style.color=''; }
+}
+
+// ── MULTIPLE RECEIPTS ────────────────────────────
+// Several receipts (e.g. Singapore partial top-ups + a full tank in JB) saved as one record
+let fuelMode='single';          // 'single' or 'multi'
+let multiReceipts=[];           // receipts added so far (amounts in S$, RM kept for Malaysia)
+let multiStage='entry';         // 'entry' (scan/type a receipt) · 'ask' (any more?) · 'combined'
+let editingLineIdx=null;        // receipt in the list being edited
+let multiDate='', multiDistance='';
+
+// A record id that no other top-up uses
+function newFuelId(records){ let id=Date.now(); while(records.some(r=>r.id===id)) id++; return id; }
+
+function _esc(v){ return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function _flag(c){ return c==='MY'?'🇲🇾':'🇸🇬'; }
+
+// Every individual receipt, newest first (combined records are opened up)
+function _fuelLines(records){
+  const out=[];
+  records.forEach(function(r){
+    if(r.multi&&Array.isArray(r.receipts)){
+      r.receipts.forEach(function(l){
+        const x=Object.assign({},l);
+        if(!x.date) x.date=r.date;
+        if(!x.discountPct&&x.costBefore>0&&x.discount>0) x.discountPct=((x.discount/x.costBefore)*100).toFixed(1);
+        out.push(x);
+      });
+    } else out.push(r);
+  });
+  return out.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+}
+
+function _lineText(l){
+  const cost=l.country==='MY'&&l.rmCostAfter
+    ?'RM '+Number(l.rmCostAfter).toFixed(2)+' (S$'+Number(l.costAfter||0).toFixed(2)+')'
+    :'$'+Number(l.costAfter||0).toFixed(2);
+  return _flag(l.country)+' '+_dmy(l.date)+(l.brand?' · '+_esc(l.brand):'')+' · '+Number(l.volume||0).toFixed(1)+' L · '+cost;
+}
+
+function _multiTotals(){
+  const t={volume:0,costBefore:0,discount:0,costAfter:0,rm:0,count:multiReceipts.length,countries:{}};
+  multiReceipts.forEach(function(l){
+    t.volume+=l.volume||0; t.costBefore+=l.costBefore||0; t.discount+=l.discount||0; t.costAfter+=l.costAfter||0;
+    if(l.country==='MY') t.rm+=l.rmCostAfter||0;
+    t.countries[l.country||'SG']=true;
+  });
+  return t;
+}
+
+function setFuelMode(m,force){
+  m=m==='multi'?'multi':'single';
+  if(m===fuelMode&&!force) return;
+  if(!force){
+    if(editingFuelId!==null){ toast('Finish or cancel the current edit first',3000); return; }
+    if(fuelMode==='multi'&&multiReceipts.length&&
+       !confirm('Switch to Single Receipt?\n\nThe '+multiReceipts.length+' receipt'+(multiReceipts.length>1?'s':'')+' added so far (not yet saved) will be discarded.')) return;
+  }
+  fuelMode=m;
+  resetMulti();
+  clearFuelForm();
+  ['single','multi'].forEach(k=>{ const b=document.getElementById('fuel-mode-'+k); if(b) b.className='tog'+(k===fuelMode?' on':''); });
+  renderMulti();
+}
+
+function resetMulti(){
+  multiReceipts=[]; multiStage='entry'; editingLineIdx=null; multiDate=''; multiDistance='';
+}
+
+function renderMulti(){
+  const photo=document.getElementById('fuel-photo-row');
+  const form=document.getElementById('fuel-form');
+  const panel=document.getElementById('fuel-multi-panel');
+  const distWrap=document.getElementById('fuel-distance-wrap');
+  const lbl=document.getElementById('fuel-save-label');
+  const cancel=document.getElementById('fuel-cancel-edit-btn');
+  if(!panel||!form) return;
+
+  if(fuelMode!=='multi'){
+    panel.innerHTML=''; panel.style.display='none';
+    if(photo) photo.style.display='grid';
+    form.style.display='block';
+    if(distWrap) distWrap.style.display='block';
+    const on=editingFuelId!==null;
+    if(lbl) lbl.textContent=on?'Update Top-Up Record':'Save Top-Up Record';
+    if(cancel){ cancel.style.display=on?'block':'none'; cancel.textContent='Cancel Edit — Keep Original'; }
+    return;
+  }
+
+  if(distWrap) distWrap.style.display='none';
+  const entry=multiStage==='entry';
+  if(photo) photo.style.display=entry?'grid':'none';
+  form.style.display=entry?'block':'none';
+  if(lbl) lbl.textContent=editingLineIdx!==null?'Update Receipt':'＋ Add This Receipt';
+  if(cancel){
+    const showCancel=editingLineIdx!==null||(entry&&multiReceipts.length>0);
+    cancel.style.display=showCancel?'block':'none';
+    cancel.textContent=editingLineIdx!==null?'Cancel — Keep Receipt As It Was':'Back to Combined Screen';
+  }
+
+  const n=multiReceipts.length;
+  const box='background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:10px;margin-bottom:10px';
+  const small='font-size:11px;color:var(--muted);letter-spacing:.05em;margin-bottom:6px';
+  const btn='width:100%;border-radius:var(--r);padding:11px;font-size:13px;font-weight:700;cursor:pointer;touch-action:manipulation';
+  let h='';
+
+  if(multiStage==='entry'){
+    if(editingLineIdx!==null){
+      h+='<div style="'+box+';font-size:12px;color:var(--warn)">Editing receipt '+(editingLineIdx+1)+' of '+n+' — change the figures, then tap Update Receipt.</div>';
+    } else if(n===0){
+      h+='<div style="'+box+';font-size:12px;color:var(--muted)">Scan or type each receipt, then tap <b>＋ Add This Receipt</b>. When all are added, you enter the distance once for the combined top-up.</div>';
+    } else {
+      h+='<div style="'+box+'"><div style="'+small+'">RECEIPTS ADDED ('+n+')</div>'+
+         multiReceipts.map(l=>'<div style="font-size:12px;color:var(--text);padding:3px 0">'+_lineText(l)+'</div>').join('')+
+         '<div style="font-size:12px;color:var(--accent);margin-top:6px">Scan or type receipt '+(n+1)+' below.</div></div>';
+    }
+  }
+
+  if(multiStage==='ask'){
+    h+='<div style="'+box+'"><div style="'+small+'">RECEIPTS ADDED ('+n+')</div>'+
+       multiReceipts.map(l=>'<div style="font-size:12px;color:var(--text);padding:3px 0">'+_lineText(l)+'</div>').join('')+'</div>';
+    h+='<div style="'+box+';text-align:center"><div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:10px">✓ Receipt '+n+' added. Any more receipts?</div>'+
+       '<button type="button" onclick="multiAddAnother()" style="'+btn+';background:var(--surface);border:1px solid var(--accent);color:var(--accent);margin-bottom:8px">＋ Add another receipt</button>'+
+       '<button type="button" onclick="multiDone()" style="'+btn+';background:var(--accent);border:none;color:#0D1117">Done — combine '+n+' receipt'+(n>1?'s':'')+'</button></div>';
+  }
+
+  if(multiStage==='combined'){
+    const t=_multiTotals();
+    const flags=Object.keys(t.countries).map(_flag).join('+');
+    const editing=editingFuelId!==null;
+    h+='<div style="'+box+'"><div style="'+small+'">COMBINED TOP-UP · '+n+' RECEIPT'+(n>1?'S':'')+' · '+flags+'</div>'+
+       multiReceipts.map((l,i)=>'<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">'+
+         '<div style="font-size:12px;color:var(--text);min-width:0">'+_lineText(l)+'</div>'+
+         '<div style="display:flex;gap:10px;flex-shrink:0">'+
+           '<button type="button" onclick="multiEditLine('+i+')" style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;touch-action:manipulation">✎ Edit</button>'+
+           '<button type="button" onclick="multiRemoveLine('+i+')" style="background:none;border:none;color:var(--danger);font-size:12px;cursor:pointer;touch-action:manipulation">✕</button>'+
+         '</div></div>').join('')+
+       '<button type="button" onclick="multiAddAnother()" style="width:100%;background:none;border:1px dashed var(--border);border-radius:var(--r);padding:9px;font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;touch-action:manipulation;margin-top:8px">＋ Add another receipt</button></div>';
+    const row=(k,v,bold)=>'<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0"><span style="color:var(--muted)">'+k+'</span><span style="font-family:\'Space Mono\',monospace;color:var(--text);font-weight:'+(bold?'700':'400')+'">'+v+'</span></div>';
+    h+='<div style="'+box+'"><div style="'+small+'">TOTALS</div>'+
+       row('Total volume',t.volume.toFixed(2)+' L')+
+       row('Cost before discount','$'+t.costBefore.toFixed(2))+
+       row('Fuel discount','$'+t.discount.toFixed(2))+
+       row('Actual cost (S$)','$'+t.costAfter.toFixed(2),true)+
+       (t.rm>0?'<div style="font-size:11px;color:var(--muted);text-align:right">includes RM '+t.rm.toFixed(2)+' from Malaysian receipts</div>':'')+
+       '</div>';
+    const latest=multiReceipts.map(l=>l.date||'').sort().reverse()[0]||'';
+    if(!multiDate) multiDate=latest;
+    h+='<div style="'+box+'">'+
+       '<label class="lbl">Date of this top-up</label>'+
+       '<input class="inp" type="date" id="multi-date" value="'+_esc(multiDate)+'" oninput="multiDate=this.value" style="margin-bottom:4px">'+
+       '<div style="font-size:11px;color:var(--muted);margin-bottom:10px">Set to your last receipt (the full tank). The whole cost is counted in this date\'s month.</div>'+
+       '<label class="lbl">Distance Since Last Full Tank (km)</label>'+
+       '<input class="inp" type="number" inputmode="decimal" id="multi-distance" value="'+_esc(multiDistance)+'" placeholder="e.g. 420" step="1" oninput="multiDistance=this.value;updateMultiCalc()" style="font-family:\'Space Mono\',monospace;margin-bottom:8px">'+
+       '<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:12px;color:var(--muted)">Consumption</span><span id="multi-cons" style="font-family:\'Space Mono\',monospace;font-size:15px;font-weight:700;color:var(--text)">—</span></div>'+
+       '<div id="multi-cons-note" style="font-size:11px;color:var(--muted);text-align:right"></div>'+
+       '</div>';
+    h+='<button type="button" onclick="saveMultiRecord()" style="'+btn+';background:var(--accent);border:none;color:#0D1117;margin-bottom:8px">✓ '+(editing?'Update Combined Record':'Save Combined Record')+'</button>'+
+       '<button type="button" onclick="multiDiscard()" style="'+btn+';background:var(--surface);border:1px solid var(--border);color:var(--muted)">'+(editing?'Cancel Edit — Keep Original':'Discard These Receipts')+'</button>';
+  }
+
+  panel.innerHTML=h;
+  panel.style.display=h?'block':'none';
+  if(multiStage==='combined') updateMultiCalc();
+}
+
+function updateMultiCalc(){
+  const t=_multiTotals();
+  const dist=parseFloat(multiDistance)||0;
+  const el=document.getElementById('multi-cons'), note=document.getElementById('multi-cons-note');
+  if(el) el.textContent=dist>0&&t.volume>0?(dist/t.volume).toFixed(2)+' km/L':'—';
+  if(note) note.textContent=dist>0&&t.volume>0?dist+' km ÷ '+t.volume.toFixed(2)+' L from '+t.count+' receipt'+(t.count>1?'s':''):'';
+}
+
+function addMultiLine(){
+  const line=readFuelForm(true);
+  if(!line) return;
+  if(editingLineIdx!==null){
+    multiReceipts[editingLineIdx]=line;
+    editingLineIdx=null;
+    multiStage='combined';
+    toast('Receipt updated ✓');
+  } else {
+    multiReceipts.push(line);
+    multiStage='ask';
+    toast('Receipt '+multiReceipts.length+' added ✓');
+  }
+  clearFuelForm();
+  renderMulti();
+  document.getElementById('screen-petrol').scrollTop=0;
+}
+
+function multiAddAnother(){
+  editingLineIdx=null; multiStage='entry';
+  clearFuelForm(); renderMulti();
+}
+function multiDone(){
+  if(!multiReceipts.length){ multiStage='entry'; renderMulti(); return; }
+  multiStage='combined'; renderMulti();
+}
+function multiEditLine(i){
+  const l=multiReceipts[i]; if(!l) return;
+  clearFuelForm();
+  editingLineIdx=i; multiStage='entry';
+  const my=l.country==='MY';
+  editingFuelRate=my?(l.rate||null):null;
+  scanBrand=l.brand||''; scanPetrolType=l.petrolType||'';
+  document.getElementById('fuel-date').value=l.date||'';
+  document.getElementById('fuel-price-per-l').value=(my?l.rmPricePerL:l.pricePerL)||'';
+  document.getElementById('fuel-volume').value=l.volume||'';
+  document.getElementById('fuel-cost-before').value=(my?l.rmCostBefore:l.costBefore)||'';
+  document.getElementById('fuel-discount').value=(my?l.rmDiscount:l.discount)||'';
+  document.getElementById('fuel-cost-after').value=(my?l.rmCostAfter:l.costAfter)||'';
+  setFuelCountry(my?'MY':'SG');
+  renderMulti();
+  document.getElementById('screen-petrol').scrollTop=0;
+}
+function cancelLineEdit(){
+  editingLineIdx=null; multiStage='combined';
+  clearFuelForm(); renderMulti();
+}
+function multiRemoveLine(i){
+  const l=multiReceipts[i]; if(!l) return;
+  if(!confirm('Remove this receipt from the combined top-up?\n\n'+_lineText(l).replace(/&amp;/g,'&'))) return;
+  multiReceipts.splice(i,1);
+  if(!multiReceipts.length) multiStage='entry';
+  renderMulti();
+}
+function multiDiscard(){
+  if(editingFuelId!==null){ cancelFuelEdit(); return; }
+  const n=multiReceipts.length;
+  if(n&&!confirm('Discard these '+n+' receipt'+(n>1?'s':'')+'? Nothing has been saved yet.')) return;
+  resetMulti(); clearFuelForm(); renderMulti();
+}
+
+function saveMultiRecord(){
+  if(!multiReceipts.length){ toast('Add at least one receipt first'); return; }
+  const date=multiDate;
+  if(!date){ toast('Please enter the date of this top-up'); return; }
+  const distance=parseFloat(multiDistance)||0;
+  const t=_multiTotals();
+  const r2=v=>parseFloat(v.toFixed(2));
+  const volume=parseFloat(t.volume.toFixed(2));
+  const costBefore=r2(t.costBefore), discount=r2(t.discount), costAfter=r2(t.costAfter);
+  let records=getFuelRecords();
+  const wasEditing=editingFuelId!==null&&records.some(r=>r.id===editingFuelId);
+  const record={
+    id:wasEditing?editingFuelId:newFuelId(records), date, multi:true, country:'MULTI',
+    receipts:JSON.parse(JSON.stringify(multiReceipts)),
+    volume, costBefore, discount, costAfter,
+    pricePerL:volume>0?parseFloat(((costBefore||costAfter)/volume).toFixed(3)):0,
+    distance,
+    discountPct:costBefore>0&&discount>0?((discount/costBefore)*100).toFixed(1):null,
+    consumption:volume>0&&distance>0?(volume/distance).toFixed(3):null,
+    daysSinceLast:null, periodFrom:null
+  };
+  if(wasEditing) records=records.map(r=>r.id===editingFuelId?record:r);
+  else records.push(record);
+  saveFuelRecords(recalcFuelChain(records));
+  syncFuelToEntry(date, costAfter);
+  editingFuelId=null;
+  setFuelMode('single',true);
+  renderFuelHistory();
+  toast(wasEditing?'Combined top-up updated ✓':'Combined top-up saved ✓ — '+t.count+' receipts, $'+costAfter.toFixed(2),3000);
+}
+
+// History card for a combined record
+function fuelMultiCard(r){
+  const lines=Array.isArray(r.receipts)?r.receipts:[];
+  const ctry={}; lines.forEach(l=>{ ctry[l.country||'SG']=true; });
+  const flags=Object.keys(ctry).map(_flag).join('+');
+  const rm=lines.reduce((a,l)=>a+(l.country==='MY'?(l.rmCostAfter||0):0),0);
+  const cons=r.consumption?(c=>c>0&&c<1?(1/c).toFixed(2):parseFloat(c).toFixed(2))(parseFloat(r.consumption)):null;
+  return '<div class="fuel-record">'+
+    '<div class="fuel-record-header"><div>'+
+      '<div class="fuel-record-date">'+_dmy(r.date)+' <span style="font-size:11px;font-weight:600;color:var(--warn)">🧾 '+lines.length+' receipts · '+flags+'</span></div>'+
+      '<div style="font-size:12px;color:var(--muted);margin-top:2px">'+Number(r.volume||0).toFixed(1)+'L combined</div>'+
+    '</div><div style="text-align:right">'+
+      '<div class="fuel-record-cost">$'+Number(r.costAfter||0).toFixed(2)+'</div>'+
+      (rm>0?'<div style="font-size:12px;color:var(--muted)">incl. RM '+rm.toFixed(2)+'</div>':'')+
+      (r.discount>0?'<div style="font-size:12px;color:var(--muted)">saved $'+Number(r.discount).toFixed(2)+'</div>':'')+
+    '</div></div>'+
+    '<div style="margin:6px 0 8px;padding:6px 8px;background:var(--surface);border-radius:var(--r)">'+
+      lines.map(l=>'<div style="font-size:11px;color:var(--muted);padding:2px 0">'+_lineText(l)+'</div>').join('')+
+    '</div>'+
+    '<div class="fuel-grid">'+
+      (r.distance?'<div class="fuel-stat"><div class="fuel-stat-label">Distance</div><div class="fuel-stat-val">'+r.distance+' km</div></div>':'')+
+      (cons?'<div class="fuel-stat"><div class="fuel-stat-label">Consumption</div><div class="fuel-stat-val">'+cons+' km/L</div></div>':'')+
+    '</div>'+
+    '<div style="margin-top:8px;display:flex;justify-content:flex-end;gap:12px">'+
+      '<button onclick="editFuelRecord('+r.id+')" style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;touch-action:manipulation">✎ Edit</button>'+
+      '<button onclick="deleteFuelRecord('+r.id+')" style="background:none;border:none;color:var(--danger);font-size:12px;cursor:pointer;touch-action:manipulation">✕ Delete</button>'+
+    '</div></div>';
 }
 
 function syncFuelToEntry(date, costAfter){
@@ -3621,7 +3995,7 @@ function renderFuelHistory(){
   const grouped={};
   records.forEach(r=>{ const ym=r.date.slice(0,7); if(!grouped[ym])grouped[ym]=[]; grouped[ym].push(r); });
 
-  const recordItems=r=>`
+  const recordItems=r=>r.multi?fuelMultiCard(r):`
     <div class="fuel-record">
       <div class="fuel-record-header">
         <div>
@@ -3682,6 +4056,19 @@ function editFuelRecord(id){
   const records=getFuelRecords();
   const r=records.find(x=>x.id===id);
   if(!r) return;
+  if(r.multi){
+    setFuelMode('multi',true);
+    multiReceipts=JSON.parse(JSON.stringify(r.receipts||[]));
+    multiStage='combined';
+    multiDate=r.date||''; multiDistance=r.distance?String(r.distance):'';
+    editingFuelId=id;
+    renderMulti();
+    document.getElementById('screen-petrol').scrollTop=0;
+    toast('Editing combined top-up — change receipts, date or distance, then tap Update',3500);
+    return;
+  }
+  if(fuelMode!=='single') setFuelMode('single',true);
+  hideFuelDateWarn();
   const my=r.country==='MY';
   scanBrand=''; scanPetrolType='';
   editingFuelRate=my?(r.rate||null):null;
@@ -3710,7 +4097,7 @@ function deleteFuelRecord(id){
   if(!confirm('Delete the top-up on '+label+' ($'+(r.costAfter||0).toFixed(2)+')?')) return;
   const records=getFuelRecords().filter(x=>x.id!==id);
   saveFuelRecords(recalcFuelChain(records));
-  if(editingFuelId===id){ editingFuelId=null; setFuelEditMode(false); clearFuelForm(); }
+  if(editingFuelId===id){ editingFuelId=null; if(fuelMode==='multi') setFuelMode('single',true); else { setFuelEditMode(false); clearFuelForm(); } }
   renderFuelHistory();
   toast('Record deleted');
 }
