@@ -319,6 +319,33 @@ body.light-mode .sess-toggle{border-color:var(--accent);color:var(--accent)}
   animation:up .22s ease
 }
 @keyframes up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+
+/* ── TIME PICKER (keypad style) ─────────────────── */
+#tpk-overlay{z-index:400}
+.tpk-sheet{background:#000;color:#F2F2F2;border-radius:20px 20px 0 0;width:100%;
+  padding:18px 18px 22px;animation:up .22s ease;user-select:none;-webkit-user-select:none}
+.tpk-title{font-size:13px;color:#9A9A9A;text-align:center;margin-bottom:6px}
+.tpk-time{display:flex;align-items:center;justify-content:center;gap:6px;margin:6px 0 4px}
+.tpk-seg{font-size:56px;line-height:1.1;padding:0 8px;border-radius:8px;min-width:84px;text-align:center;
+  cursor:pointer;touch-action:manipulation;font-variant-numeric:tabular-nums}
+.tpk-seg.on{background:#2E2E2E}
+.tpk-colon{font-size:46px;color:#CFCFCF}
+.tpk-ap{margin-left:14px;font-size:24px;font-weight:600;min-width:84px;min-height:58px;
+  border:2px solid #1D9E75;color:#5DCAA5;background:transparent;border-radius:14px;
+  cursor:pointer;touch-action:manipulation}
+.tpk-ap:active{background:#1D9E75;color:#000}
+.tpk-hint{font-size:11px;color:#7A7A7A;text-align:center;min-height:15px}
+.tpk-cs{display:flex;align-items:center;justify-content:center;margin:20px auto 8px;background:#262626;
+  border-radius:26px;width:210px;overflow:hidden}
+.tpk-cs button{flex:1;background:none;border:none;color:#F2F2F2;font-size:16px;padding:12px 0;
+  cursor:pointer;touch-action:manipulation}
+.tpk-cs span{color:#555}
+.tpk-keys{display:grid;grid-template-columns:repeat(3,1fr);margin-top:10px}
+.tpk-keys button{background:none;border:none;color:#F2F2F2;font-size:28px;padding:14px 0;
+  cursor:pointer;touch-action:manipulation;border-radius:12px}
+.tpk-keys button:active{background:#1F1F1F}
+.tpk-keys .tpk-next{color:#4A90E2;font-size:20px}
+.time-field{cursor:pointer}
 .sheet-handle{width:36px;height:4px;background:var(--border);border-radius:99px;margin:0 auto 16px}
 .sheet-title{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;
   text-align:center;letter-spacing:1px;margin-bottom:16px;color:var(--text)}
@@ -843,7 +870,7 @@ body.light-mode .fuel-stat{background:var(--card)}
         <div class="two-col" style="margin-bottom:8px">
           <div>
             <label class="lbl" id="lbl-fuel-disc">Fuel Discount ($)</label>
-            <input class="inp" type="number" inputmode="decimal" id="fuel-discount" placeholder="e.g. 5.00" step="0.01" oninput="calcFuelFields()">
+            <input class="inp" type="number" inputmode="decimal" id="fuel-discount" value="0" placeholder="0" step="0.01" oninput="calcFuelFields()">
           </div>
           <div>
             <label class="lbl" id="lbl-fuel-after">Actual Cost After Discount ($)</label>
@@ -963,7 +990,7 @@ body.light-mode .fuel-stat{background:var(--card)}
 
   <div class="set-section-title" style="margin-top:18px">App Info</div>
   <div class="card" style="margin-top:0">
-    <div class="ai-row"><span class="ai-key">Version</span><span class="ai-val">v3.0.12</span></div>
+    <div class="ai-row"><span class="ai-key">Version</span><span class="ai-val">v3.0.13</span></div>
     <div class="ai-row"><span class="ai-key">Storage</span><span class="ai-val">Local (phone)</span></div>
     <div class="ai-row"><span class="ai-key">Daily Entries</span><span class="ai-val" id="s-entries">0</span></div>
     <div class="ai-row"><span class="ai-key">Trips Recorded</span><span class="ai-val" id="s-trips">0</span></div>
@@ -1179,11 +1206,11 @@ body.light-mode .fuel-stat{background:var(--card)}
     <div class="two-col" style="margin-bottom:12px">
       <div>
         <label class="lbl">Start Time</label>
-        <input id="edit-start-time" type="time" class="inp" style="width:100%">
+        <input id="edit-start-time" type="text" readonly inputmode="none" class="inp time-field" placeholder="Tap to set" style="width:100%" onclick="pickEditTime('start')">
       </div>
       <div>
         <label class="lbl">End Time</label>
-        <input id="edit-end-time" type="time" class="inp" style="width:100%">
+        <input id="edit-end-time" type="text" readonly inputmode="none" class="inp time-field" placeholder="Tap to set" style="width:100%" onclick="pickEditTime('end')">
       </div>
     </div>
     <!-- Pickup Location -->
@@ -1254,8 +1281,28 @@ body.light-mode .fuel-stat{background:var(--card)}
   </div>
 </div>
 
-<!-- Hidden time input for manual entry -->
-<input type="time" id="hidden-time-inp" style="position:fixed;opacity:0;pointer-events:none;top:0;left:0;width:1px;height:1px">
+<!-- Time picker (keypad style) -->
+<div class="overlay" id="tpk-overlay" onclick="if(event.target===this) tpkCancel()">
+  <div class="tpk-sheet">
+    <div class="tpk-title" id="tpk-title">Time</div>
+    <div class="tpk-time">
+      <span class="tpk-seg on" id="tpk-h" onclick="tpkField('h')">12</span>
+      <span class="tpk-colon">:</span>
+      <span class="tpk-seg" id="tpk-m" onclick="tpkField('m')">00</span>
+      <button type="button" class="tpk-ap" id="tpk-ap" onclick="tpkToggleAp()" aria-label="Switch am or pm">am</button>
+    </div>
+    <div class="tpk-hint" id="tpk-hint"></div>
+    <div class="tpk-cs">
+      <button type="button" onclick="tpkCancel()">Cancel</button><span>|</span><button type="button" onclick="tpkSave()">Save</button>
+    </div>
+    <div class="tpk-keys">
+      <button type="button" onclick="tpkKey('1')">1</button><button type="button" onclick="tpkKey('2')">2</button><button type="button" onclick="tpkKey('3')">3</button>
+      <button type="button" onclick="tpkKey('4')">4</button><button type="button" onclick="tpkKey('5')">5</button><button type="button" onclick="tpkKey('6')">6</button>
+      <button type="button" onclick="tpkKey('7')">7</button><button type="button" onclick="tpkKey('8')">8</button><button type="button" onclick="tpkKey('9')">9</button>
+      <button type="button" onclick="tpkBack()" aria-label="Delete">⌫</button><button type="button" onclick="tpkKey('0')">0</button><button type="button" class="tpk-next" onclick="tpkNext()">Next</button>
+    </div>
+  </div>
+</div>
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
@@ -1837,7 +1884,7 @@ function timePrompt(sess, type){
   // Show mini prompt overlay
   const overlay=document.getElementById('time-prompt-overlay');
   document.getElementById('tp-title').textContent=(type==='start'?'Start':'End')+' Time — Session '+sess;
-  document.getElementById('tp-now-label').textContent='Now: '+nowStr;
+  document.getElementById('tp-now-label').textContent='Now: '+fmt12(nowStr);
   overlay.classList.add('open');
 
   // Store pending action
@@ -1856,15 +1903,10 @@ function timePromptNo(){
   const overlay=document.getElementById('time-prompt-overlay');
   const{_sess,_type}=overlay;
   overlay.classList.remove('open');
-  // Open native time picker via hidden input
-  const hid=document.getElementById('hidden-time-inp');
-  hid.value=sessTimeVals[`${_sess}-${_type}`]||'';
-  hid._sess=_sess; hid._type=_type;
-  hid.onchange=()=>{
-    if(hid.value) setSessionTime(hid._sess,hid._type,hid.value);
-    hid.value='';
-  };
-  hid.click();
+  // Open the keypad time picker, starting from the saved time (or now)
+  openTimePicker(sessTimeVals[`${_sess}-${_type}`]||overlay._nowStr,
+    (_type==='start'?'Start':'End')+' time · Session '+_sess,
+    v=>setSessionTime(_sess,_type,v));
 }
 
 function setSessionTime(sess,type,val){
@@ -1874,7 +1916,7 @@ function setSessionTime(sess,type,val){
   try{ localStorage.setItem('mdl_sess_times', JSON.stringify(sessTimeVals)); }catch{}
   const el=document.getElementById(`s-${type}-val-${sess}`);
   const wrap=document.getElementById(`s-${type}-${sess}`);
-  if(el){ el.textContent=val; el.style.color='var(--text)'; }
+  if(el){ el.textContent=fmt12(val); el.style.color='var(--text)'; }
   if(wrap) wrap.style.color='var(--text)';
   calcHrs(sess);
   // Auto-save entry so session times persist even without pressing Save
@@ -2496,7 +2538,7 @@ function renderTrips(){
       </div>
       <div class="trip-fare">&#36;${(t.fare||0).toFixed(2)}</div>
     </div>
-    <div style="font-size:11px;color:var(--accent);font-family:'Space Mono',monospace;margin:4px 0 2px">${t.startTime||''}${t.endTime?' ~ '+t.endTime:''}</div>
+    <div style="font-size:11px;color:var(--accent);font-family:'Space Mono',monospace;margin:4px 0 2px">${fmt12(t.startTime)}${t.endTime?' ~ '+fmt12(t.endTime):''}</div>
     <div class="trip-route">${t.pickup?.town||'—'} &rarr; ${t.dropoff?.town||'—'}</div>
     <div class="trip-meta" style="justify-content:flex-end">
       <span>${(t.distanceKm||0).toFixed(1)} km</span>
@@ -2539,7 +2581,7 @@ function showDetail(id){
       <div style="font-size:11px;color:var(--accent)">${t.dropoff?.town||''}</div>
     </div>
     <div style="display:flex;gap:20px;font-size:12px;color:var(--muted);margin-bottom:14px;padding:10px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
-      <div><span style="color:var(--text);font-family:'Space Mono',monospace;font-size:13px;font-weight:700">${t.startTime||''}${t.endTime?' ~ '+t.endTime:''}</span><br>Time</div>
+      <div><span style="color:var(--text);font-family:'Space Mono',monospace;font-size:13px;font-weight:700">${fmt12(t.startTime)}${t.endTime?' ~ '+fmt12(t.endTime):''}</span><br>Time</div>
       <div><span style="color:var(--text);font-family:'Space Mono',monospace;font-size:13px;font-weight:700">${(t.distanceKm||0).toFixed(1)} km</span><br>Distance</div>
       <div><span style="color:var(--text);font-family:'Space Mono',monospace;font-size:13px;font-weight:700">${t.durationMins||0} min</span><br>Duration</div>
     </div>
@@ -3175,9 +3217,9 @@ function exportAll(){
             e.petrol||0,
             e.estNet||0,
             totalDur,
-            s1.start||'', s1.end||'', sessDur(s1),
-            s2.start||'', s2.end||'', sessDur(s2),
-            s3.start||'', s3.end||'', sessDur(s3),
+            fmt12(s1.start), fmt12(s1.end), sessDur(s1),
+            fmt12(s2.start), fmt12(s2.end), sessDur(s2),
+            fmt12(s3.start), fmt12(s3.end), sessDur(s3),
             e.notes||''
           ]);
         });
@@ -3286,6 +3328,7 @@ function clearFuelForm(){
    'fuel-discount','fuel-cost-after','fuel-distance'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value='';
   });
+  const fdz=document.getElementById('fuel-discount'); if(fdz) fdz.value='0';
   editingFuelRate=null; scanBrand=''; scanPetrolType='';
   hideFuelDateWarn();
   setFuelCountry('SG');
@@ -3399,12 +3442,16 @@ async function extractFuelReceipt(input){
   "date": "YYYY-MM-DD or empty string if not found",
   "brand": "petrol station brand e.g. Esso, Shell, Caltex, SPC, Sinopec, Petronas, Petron, BHPetrol or empty string if not found",
   "petrolType": "e.g. RON 92, RON 95, RON 97, RON 98, RON 100 or empty string if not found",
+  "priceText": "the price per litre copied EXACTLY as printed INCLUDING its unit, e.g. RM 5.000/L or $3.450/L, or empty string",
+  "volumeText": "the litres pumped copied EXACTLY as printed INCLUDING its unit, e.g. 2.510 L, or empty string",
   "pricePerLitre": number or null,
   "volumeLitres": number or null,
   "costBeforeDiscount": number or null,
   "fuelDiscount": number or null,
   "actualCostAfterDiscount": number or null
 }
+IMPORTANT: The price per litre is the figure that ends in "/L" (or "/LITRE", "per litre"). The volume is the figure that ends in just "L" (or "LTR", "LITRE") with no "/". Receipts often print these in two columns side by side — match each number to its own unit, do not go by position.
+IMPORTANT: costBeforeDiscount and actualCostAfterDiscount are what was actually pumped and charged. Ignore any prepaid / prepay amount and any "change" amount on the receipt.
 IMPORTANT: Give all amounts exactly as printed, in the receipt's own currency (RM for Malaysia, S$ for Singapore). Do NOT convert currency.
 IMPORTANT: This receipt is recent — it was issued within the last few weeks, in the current year or late last year. A two-digit year such as 26 means 2026.
 IMPORTANT: Singapore and Malaysian receipts print dates day first — DD/MM/YY or DD/MM/YYYY — e.g. 21/03/26 means 2026-03-21. Always convert to YYYY-MM-DD.
@@ -3462,6 +3509,10 @@ If a field is unclear use null for numbers or empty string for text.`;
     }
     if(extracted.brand){ const fb=document.getElementById('fuel-brand'); if(fb) fb.value=extracted.brand; }
     if(extracted.petrolType){ const fpt=document.getElementById('fuel-petrol-type'); if(fpt) fpt.value=extracted.petrolType; }
+    // Price and volume: decided from their printed units, not the order they were read in
+    const pv=resolvePriceVolume(extracted);
+    extracted.pricePerLitre=pv.price; extracted.volumeLitres=pv.volume;
+    if(extracted.fuelDiscount==null) extracted.fuelDiscount=0;
     if(extracted.pricePerLitre!=null) document.getElementById('fuel-price-per-l').value=extracted.pricePerLitre.toFixed(3);
     if(extracted.volumeLitres!=null) document.getElementById('fuel-volume').value=extracted.volumeLitres.toFixed(2);
     if(extracted.costBeforeDiscount!=null) document.getElementById('fuel-cost-before').value=extracted.costBeforeDiscount.toFixed(2);
@@ -3538,6 +3589,118 @@ function saveFuelRecord(){
 
   toast(wasEditing?'Top-up updated ✓':'Top-up saved ✓ — petrol cost updated in Entry page');
   renderFuelHistory();
+}
+
+// ── TIME DISPLAY (am/pm) ─────────────────────────
+// Times are saved as 24-hour "17:05" and shown as "5:05 pm"
+function fmt12(v){
+  if(!v||!/^\d{1,2}:\d{2}/.test(v)) return v||'';
+  let [h,m]=v.split(':').map(Number);
+  const ap=h>=12?'pm':'am';
+  h=h%12; if(h===0) h=12;
+  return h+':'+String(m).padStart(2,'0')+' '+ap;
+}
+
+// ── TIME PICKER (keypad style) ───────────────────
+let tpk={h:'12',m:'00',ap:'am',field:'h',buf:'',cb:null};
+function openTimePicker(initial,title,cb){
+  let H=new Date().getHours(), M=new Date().getMinutes();
+  if(initial&&/^\d{1,2}:\d{2}/.test(initial)){ const a=initial.split(':').map(Number); H=a[0]; M=a[1]; }
+  const h12=H%12===0?12:H%12;
+  tpk={h:String(h12).padStart(2,'0'), m:String(M).padStart(2,'0'), ap:H>=12?'pm':'am', field:'h', buf:'', cb};
+  document.getElementById('tpk-title').textContent=title||'Time';
+  tpkRender();
+  document.getElementById('tpk-overlay').classList.add('open');
+}
+function tpkRender(hint){
+  const hEl=document.getElementById('tpk-h'), mEl=document.getElementById('tpk-m');
+  hEl.textContent=tpk.field==='h'&&tpk.buf?tpk.buf:tpk.h;
+  mEl.textContent=tpk.field==='m'&&tpk.buf?tpk.buf:tpk.m;
+  hEl.classList.toggle('on',tpk.field==='h');
+  mEl.classList.toggle('on',tpk.field==='m');
+  document.getElementById('tpk-ap').textContent=tpk.ap;
+  document.getElementById('tpk-hint').textContent=hint||'';
+}
+function tpkField(f){ tpk.field=f; tpk.buf=''; tpkRender(); }
+function tpkToggleAp(){ tpk.ap=tpk.ap==='am'?'pm':'am'; tpkRender(); }
+function tpkKey(d){
+  if(tpk.field==='h'){
+    if(!tpk.buf){
+      if(d==='0'||d==='1'){ tpk.buf=d; tpkRender(); return; }
+      tpk.h='0'+d; tpk.field='m'; tpkRender(); return;
+    }
+    const v=parseInt(tpk.buf+d,10);
+    if(v<1||v>12){ // e.g. 1 then 5 → 01 : 5_
+      if(tpk.buf==='0'&&d==='0'){ tpkRender('Hour must be 1 to 12'); return; }
+      tpk.h=tpk.buf.padStart(2,'0'); tpk.buf=''; tpk.field='m'; tpkKey(d); return;
+    }
+    tpk.h=String(v).padStart(2,'0'); tpk.buf=''; tpk.field='m'; tpkRender(); return;
+  }
+  // minutes
+  if(!tpk.buf){
+    if(+d>=6){ tpk.m='0'+d; tpkRender(); return; }
+    tpk.buf=d; tpkRender(); return;
+  }
+  tpk.m=tpk.buf+d; tpk.buf=''; tpkRender();
+}
+function tpkBack(){
+  if(tpk.buf){ tpk.buf=''; tpkRender(); return; }
+  if(tpk.field==='m'){ tpk.field='h'; tpkRender(); }
+}
+function tpkNext(){
+  if(tpk.buf){ // finish a single typed digit
+    if(tpk.field==='h'){ const v=parseInt(tpk.buf,10)||12; tpk.h=String(v).padStart(2,'0'); }
+    else tpk.m=tpk.buf.padStart(2,'0');
+    tpk.buf='';
+  }
+  tpk.field=tpk.field==='h'?'m':'h'; tpkRender();
+}
+function tpkCancel(){ document.getElementById('tpk-overlay').classList.remove('open'); }
+function tpkSave(){
+  if(tpk.buf){
+    if(tpk.field==='h'){ const v=parseInt(tpk.buf,10)||12; tpk.h=String(v).padStart(2,'0'); }
+    else tpk.m=tpk.buf.padStart(2,'0');
+    tpk.buf='';
+  }
+  let h=parseInt(tpk.h,10)%12; if(tpk.ap==='pm') h+=12;
+  const v=String(h).padStart(2,'0')+':'+tpk.m;
+  document.getElementById('tpk-overlay').classList.remove('open');
+  if(typeof tpk.cb==='function') tpk.cb(v);
+}
+
+// Edit Trip time boxes: saved value kept as 24-hour, shown as am/pm
+function setEditTime(type,v){
+  const el=document.getElementById('edit-'+type+'-time'); if(!el) return;
+  el.dataset.v=v||''; el.value=v?fmt12(v):'';
+}
+function pickEditTime(type){
+  const el=document.getElementById('edit-'+type+'-time');
+  openTimePicker(el.dataset.v||'', (type==='start'?'Start':'End')+' time · Trip', v=>setEditTime(type,v));
+}
+
+// ── DATE BOXES: tapping anywhere opens the calendar ──
+document.addEventListener('click',function(e){
+  const el=e.target;
+  if(el&&el.tagName==='INPUT'&&el.type==='date'&&typeof el.showPicker==='function'){
+    try{ el.showPicker(); }catch(err){}
+  }
+});
+
+// ── RECEIPT PRICE / VOLUME ───────────────────────
+// Uses the printed units: "/L" means price per litre, plain "L" means volume
+function resolvePriceVolume(x){
+  const num=t=>{ const m=String(t||'').replace(/,/g,'').match(/(\d+(?:\.\d+)?)/); return m?parseFloat(m[1]):null; };
+  const isPrice=t=>/\/\s*(l|ltr|litre|liter)\b|per\s*(l|ltr|litre|liter)\b/i.test(String(t||''));
+  const isVol=t=>!isPrice(t)&&/\d\s*(l|ltr|litre|liter|litres|liters)\b/i.test(String(t||''));
+  let price=x.pricePerLitre!=null?Number(x.pricePerLitre):null;
+  let volume=x.volumeLitres!=null?Number(x.volumeLitres):null;
+  const pT=x.priceText, vT=x.volumeText;
+  if(isVol(pT)&&isPrice(vT)){ price=num(vT); volume=num(pT); }   // read the wrong way round
+  else {
+    if(isPrice(pT)&&num(pT)!=null) price=num(pT);
+    if(isVol(vT)&&num(vT)!=null) volume=num(vT);
+  }
+  return {price,volume};
 }
 
 // ── RECEIPT DATE CHECKS ──────────────────────────
@@ -3806,7 +3969,7 @@ function multiEditLine(i){
   document.getElementById('fuel-price-per-l').value=(my?l.rmPricePerL:l.pricePerL)||'';
   document.getElementById('fuel-volume').value=l.volume||'';
   document.getElementById('fuel-cost-before').value=(my?l.rmCostBefore:l.costBefore)||'';
-  document.getElementById('fuel-discount').value=(my?l.rmDiscount:l.discount)||'';
+  document.getElementById('fuel-discount').value=(my?l.rmDiscount:l.discount)||0;
   document.getElementById('fuel-cost-after').value=(my?l.rmCostAfter:l.costAfter)||'';
   setFuelCountry(my?'MY':'SG');
   renderMulti();
@@ -4076,7 +4239,7 @@ function editFuelRecord(id){
   document.getElementById('fuel-price-per-l').value=(my?r.rmPricePerL:r.pricePerL)||'';
   document.getElementById('fuel-volume').value=r.volume||'';
   document.getElementById('fuel-cost-before').value=(my?r.rmCostBefore:r.costBefore)||'';
-  document.getElementById('fuel-discount').value=(my?r.rmDiscount:r.discount)||'';
+  document.getElementById('fuel-discount').value=(my?r.rmDiscount:r.discount)||0;
   document.getElementById('fuel-cost-after').value=(my?r.rmCostAfter:r.costAfter)||'';
   setFuelCountry(my?'MY':'SG');
   document.getElementById('fuel-distance').value=r.distance||'';
@@ -4218,8 +4381,8 @@ function openEditTrip(){
   document.querySelectorAll('#edit-sess-tog .tog').forEach(function(b,i){b.classList.toggle('on',i+1===(t.sessionNum||1));});
   document.querySelectorAll('#edit-stops-tog .tog').forEach(function(b,i){b.classList.toggle('on',i+1===(t.stops||1));});
   // Timing
-  document.getElementById('edit-start-time').value=t.startTime||'';
-  document.getElementById('edit-end-time').value=t.endTime||'';
+  setEditTime('start',t.startTime||'');
+  setEditTime('end',t.endTime||'');
   // Pickup
   const pickupPostal=t.pickup?.postal||'';
   document.getElementById('edit-pickup-postal').value=pickupPostal;
@@ -4284,8 +4447,8 @@ async function saveEditTrip(){
   trips[idx].sessionNum=editTripVals.sess||trips[idx].sessionNum;
   trips[idx].stops=editTripVals.stops||trips[idx].stops;
   // Save timing
-  const st=document.getElementById('edit-start-time').value;
-  const et=document.getElementById('edit-end-time').value;
+  const st=document.getElementById('edit-start-time').dataset.v||'';
+  const et=document.getElementById('edit-end-time').dataset.v||'';
   if(st) trips[idx].startTime=st;
   if(et) trips[idx].endTime=et;
   // Recalculate duration from times if both set
