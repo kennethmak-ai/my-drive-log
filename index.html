@@ -30,7 +30,7 @@ function _mapsCallback(){
   --accent:#00D4AA; --blue:#3B82F6; --warn:#F59E0B; --danger:#EF4444;
   --yellow:#FFD60A; --text:#E6EDF3; --muted:#C8D0DC;
   --nav-h:70px;
-  --tada:#F97316; --grab:#00B14F; --gojek:#38BDF8; --others:#A78BFA;
+  --tada:#F97316; --grab:#00B14F; --ryde:#F2457C; --gojek:#38BDF8; --others:#A78BFA;
   --r:12px;
 }
 body.light-mode{
@@ -46,6 +46,7 @@ body.light-mode{
   --danger:#B83030;
   --tada:#B84800;
   --grab:#1A6B35;
+  --ryde:#B8185A;
   --gojek:#1A5A8A;
   --others:#5A3A9A;
   --blue:#1A5A8A;
@@ -67,7 +68,9 @@ body.light-mode .tog{ background:var(--card); border:2px solid var(--border); co
 body.light-mode .tog.on{ background:var(--accent); border-color:var(--accent); color:#FFFFFF; }
 body.light-mode .tog.on-tada{ background:var(--tada); border-color:var(--tada); color:#FFFFFF; }
 body.light-mode .tog.on-grab{ background:var(--grab); border-color:var(--grab); color:#FFFFFF; }
+body.light-mode .tog.on-ryde{ background:var(--ryde); border-color:var(--ryde); color:#FFFFFF; }
 body.light-mode .tog.on-gojek{ background:var(--gojek); border-color:var(--gojek); color:#FFFFFF; }
+body.light-mode .tog.sess-save-btn{ background:var(--accent); border-color:var(--accent); color:#FFFFFF; }
 body.light-mode .tog.on-others{ background:var(--others); border-color:var(--others); color:#FFFFFF; }
 body.light-mode .tog.on-danger{ background:var(--danger); border-color:var(--danger); color:#FFFFFF; }
 body.light-mode .btn-green{ background:var(--accent); color:#FFFFFF; }
@@ -79,6 +82,7 @@ body.light-mode .plat-box{ background:var(--card); border:1.5px solid var(--bord
 body.light-mode .plat-box-val{ color:var(--text); }
 body.light-mode .ppill-TADA{ background:rgba(184,72,0,.18); color:var(--tada); }
 body.light-mode .ppill-Grab{ background:rgba(26,107,53,.18); color:var(--grab); }
+body.light-mode .ppill-Ryde{ background:rgba(184,24,90,.16); color:var(--ryde); }
 body.light-mode .ppill-Gojek{ background:rgba(26,90,138,.18); color:var(--gojek); }
 body.light-mode .ppill-Others{ background:rgba(90,58,154,.18); color:var(--others); }
 body.light-mode .chip{ background:var(--card); border:2px solid var(--border); color:var(--muted); }
@@ -188,7 +192,9 @@ textarea.inp{resize:none;height:80px}
 .tog.on-danger {border-color:var(--danger);color:var(--danger);background:rgba(239,68,68,.08)}
 .tog.on-tada   {border-color:var(--tada);color:var(--tada);background:rgba(249,115,22,.08)}
 .tog.on-grab   {border-color:var(--grab);color:var(--grab);background:rgba(0,177,79,.08)}
+.tog.on-ryde   {border-color:var(--ryde);color:var(--ryde);background:rgba(242,69,124,.08)}
 .tog.on-gojek  {border-color:var(--gojek);color:var(--gojek);background:rgba(56,189,248,.08)}
+.tog.sess-save-btn{border-color:var(--accent);background:var(--accent);color:#0D1117;font-weight:700}
 .tog.on-others {border-color:var(--others);color:var(--others);background:rgba(167,139,250,.08)}
 
 /* ── BUTTONS ─────────────────────────────────────── */
@@ -250,6 +256,7 @@ textarea.inp{resize:none;height:80px}
 }
 .ppill-TADA  {background:rgba(249,115,22,.12);color:var(--tada)}
 .ppill-Grab  {background:rgba(0,177,79,.12);color:var(--grab)}
+.ppill-Ryde  {background:rgba(242,69,124,.12);color:var(--ryde)}
 .ppill-Gojek {background:rgba(56,189,248,.12);color:var(--gojek)}
 .ppill-Others{background:rgba(167,139,250,.12);color:var(--others)}
 
@@ -261,6 +268,11 @@ textarea.inp{resize:none;height:80px}
 }
 .plat-box-name{font-size:9px;font-weight:700;letter-spacing:.5px;margin-bottom:4px}
 .plat-box-val{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--text)}
+/* Session blocks: TOTAL + 4 platforms in one row */
+.plat-grid-5{grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
+.plat-grid-5 .plat-box{padding:7px 4px}
+.plat-grid-5 .plat-box-name{font-size:8.5px}
+.plat-grid-5 .plat-box-val{font-size:11px}
 
 /* ── ODOMETER ────────────────────────────────────── */
 .odo-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px;align-items:end}
@@ -557,10 +569,6 @@ body.light-mode .fuel-stat{background:var(--card)}
 
       <!-- Platform boxes — always read-only, auto-populated from Trip Log -->
       <div class="plat-grid" style="margin-top:10px">
-        <div class="plat-box" style="border-color:rgba(0,212,170,.35)">
-          <div class="plat-box-name" style="color:var(--accent)">TOTAL</div>
-          <div class="plat-box-val" id="pb-val-Total" style="color:var(--muted)">—</div>
-        </div>
         <div class="plat-box" style="border-color:rgba(249,115,22,.25)">
           <div class="plat-box-name" style="color:var(--tada)">TADA</div>
           <div class="plat-box-val" id="pb-val-TADA" style="color:var(--muted)">—</div>
@@ -568,6 +576,10 @@ body.light-mode .fuel-stat{background:var(--card)}
         <div class="plat-box" style="border-color:rgba(0,177,79,.25)">
           <div class="plat-box-name" style="color:var(--grab)">Grab</div>
           <div class="plat-box-val" id="pb-val-Grab" style="color:var(--muted)">—</div>
+        </div>
+        <div class="plat-box" style="border-color:rgba(242,69,124,.25)">
+          <div class="plat-box-name" style="color:var(--ryde)">Ryde</div>
+          <div class="plat-box-val" id="pb-val-Ryde" style="color:var(--muted)">—</div>
         </div>
         <div class="plat-box" style="border-color:rgba(56,189,248,.25)">
           <div class="plat-box-name" style="color:var(--gojek)">Gojek</div>
@@ -578,8 +590,9 @@ body.light-mode .fuel-stat{background:var(--card)}
       <div class="stats-row" id="e-stats" style="margin-top:10px">No trips yet — record trips first</div>
     </div>
 
-    <!-- Card 3: Daily Totals -->
-    <div class="card">
+    <!-- Card 3: Daily Totals — hidden from view (v3.0.15). Kept because its petrol box
+         carries each day's petrol figure (from the Petrol tab) into the saved entry and Excel export -->
+    <div class="card" style="display:none">
       <div class="card-label">Daily Totals</div>
       <div class="dt-grid">
         <div>
@@ -596,7 +609,11 @@ body.light-mode .fuel-stat{background:var(--card)}
 
     <!-- Card 4: Sessions -->
     <div class="card">
-      <div class="card-label">Sessions</div>
+      <div class="tog-row" style="align-items:center;margin-bottom:8px">
+        <div class="card-label" style="flex:1;margin:0">Sessions</div>
+        <div style="flex:1"></div>
+        <button class="tog sess-save-btn" id="save-entry-btn" type="button" onclick="saveEntry()" style="flex:0 0 calc((100% - 14px) / 3);box-sizing:border-box">✓ Save</button>
+      </div>
       <label class="lbl">Number of Sessions</label>
       <div class="tog-row" style="margin-bottom:0">
         <button class="tog on" id="sc-1" onclick="tapSessions(1)">1</button>
@@ -610,13 +627,6 @@ body.light-mode .fuel-stat{background:var(--card)}
     <div class="card">
       <div class="card-label">Daily Notes</div>
       <textarea class="inp" id="e-notes" placeholder="e.g. Heavy rain morning, TADA incentive day, good CBD crowd..." oninput="autoSaveEntry()"></textarea>
-    </div>
-    <!-- Save Button — below Daily Notes -->
-    <div style="padding:4px 0 8px">
-      <button class="btn btn-green" id="save-entry-btn" onclick="saveEntry()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
-        Save Entry
-      </button>
     </div>
   </div>
 
@@ -985,7 +995,7 @@ body.light-mode .fuel-stat{background:var(--card)}
 
   <div class="set-section-title" style="margin-top:18px">App Info</div>
   <div class="card" style="margin-top:0">
-    <div class="ai-row"><span class="ai-key">Version</span><span class="ai-val">v3.0.14</span></div>
+    <div class="ai-row"><span class="ai-key">Version</span><span class="ai-val">v3.0.15</span></div>
     <div class="ai-row"><span class="ai-key">Storage</span><span class="ai-val">Local (phone)</span></div>
     <div class="ai-row"><span class="ai-key">Daily Entries</span><span class="ai-val" id="s-entries">0</span></div>
     <div class="ai-row"><span class="ai-key">Trips Recorded</span><span class="ai-val" id="s-trips">0</span></div>
@@ -1067,8 +1077,8 @@ body.light-mode .fuel-stat{background:var(--card)}
       <div class="tog-row" id="plat-tog">
         <button class="tog on-tada" onclick="setPlatform('TADA',this)">TADA</button>
         <button class="tog" onclick="setPlatform('Grab',this)">Grab</button>
+        <button class="tog" onclick="setPlatform('Ryde',this)">Ryde</button>
         <button class="tog" onclick="setPlatform('Gojek',this)">Gojek</button>
-        <button class="tog" onclick="setPlatform('Others',this)">Others</button>
       </div>
     </div>
     <div style="margin-bottom:14px">
@@ -1170,8 +1180,8 @@ body.light-mode .fuel-stat{background:var(--card)}
       <div class="tog-row" id="edit-plat-tog">
         <button class="tog" onclick="editSetPlat('TADA',this)">TADA</button>
         <button class="tog" onclick="editSetPlat('Grab',this)">Grab</button>
+        <button class="tog" onclick="editSetPlat('Ryde',this)">Ryde</button>
         <button class="tog" onclick="editSetPlat('Gojek',this)">Gojek</button>
-        <button class="tog" onclick="editSetPlat('Others',this)">Others</button>
       </div>
     </div>
     <div style="margin-bottom:12px">
@@ -1746,38 +1756,30 @@ function renderSessions(){
   c.innerHTML='';
   const date=document.getElementById('e-date').value||fmtDate(new Date());
   const trips=getTrips().filter(t=>t.date===date);
-  const td={TADA:0,Grab:0,Gojek:0}; let tkm=0,tmin=0;
+  const td={TADA:0,Grab:0,Ryde:0,Gojek:0}; let tkm=0,tmin=0;
   trips.forEach(t=>{td[t.platform]=(td[t.platform]||0)+(t.fare||0);tkm+=t.distanceKm||0;tmin+=t.durationMins||0;});
 
-  const platColors={TADA:'249,115,22',Grab:'0,177,79',Gojek:'56,189,248'};
-  const platVars={TADA:'tada',Grab:'grab',Gojek:'gojek'};
+  const platColors={TADA:'249,115,22',Grab:'0,177,79',Ryde:'242,69,124',Gojek:'56,189,248'};
+  const platVars={TADA:'tada',Grab:'grab',Ryde:'ryde',Gojek:'gojek'};
 
   for(let i=1;i<=3;i++){
     // Filter trips by session number for this block
     const sessTrips=trips.filter(t=>(t.sessionNum||1)===i);
-    const td={TADA:0,Grab:0,Gojek:0}; let tkm=0,tmin=0;
+    const td={TADA:0,Grab:0,Ryde:0,Gojek:0}; let tkm=0,tmin=0;
     sessTrips.forEach(t=>{td[t.platform]=(td[t.platform]||0)+(t.fare||0);tkm+=t.distanceKm||0;tmin+=t.durationMins||0;});
 
     // Platform boxes — read-only auto-populated per session
     const sessTotal=Object.values(td).reduce((a,v)=>a+v,0);
     const platBoxes=[
       `<div class="plat-box" style="border-color:rgba(0,212,170,.35)"><div class="plat-box-name" style="color:var(--accent)">TOTAL</div><div class="plat-box-val" data-plat="Total" style="color:${sessTotal>0?'var(--text)':'var(--muted)'}">${sessTotal>0?'$'+sessTotal.toFixed(2):'—'}</div></div>`,
-      ...['TADA','Grab','Gojek'].map(p=>`
+      ...['TADA','Grab','Ryde','Gojek'].map(p=>`
       <div class="plat-box" style="border-color:rgba(${platColors[p]},.25)">
         <div class="plat-box-name" style="color:var(--${platVars[p]})">${p}</div>
         <div class="plat-box-val" data-plat="${p}" style="color:${td[p]>0?'var(--text)':'var(--muted)'}">${td[p]>0?'$'+td[p].toFixed(2):'—'}</div>
       </div>`)
     ].join('');
 
-    var sessGross=Object.values(td).reduce(function(a,v){return a+v;},0);
-    var smin2=getSessMinsSingle(i);
-    var durStr2=fmtDur(smin2);
-    var dhrStr2=smin2>0?' &middot; <span style="color:var(--warn)">$'+(sessGross/(smin2/60)).toFixed(2)+'/hr</span>':'';
-    var dkmStr2=tkm>0.1?' &middot; <span style="color:var(--warn)">$'+(sessGross/tkm).toFixed(2)+'/km</span>':'';
-    var durPart=durStr2?' &middot; '+durStr2:'';
-    const statsLine=sessTrips.length>0?
-      `<div class="stats-row" style="margin-top:8px">${sessTrips.length} trip${sessTrips.length!==1?'s':''} &middot; ${tkm.toFixed(1)} km${durPart}${dhrStr2}${dkmStr2}</div>`:
-      `<div class="stats-row" style="margin-top:8px;color:var(--muted)">No trips recorded yet — start trips first</div>`;
+    const statsLine=`<div class="stats-row" id="s-stats-${i}" style="margin-top:8px">${sessStatsHTML(i,trips)}</div>`;
 
     // Restore odometer values for this session
     const date2=document.getElementById('e-date').value||fmtDate(new Date());
@@ -1837,7 +1839,7 @@ function renderSessions(){
         </div>
       </div>
       <label class="lbl" style="margin-top:8px;display:block">Platform Earnings (from Trip Log)</label>
-      <div class="plat-grid">${platBoxes}</div>
+      <div class="plat-grid plat-grid-5">${platBoxes}</div>
       ${statsLine}
       </div>
     </div>`;
@@ -1914,8 +1916,41 @@ function setSessionTime(sess,type,val){
   if(el){ el.textContent=fmt12(val); el.style.color='var(--text)'; }
   if(wrap) wrap.style.color='var(--text)';
   calcHrs(sess);
+  refreshStatsLines();
   // Auto-save entry so session times persist even without pressing Save
   autoSaveEntry();
+}
+
+// ── LIVE STATS LINES (update as soon as a start/end time changes) ──
+// Session line: trips · trip km · session duration · $/hr · $/km (trip distance)
+function sessStatsHTML(i,trips){
+  const sessTrips=trips.filter(t=>(t.sessionNum||1)===i);
+  if(!sessTrips.length) return '<span style="color:var(--muted)">No trips recorded yet — start trips first</span>';
+  const gross=sessTrips.reduce((a,t)=>a+(t.fare||0),0);
+  const km=sessTrips.reduce((a,t)=>a+(t.distanceKm||0),0);
+  const mins=getSessMinsSingle(i);
+  let h=sessTrips.length+' trip'+(sessTrips.length!==1?'s':'')+' &middot; '+km.toFixed(1)+' km';
+  if(mins>0) h+=' &middot; '+fmtDur(mins)+' &middot; <span style="color:var(--warn)">$'+(gross/(mins/60)).toFixed(2)+'/hr</span>';
+  if(km>0.1) h+=' &middot; <span style="color:var(--warn)">$'+(gross/km).toFixed(2)+'/km</span>';
+  return h;
+}
+function refreshStatsLines(){
+  const date=document.getElementById('e-date')?.value; if(!date) return;
+  const trips=getTrips().filter(t=>t.date===date);
+  for(let i=1;i<=3;i++){ const el=document.getElementById('s-stats-'+i); if(el) el.innerHTML=sessStatsHTML(i,trips); }
+  const statsEl=document.getElementById('e-stats');
+  if(statsEl){
+    if(!trips.length){ statsEl.textContent='No trips yet — record trips first'; return; }
+    const gross=trips.reduce((a,t)=>a+(t.fare||0),0);
+    const km=trips.reduce((a,t)=>a+(t.distanceKm||0),0);
+    // $/hr counts only finished sessions (start and end set), with only those sessions' earnings
+    let mins=0, doneGross=0;
+    for(let i=1;i<=3;i++){
+      const m=getSessMinsSingle(i);
+      if(m>0){ mins+=m; doneGross+=trips.filter(t=>(t.sessionNum||1)===i).reduce((a,t)=>a+(t.fare||0),0); }
+    }
+    statsEl.textContent=trips.length+' trips · '+km.toFixed(1)+' km'+(mins>0?' · '+fmtDur(mins)+' · $'+(doneGross/(mins/60)).toFixed(2)+'/hr':'')+(km>0.1?' · $'+(gross/km).toFixed(2)+'/km':'');
+  }
 }
 
 function calcHrs(i){
@@ -1938,7 +1973,7 @@ function loadEntry(){
   const trips=getTrips().filter(t=>t.date===date);
 
   // Always auto-populate platform boxes from Trip Log — no manual input
-  const td={TADA:0,Grab:0,Gojek:0};
+  const td={TADA:0,Grab:0,Ryde:0,Gojek:0};
   let totalFare=0, totalKm=0, totalMin=0;
   trips.forEach(t=>{
     td[t.platform]=(td[t.platform]||0)+(t.fare||0);
@@ -1951,31 +1986,13 @@ function loadEntry(){
   // Update each read-only platform box
   const totalEl=document.getElementById('pb-val-Total');
   if(totalEl){ totalEl.textContent=totalFare>0?'$'+totalFare.toFixed(2):'—'; totalEl.style.color=totalFare>0?'var(--text)':'var(--muted)'; }
-  ['TADA','Grab','Gojek'].forEach(p=>{
+  ['TADA','Grab','Ryde','Gojek'].forEach(p=>{
     const el=document.getElementById('pb-val-'+p);
     if(!el) return;
     if(td[p]>0){ el.textContent='$'+td[p].toFixed(2); el.style.color='var(--text)'; }
     else        { el.textContent='—';                  el.style.color='var(--muted)'; }
   });
 
-  const statsEl=document.getElementById('e-stats');
-  if(statsEl){
-    if(trips.length>0){
-      // Duration: live session times first, then saved entry times
-      var sessTot=getSessMinsLive();
-      if(sessTot===0){
-        var date2=document.getElementById('e-date').value;
-        sessTot=getSessMinsSaved(date2);
-      }
-      var durStr2=fmtDur(sessTot);
-      var dhrV=sessTot>0?' · $'+(totalFare/(sessTot/60)).toFixed(2)+'/hr':'';
-      var dkmV=totalKm>0.1?' · $'+(totalFare/totalKm).toFixed(2)+'/km':'';
-      var durPart=durStr2?' · '+durStr2:'';
-      statsEl.textContent=trips.length+' trips · '+totalKm.toFixed(1)+' km'+durPart+dhrV+dkmV;
-    } else {
-      statsEl.textContent='No trips yet — record trips first';
-    }
-  }
   updateNetDisplay(totalFare);
 
   if(entry){
@@ -2032,6 +2049,7 @@ function loadEntry(){
     const entryForGps=getData()[date]||{};
     gpsEl.textContent='GPS: '+(entryForGps.distance||0)+' km';
   }
+  refreshStatsLines(); // daily and session $/hr, $/km lines
   _isLoading=false; // Loading complete — auto-save now allowed
 }
 
@@ -2045,33 +2063,19 @@ function refreshEntryEarnings(){
   const totalMin=trips.reduce((a,t)=>a+(t.durationMins||0),0);
   document.getElementById('e-gross').textContent=fmtMoney(totalFare);
   document.getElementById('e-autofill-badge').style.display=trips.length>0?'inline-flex':'none';
-  const statsEl=document.getElementById('e-stats');
-  if(statsEl){
-    if(trips.length>0){
-      var sessTot3=getSessMinsLive();
-      if(sessTot3===0){
-        var date3=document.getElementById('e-date').value;
-        sessTot3=getSessMinsSaved(date3);
-      }
-      var durStr3=fmtDur(sessTot3);
-      var dhrV3=sessTot3>0?' · $'+(totalFare/(sessTot3/60)).toFixed(2)+'/hr':'';
-      var dkmV3=totalKm>0.1?' · $'+(totalFare/totalKm).toFixed(2)+'/km':'';
-      var durPart3=durStr3?' · '+durStr3:'';
-      statsEl.textContent=trips.length+' trips · '+totalKm.toFixed(1)+' km'+durPart3+dhrV3+dkmV3;
-    } else { statsEl.textContent='No trips yet — start trips first'; }
-  }
   updateNetDisplay(totalFare);
+  refreshStatsLines();
   // Update session platform boxes in-place without rebuilding DOM
   const blocks=document.querySelectorAll('#sess-container .sess-block');
   blocks.forEach((block,idx)=>{
     const i=idx+1;
     const sessTrips=trips.filter(t=>(t.sessionNum||1)===i);
-    const sd={TADA:0,Grab:0,Gojek:0};
+    const sd={TADA:0,Grab:0,Ryde:0,Gojek:0};
     sessTrips.forEach(t=>sd[t.platform]=(sd[t.platform]||0)+(t.fare||0));
     const sTotal=Object.values(sd).reduce((a,v)=>a+v,0);
     const sTotalEl=block.querySelector('.plat-box-val[data-plat="Total"]');
     if(sTotalEl){ sTotalEl.textContent=sTotal>0?'$'+sTotal.toFixed(2):'—'; sTotalEl.style.color=sTotal>0?'var(--text)':'var(--muted)'; }
-    ['TADA','Grab','Gojek'].forEach(p=>{
+    ['TADA','Grab','Ryde','Gojek'].forEach(p=>{
       const el=block.querySelector(`.plat-box-val[data-plat="${p}"]`);
       if(!el) return;
       if(sd[p]>0){ el.textContent='$'+sd[p].toFixed(2); el.style.color='var(--text)'; }
@@ -2130,17 +2134,18 @@ function autoSaveEntry(){
 
   // Save driving day state — earnings/trips are auto-populated, just save petrol + sessions + notes
   const trips=getTrips().filter(t=>t.date===date);
-  let earnings={tada:0,grab:0,gojek:0,total:0};
+  let earnings={tada:0,grab:0,ryde:0,gojek:0,total:0};
   let distance=0;
   trips.forEach(t=>{
     const p=(t.platform||'').toLowerCase();
     if(p==='tada') earnings.tada+=t.fare||0;
     else if(p==='grab') earnings.grab+=t.fare||0;
+    else if(p==='ryde') earnings.ryde+=t.fare||0;
     else if(p==='gojek') earnings.gojek+=t.fare||0;
     
     distance+=t.distanceKm||0;
   });
-  earnings.total=earnings.tada+earnings.grab+earnings.gojek;
+  earnings.total=earnings.tada+earnings.grab+earnings.ryde+earnings.gojek;
 
   const petrol=parseFloat(document.getElementById('e-petrol')?.value)||0;
   const sessions=[];
@@ -2179,7 +2184,7 @@ function saveEntry(){
   }
 
   const trips=getTrips().filter(t=>t.date===date);
-  let earnings={tada:0,grab:0,gojek:0,total:0};
+  let earnings={tada:0,grab:0,ryde:0,gojek:0,total:0};
   let distance=0;
 
   if(trips.length>0){
@@ -2187,11 +2192,12 @@ function saveEntry(){
       const p=(t.platform||'').toLowerCase();
       if(p==='tada') earnings.tada+=t.fare||0;
       else if(p==='grab') earnings.grab+=t.fare||0;
-      else if(p==='gojek') earnings.gojek+=t.fare||0;
+      else if(p==='ryde') earnings.ryde+=t.fare||0;
+    else if(p==='gojek') earnings.gojek+=t.fare||0;
       
       distance+=t.distanceKm||0;
     });
-    earnings.total=earnings.tada+earnings.grab+earnings.gojek;
+    earnings.total=earnings.tada+earnings.grab+earnings.ryde+earnings.gojek;
   } else {
     // No trips recorded — earnings remain 0 (no manual input)
     earnings.total=0;
@@ -2325,12 +2331,12 @@ function renderHistList(){
 
   // Monthly platform summary from Trip Log
   const allMonthTrips=getTrips().filter(t=>t.date?.startsWith(prefix));
-  const mPlat={TADA:{earn:0,trips:0},Grab:{earn:0,trips:0},Gojek:{earn:0,trips:0}};
+  const mPlat={TADA:{earn:0,trips:0},Grab:{earn:0,trips:0},Ryde:{earn:0,trips:0},Gojek:{earn:0,trips:0}};
   allMonthTrips.forEach(t=>{ if(mPlat[t.platform]){mPlat[t.platform].earn+=t.fare||0;mPlat[t.platform].trips++;} });
   const mTotal=allMonthTrips.reduce((a,t)=>a+(t.fare||0),0);
   const platSumEl=document.getElementById('hist-plat-summary');
   if(platSumEl){
-    const pc={TADA:'var(--tada)',Grab:'var(--grab)',Gojek:'var(--gojek)'};
+    const pc={TADA:'var(--tada)',Grab:'var(--grab)',Ryde:'var(--ryde)',Gojek:'var(--gojek)'};
     const rows=Object.entries(mPlat).filter(([,v])=>v.trips>0).map(([p,v])=>
       `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border)">
         <span style="font-size:12px;font-weight:600;color:${pc[p]}">${p}</span>
@@ -2363,9 +2369,9 @@ function renderHistList(){
     const tripKm=dayTrips.reduce((a,t)=>a+(t.distanceKm||0),0);
 
     // Per-day platform breakdown
-    const dPlat={TADA:{earn:0,trips:0},Grab:{earn:0,trips:0},Gojek:{earn:0,trips:0}};
+    const dPlat={TADA:{earn:0,trips:0},Grab:{earn:0,trips:0},Ryde:{earn:0,trips:0},Gojek:{earn:0,trips:0}};
     dayTrips.forEach(t=>{ if(dPlat[t.platform]){dPlat[t.platform].earn+=t.fare||0;dPlat[t.platform].trips++;} });
-    const pc2={TADA:'var(--tada)',Grab:'var(--grab)',Gojek:'var(--gojek)'};
+    const pc2={TADA:'var(--tada)',Grab:'var(--grab)',Ryde:'var(--ryde)',Gojek:'var(--gojek)'};
     const platHtml=tripCount>0?Object.entries(dPlat).filter(([,v])=>v.trips>0)
       .map(([p])=>`<span class="ppill ppill-${p}">${p}</span>`).join(''):'';
     const platBreakdown=tripCount>0?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:3px">
@@ -2466,7 +2472,7 @@ function renderTrips(){
     btn.disabled=true; ac.style.display='block';
     document.getElementById('ap-addr').textContent=activeTrip.pickup?.addr||'Captured';
     document.getElementById('ap-town').textContent=activeTrip.pickup?.town||'';
-    const pc={'TADA':'tada','Grab':'grab','Gojek':'gojek'};
+    const pc={'TADA':'tada','Grab':'grab','Ryde':'ryde','Gojek':'gojek'};
     document.getElementById('active-plat').innerHTML=
       `<span class="ppill ppill-${activeTrip.platform}">${activeTrip.platform}</span>
        <span style="font-size:11px;color:var(--muted);margin-left:8px">${activeTrip.mode}</span>`;
@@ -2492,9 +2498,9 @@ function renderTrips(){
     // Platform earnings breakdown
     const platEl=document.getElementById('trip-plat-breakdown');
     if(platEl){
-      const platTotals={TADA:0,Gojek:0,Grab:0};
+      const platTotals={TADA:0,Grab:0,Ryde:0,Gojek:0};
       trips.forEach(t=>{ if(platTotals[t.platform]!==undefined) platTotals[t.platform]+=t.fare||0; });
-      const platColors={TADA:'var(--tada)',Gojek:'var(--gojek)',Grab:'var(--grab)'};
+      const platColors={TADA:'var(--tada)',Grab:'var(--grab)',Ryde:'var(--ryde)',Gojek:'var(--gojek)'};
       platEl.innerHTML=Object.entries(platTotals).filter(([,v])=>v>0).map(([p,v])=>
         `<span style="font-size:11px;font-weight:600;color:${platColors[p]};background:rgba(0,0,0,.15);padding:2px 7px;border-radius:99px">${p} ${fmtMoney(v)}</span>`
       ).join('');
@@ -2620,7 +2626,7 @@ function deleteTrip(){
 // ── Start/End trip ────────────────────────────────
 function setPlatform(p,btn){
   tripPlatform=p;
-  const map={TADA:'on-tada',Grab:'on-grab',Gojek:'on-gojek'};
+  const map={TADA:'on-tada',Grab:'on-grab',Ryde:'on-ryde',Gojek:'on-gojek'};
   document.querySelectorAll('#plat-tog .tog').forEach(b=>b.className='tog');
   btn.className='tog '+map[p];
 }
@@ -2843,12 +2849,12 @@ function saveTrip(){
 function syncDailyEntry(date){
   const trips=getTrips().filter(t=>t.date===date);
   const data=getData(), entry=data[date]||{};
-  const e={tada:0,grab:0,gojek:0,others:0}; let km=0;
+  const e={tada:0,grab:0,ryde:0,gojek:0,others:0}; let km=0;
   trips.forEach(t=>{
     const p=(t.platform||'').toLowerCase();
     e[p in e?p:'others']+=t.fare||0; km+=t.distanceKm||0;
   });
-  e.total=e.tada+e.grab+e.gojek+e.others;
+  e.total=e.tada+e.grab+e.ryde+e.gojek+e.others;
   const d=new Date(date+'T00:00:00');
   data[date]={...entry,date,dayOfWeek:DAYS[d.getDay()],driving:true,
     earnings:e,distance:parseFloat(km.toFixed(1)),estNet:e.total-(entry.petrol||0)};
@@ -4491,6 +4497,7 @@ function timePromptReset(){
   if(el){ el.textContent='Tap to set'; el.style.color='var(--muted)'; }
   if(wrap) wrap.style.color='var(--muted)';
   calcHrs(sess);
+  refreshStatsLines();
   closeOverlay('time-prompt-overlay');
   toast((type==='start'?'Start':'End')+' time cleared for Session '+sess);
 }
