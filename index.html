@@ -194,6 +194,8 @@ textarea.inp{resize:none;height:80px}
 .tog.on-grab   {border-color:var(--grab);color:var(--grab);background:rgba(0,177,79,.08)}
 .tog.on-ryde   {border-color:var(--ryde);color:var(--ryde);background:rgba(242,69,124,.08)}
 .tog.on-gojek  {border-color:var(--gojek);color:var(--gojek);background:rgba(56,189,248,.08)}
+.pay-row.missing .tog{border-color:var(--danger)}
+.pay-warn{font-size:12px;font-weight:600;color:var(--danger);margin-top:6px}
 .tog.sess-save-btn{border-color:var(--accent);background:var(--accent);color:#0D1117;font-weight:700}
 .tog.on-others {border-color:var(--others);color:var(--others);background:rgba(167,139,250,.08)}
 
@@ -216,6 +218,34 @@ textarea.inp{resize:none;height:80px}
   border-radius:var(--r);padding:14px 16px;margin:0 12px;
 }
 .kpi-row+.kpi-row{margin-top:6px}
+/* Summary groups */
+.kgrp{margin:0 0 14px}
+.kgrp .kpi-pair{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 12px 0}
+.kgrp .kpi-pair .kpi-row{margin:0}
+.kpi-note{display:block;font-size:10.5px;font-weight:400;opacity:.85;margin-top:2px}
+.kpi-lbl small{display:block}
+.kgrp .kpi-lbl{font-weight:600;flex-direction:column;align-items:flex-start;gap:0}
+/* 1 · Targets — dark green */
+.kgrp.g1 .kpi-row{background:#0B5A4C;border:1.5px solid #13876F}
+.kgrp.g1 .kpi-lbl{color:#D7F4EC} .kgrp.g1 .kpi-val{color:#FFFFFF}
+/* 2 · Progress — light green (app accent) */
+.kgrp.g2 .kpi-row{background:rgba(0,212,170,.13);border:1.5px solid rgba(0,212,170,.6)}
+.kgrp.g2 .kpi-lbl{color:#E6EDF3} .kgrp.g2 .kpi-val{color:#00D4AA}
+/* 3 · Daily pace — darker yellow */
+.kgrp.g3 .kpi-row{background:rgba(214,160,0,.15);border:1.5px solid rgba(214,160,0,.65)}
+.kgrp.g3 .kpi-lbl{color:#E6EDF3} .kgrp.g3 .kpi-val{color:#F2B705}
+/* 4 · Costs and days — TADA orange */
+.kgrp.g4 .kpi-row{background:rgba(249,115,22,.14);border:1.5px solid rgba(249,115,22,.65)}
+.kgrp.g4 .kpi-lbl{color:#E6EDF3} .kgrp.g4 .kpi-val{color:#FB8A3C}
+/* Light mode */
+body.light-mode .kgrp.g1 .kpi-row{background:#0A7160;border-color:#0A7160}
+body.light-mode .kgrp.g1 .kpi-lbl{color:#E3F5F0} body.light-mode .kgrp.g1 .kpi-val{color:#FFFFFF}
+body.light-mode .kgrp.g2 .kpi-row{background:#DCF3EB;border-color:#2C9A82}
+body.light-mode .kgrp.g2 .kpi-lbl{color:#1A1714} body.light-mode .kgrp.g2 .kpi-val{color:#08604F}
+body.light-mode .kgrp.g3 .kpi-row{background:#FAEBBE;border-color:#B8860B}
+body.light-mode .kgrp.g3 .kpi-lbl{color:#1A1714} body.light-mode .kgrp.g3 .kpi-val{color:#6E4A00}
+body.light-mode .kgrp.g4 .kpi-row{background:#FBE1CE;border-color:#B84800}
+body.light-mode .kgrp.g4 .kpi-lbl{color:#1A1714} body.light-mode .kgrp.g4 .kpi-val{color:#A33F00}
 .kpi-row.star-yellow{border-color:rgba(255,214,10,.4);background:rgba(255,214,10,.04)}
 .kpi-row.star-green {border-color:rgba(0,212,170,.4);background:rgba(0,212,170,.04)}
 .kpi-row.star-amber {border-color:rgba(245,158,11,.4);background:rgba(245,158,11,.04)}
@@ -279,6 +309,7 @@ textarea.inp{resize:none;height:80px}
 .odo-dist{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:8px 10px;text-align:center}
 .odo-dist-label{font-size:11px;color:var(--muted);margin-bottom:2px}
 .odo-dist-val{font-size:15px;font-weight:700;color:var(--accent);font-family:'Space Mono',monospace}
+.odo-dist-box{font-family:'Space Mono',monospace;font-weight:700;color:var(--accent);background:var(--card);white-space:nowrap;overflow:hidden;line-height:normal}
 
 /* ── SESSION BLOCK ───────────────────────────────── */
 .sess-block{
@@ -290,6 +321,8 @@ textarea.inp{resize:none;height:80px}
 .sess-head{display:flex;align-items:center;justify-content:space-between;cursor:pointer;
   touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .sess-block.open .sess-head{margin-bottom:10px}
+.sess-total{margin-left:auto;margin-right:12px;font-size:14px;color:var(--muted);white-space:nowrap}
+.sess-total b{font-family:'Space Mono',monospace;font-size:17px;color:var(--accent);margin-left:4px}
 .sess-block:not(.open){padding:8px 12px}
 .sess-block:not(.open) .sess-body{display:none}
 .sess-toggle{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--blue);
@@ -370,6 +403,7 @@ body.light-mode .sess-toggle{border-color:var(--accent);color:var(--accent)}
   transition:opacity .25s;white-space:nowrap;pointer-events:none
 }
 .toast.show{opacity:1}
+body.light-mode .toast{color:#FFFFFF}
 
 /* ── GPS STATUS ──────────────────────────────────── */
 .gps{display:flex;align-items:center;gap:8px;padding:10px;border-radius:8px;font-size:12px;margin-bottom:10px}
@@ -581,9 +615,9 @@ body.light-mode .fuel-stat{background:var(--card)}
           <div class="plat-box-name" style="color:var(--ryde)">Ryde</div>
           <div class="plat-box-val" id="pb-val-Ryde" style="color:var(--muted)">—</div>
         </div>
-        <div class="plat-box" style="border-color:rgba(56,189,248,.25)">
-          <div class="plat-box-name" style="color:var(--gojek)">Gojek</div>
-          <div class="plat-box-val" id="pb-val-Gojek" style="color:var(--muted)">—</div>
+        <div class="plat-box" style="border-color:rgba(167,139,250,.3)">
+          <div class="plat-box-name" style="color:var(--others)">Others</div>
+          <div class="plat-box-val" id="pb-val-Others" style="color:var(--muted)">—</div>
         </div>
       </div>
 
@@ -666,25 +700,31 @@ body.light-mode .fuel-stat{background:var(--card)}
 
   <div style="height:10px"></div>
 
-  <!-- KPI rows matching your layout exactly -->
-  <div class="kpi-row"><span class="kpi-lbl">K1 &middot; Target Monthly Net</span><span class="kpi-val" id="k1">$0</span></div>
-  <div class="kpi-row" style="margin-top:6px"><span class="kpi-lbl">K2 &middot; Target Gross Earning</span><span class="kpi-val" id="k2">$0</span></div>
-  <div class="kpi-row" style="margin-top:6px"><span class="kpi-lbl">K3 &middot; Total Gross So Far</span><span class="kpi-val" id="k3">$0</span></div>
-  <div class="kpi-row" style="margin-top:6px"><span class="kpi-lbl">K4 &middot; Total Petrol So Far</span><span class="kpi-val" id="k4">$0</span></div>
-  <div class="kpi-row" style="margin-top:6px"><span class="kpi-lbl">K5 &middot; Total Fixed Cost So Far</span><span class="kpi-val" id="kfix">$0</span></div>
-  <div class="kpi-row star-yellow" style="margin-top:6px"><span class="kpi-lbl">⭐ K6 &middot; Est. Net So Far</span><span class="kpi-val yellow" id="k5">$0</span></div>
-  <div class="kpi-row star-green" style="margin-top:6px"><span class="kpi-lbl">⭐ K7 &middot; Remaining Gross Needed</span><span class="kpi-val green" id="k6">$0</span></div>
-  <div class="kpi-row" style="margin-top:6px"><span class="kpi-lbl">K8 &middot; Remaining Net Needed</span><span class="kpi-val" id="k7">$0</span></div>
-  <div class="kpi-row" style="margin-top:6px"><span class="kpi-lbl">K9 &middot; Req. Avg Gross / Planned Day</span><span class="kpi-val" id="k8">$0</span></div>
-  <div class="kpi-row star-amber" style="margin-top:6px"><span class="kpi-lbl">⭐ K10 &middot; Balance Gross / Remaining Day</span><span class="kpi-val amber" id="k9">$0</span></div>
-
-  <!-- K10 + K11 side by side -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 12px 0">
-    <div class="kpi-row" style="margin:0"><span class="kpi-lbl" style="font-size:12px">K11 &middot; Planned Days</span><span class="kpi-val" id="k10">0</span></div>
-    <div class="kpi-row" style="margin:0"><span class="kpi-lbl" style="font-size:12px">K12 &middot; Remaining</span><span class="kpi-val" id="k11">0</span></div>
+  <!-- Summary in 4 colour groups (v3.0.16) -->
+  <div class="kgrp g1">
+    <div class="kpi-row"><span class="kpi-lbl">Target Monthly Net</span><span class="kpi-val" id="k1">$0</span></div>
+    <div class="kpi-row"><span class="kpi-lbl">Target Gross Earning</span><span class="kpi-val" id="k2">$0</span></div>
   </div>
-  <div class="kpi-row" id="k12-row" style="margin-top:6px"><span class="kpi-lbl">K13 &middot; Petrol Budget Variance</span><span class="kpi-val" id="k12">$0</span></div>
-  <div style="margin:2px 12px 0;font-size:11px;color:var(--muted)">+ve = planned &gt; actual</div>
+  <div class="kgrp g2">
+    <div class="kpi-row"><span class="kpi-lbl">Est. Net So Far</span><span class="kpi-val" id="k5">$0</span></div>
+    <div class="kpi-row"><span class="kpi-lbl">Total Gross So Far</span><span class="kpi-val" id="k3">$0</span></div>
+    <div class="kpi-row"><span class="kpi-lbl">Remaining Gross Needed</span><span class="kpi-val" id="k6">$0</span></div>
+  </div>
+  <div class="kgrp g3">
+    <div class="kpi-row"><span class="kpi-lbl">Req. Avg Gross / Planned Day</span><span class="kpi-val" id="k8">$0</span></div>
+    <div class="kpi-row"><span class="kpi-lbl">Balance Gross / Remaining Day</span><span class="kpi-val" id="k9">$0</span></div>
+  </div>
+  <div class="kgrp g4">
+    <div class="kpi-row"><span class="kpi-lbl">Total Fixed Cost So Far</span><span class="kpi-val" id="kfix">$0</span></div>
+    <div class="kpi-row"><span class="kpi-lbl">Total Petrol So Far</span><span class="kpi-val" id="k4">$0</span></div>
+    <div class="kpi-row" id="k12-row"><span class="kpi-lbl">Petrol Budget Variance<small class="kpi-note">+ve = under budget</small></span><span class="kpi-val" id="k12">$0</span></div>
+    <div class="kpi-pair">
+      <div class="kpi-row"><span class="kpi-lbl">Planned Days</span><span class="kpi-val" id="k10">0</span></div>
+      <div class="kpi-row"><span class="kpi-lbl">Remaining</span><span class="kpi-val" id="k11">0</span></div>
+    </div>
+  </div>
+  <!-- Remaining Net Needed: calculated but not shown (kept so nothing else breaks) -->
+  <span id="k7" style="display:none"></span>
   <div style="height:100vh"></div>
 </div>
 
@@ -698,6 +738,7 @@ body.light-mode .fuel-stat{background:var(--card)}
   </div>
   <div class="chips" id="hist-chips"></div>
   <div id="hist-plat-summary" style="margin:0 12px 8px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px;display:none"></div>
+  <div id="hist-pay-summary" style="margin:0 12px 8px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:8px 10px;display:none"></div>
   <div id="hist-list"></div>
   <div style="padding:12px 16px 20px" id="clear-btn-wrap">
     <!-- Step 1: initial button -->
@@ -995,7 +1036,7 @@ body.light-mode .fuel-stat{background:var(--card)}
 
   <div class="set-section-title" style="margin-top:18px">App Info</div>
   <div class="card" style="margin-top:0">
-    <div class="ai-row"><span class="ai-key">Version</span><span class="ai-val">v3.0.15</span></div>
+    <div class="ai-row"><span class="ai-key">Version</span><span class="ai-val">v3.0.16</span></div>
     <div class="ai-row"><span class="ai-key">Storage</span><span class="ai-val">Local (phone)</span></div>
     <div class="ai-row"><span class="ai-key">Daily Entries</span><span class="ai-val" id="s-entries">0</span></div>
     <div class="ai-row"><span class="ai-key">Trips Recorded</span><span class="ai-val" id="s-trips">0</span></div>
@@ -1078,7 +1119,7 @@ body.light-mode .fuel-stat{background:var(--card)}
         <button class="tog on-tada" onclick="setPlatform('TADA',this)">TADA</button>
         <button class="tog" onclick="setPlatform('Grab',this)">Grab</button>
         <button class="tog" onclick="setPlatform('Ryde',this)">Ryde</button>
-        <button class="tog" onclick="setPlatform('Gojek',this)">Gojek</button>
+        <button class="tog" onclick="setPlatform('Others',this)">Others</button>
       </div>
     </div>
     <div style="margin-bottom:14px">
@@ -1095,13 +1136,6 @@ body.light-mode .fuel-stat{background:var(--card)}
         <button class="tog on" onclick="setTripSession(1,this)">Session 1</button>
         <button class="tog" onclick="setTripSession(2,this)">Session 2</button>
         <button class="tog" onclick="setTripSession(3,this)">Session 3</button>
-      </div>
-    </div>
-    <div style="margin-bottom:14px">
-      <label class="lbl">Stops</label>
-      <div class="tog-row" id="stops-tog">
-        <button class="tog on" onclick="setTripStops(1,this)">1 Stop</button>
-        <button class="tog" onclick="setTripStops(2,this)">2 Stops</button>
       </div>
     </div>
     <div id="start-gps" style="display:none"></div>
@@ -1127,6 +1161,13 @@ body.light-mode .fuel-stat{background:var(--card)}
       <input type="number" class="fare-inp" id="fare-inp" placeholder="0.00" step="0.01" min="0"
         autocomplete="off" autocorrect="off" spellcheck="false" inputmode="decimal">
     </div>
+    <label class="lbl" style="margin-top:12px">Payment</label>
+    <div class="tog-row pay-row" id="pay-tog">
+      <button class="tog" type="button" onclick="setPay('Card',this)">Card</button>
+      <button class="tog" type="button" onclick="setPay('Pay Now',this)">Pay Now</button>
+      <button class="tog" type="button" onclick="setPay('Cash',this)">Cash</button>
+    </div>
+    <div id="pay-warn" class="pay-warn" style="display:none">⚠ Choose Card, Pay Now or Cash before saving</div>
     <div class="note-tog" onclick="toggleNote()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Add trip note
@@ -1181,7 +1222,7 @@ body.light-mode .fuel-stat{background:var(--card)}
         <button class="tog" onclick="editSetPlat('TADA',this)">TADA</button>
         <button class="tog" onclick="editSetPlat('Grab',this)">Grab</button>
         <button class="tog" onclick="editSetPlat('Ryde',this)">Ryde</button>
-        <button class="tog" onclick="editSetPlat('Gojek',this)">Gojek</button>
+        <button class="tog" onclick="editSetPlat('Others',this)">Others</button>
       </div>
     </div>
     <div style="margin-bottom:12px">
@@ -1200,10 +1241,11 @@ body.light-mode .fuel-stat{background:var(--card)}
       </div>
     </div>
     <div style="margin-bottom:12px">
-      <label class="lbl">Stops</label>
-      <div class="tog-row" id="edit-stops-tog">
-        <button class="tog" onclick="editSetStops(1,this)">1 Stop</button>
-        <button class="tog" onclick="editSetStops(2,this)">2 Stops</button>
+      <label class="lbl">Payment</label>
+      <div class="tog-row" id="edit-pay-tog">
+        <button class="tog" type="button" onclick="editSetPay('Card',this)">Card</button>
+        <button class="tog" type="button" onclick="editSetPay('Pay Now',this)">Pay Now</button>
+        <button class="tog" type="button" onclick="editSetPay('Cash',this)">Cash</button>
       </div>
     </div>
     <!-- Trip Timing -->
@@ -1756,23 +1798,22 @@ function renderSessions(){
   c.innerHTML='';
   const date=document.getElementById('e-date').value||fmtDate(new Date());
   const trips=getTrips().filter(t=>t.date===date);
-  const td={TADA:0,Grab:0,Ryde:0,Gojek:0}; let tkm=0,tmin=0;
+  const td={TADA:0,Grab:0,Ryde:0,Gojek:0,Others:0}; let tkm=0,tmin=0;
   trips.forEach(t=>{td[t.platform]=(td[t.platform]||0)+(t.fare||0);tkm+=t.distanceKm||0;tmin+=t.durationMins||0;});
 
-  const platColors={TADA:'249,115,22',Grab:'0,177,79',Ryde:'242,69,124',Gojek:'56,189,248'};
-  const platVars={TADA:'tada',Grab:'grab',Ryde:'ryde',Gojek:'gojek'};
+  const platColors={TADA:'249,115,22',Grab:'0,177,79',Ryde:'242,69,124',Gojek:'56,189,248',Others:'167,139,250'};
+  const platVars={TADA:'tada',Grab:'grab',Ryde:'ryde',Gojek:'gojek',Others:'others'};
 
   for(let i=1;i<=3;i++){
     // Filter trips by session number for this block
     const sessTrips=trips.filter(t=>(t.sessionNum||1)===i);
-    const td={TADA:0,Grab:0,Ryde:0,Gojek:0}; let tkm=0,tmin=0;
+    const td={TADA:0,Grab:0,Ryde:0,Gojek:0,Others:0}; let tkm=0,tmin=0;
     sessTrips.forEach(t=>{td[t.platform]=(td[t.platform]||0)+(t.fare||0);tkm+=t.distanceKm||0;tmin+=t.durationMins||0;});
 
     // Platform boxes — read-only auto-populated per session
     const sessTotal=Object.values(td).reduce((a,v)=>a+v,0);
     const platBoxes=[
-      `<div class="plat-box" style="border-color:rgba(0,212,170,.35)"><div class="plat-box-name" style="color:var(--accent)">TOTAL</div><div class="plat-box-val" data-plat="Total" style="color:${sessTotal>0?'var(--text)':'var(--muted)'}">${sessTotal>0?'$'+sessTotal.toFixed(2):'—'}</div></div>`,
-      ...['TADA','Grab','Ryde','Gojek'].map(p=>`
+      ...['TADA','Grab','Ryde','Others'].map(p=>`
       <div class="plat-box" style="border-color:rgba(${platColors[p]},.25)">
         <div class="plat-box-name" style="color:var(--${platVars[p]})">${p}</div>
         <div class="plat-box-val" data-plat="${p}" style="color:${td[p]>0?'var(--text)':'var(--muted)'}">${td[p]>0?'$'+td[p].toFixed(2):'—'}</div>
@@ -1796,6 +1837,7 @@ function renderSessions(){
     <div class="sess-block${sessOpen[i]?' open':''}" id="sess-block-${i}">
       <div class="sess-head" onclick="toggleSess(${i})">
         <div class="sess-label">Session ${i}</div>
+        <span class="sess-total" id="sess-total-${i}">${sessTotal>0?'Total <b>$'+sessTotal.toFixed(2)+'</b>':''}</span>
         <button class="sess-toggle" id="sess-toggle-${i}" type="button" aria-label="${sessOpen[i]?'Collapse':'Open'} session ${i}">${sessOpen[i]?'−':'+'}</button>
       </div>
       <div class="sess-body">
@@ -1833,13 +1875,13 @@ function renderSessions(){
             placeholder="e.g. 12567" value="${odoEnd2}"
             oninput="calcOdoDist(${i});autoSaveEntry()" style="font-family:'Space Mono',monospace">
         </div>
-        <div class="odo-dist">
-          <div class="odo-dist-label">Distance</div>
-          <div class="odo-dist-val" id="s-odo-dist-${i}">${odoDist2}</div>
+        <div>
+          <label class="lbl">Distance</label>
+          <div class="inp odo-dist-box" id="s-odo-dist-${i}">${odoDist2}</div>
         </div>
       </div>
       <label class="lbl" style="margin-top:8px;display:block">Platform Earnings (from Trip Log)</label>
-      <div class="plat-grid plat-grid-5">${platBoxes}</div>
+      <div class="plat-grid">${platBoxes}</div>
       ${statsLine}
       </div>
     </div>`;
@@ -1973,7 +2015,7 @@ function loadEntry(){
   const trips=getTrips().filter(t=>t.date===date);
 
   // Always auto-populate platform boxes from Trip Log — no manual input
-  const td={TADA:0,Grab:0,Ryde:0,Gojek:0};
+  const td={TADA:0,Grab:0,Ryde:0,Gojek:0,Others:0};
   let totalFare=0, totalKm=0, totalMin=0;
   trips.forEach(t=>{
     td[t.platform]=(td[t.platform]||0)+(t.fare||0);
@@ -1986,7 +2028,7 @@ function loadEntry(){
   // Update each read-only platform box
   const totalEl=document.getElementById('pb-val-Total');
   if(totalEl){ totalEl.textContent=totalFare>0?'$'+totalFare.toFixed(2):'—'; totalEl.style.color=totalFare>0?'var(--text)':'var(--muted)'; }
-  ['TADA','Grab','Ryde','Gojek'].forEach(p=>{
+  ['TADA','Grab','Ryde','Others'].forEach(p=>{
     const el=document.getElementById('pb-val-'+p);
     if(!el) return;
     if(td[p]>0){ el.textContent='$'+td[p].toFixed(2); el.style.color='var(--text)'; }
@@ -2070,12 +2112,12 @@ function refreshEntryEarnings(){
   blocks.forEach((block,idx)=>{
     const i=idx+1;
     const sessTrips=trips.filter(t=>(t.sessionNum||1)===i);
-    const sd={TADA:0,Grab:0,Ryde:0,Gojek:0};
+    const sd={TADA:0,Grab:0,Ryde:0,Gojek:0,Others:0};
     sessTrips.forEach(t=>sd[t.platform]=(sd[t.platform]||0)+(t.fare||0));
     const sTotal=Object.values(sd).reduce((a,v)=>a+v,0);
-    const sTotalEl=block.querySelector('.plat-box-val[data-plat="Total"]');
-    if(sTotalEl){ sTotalEl.textContent=sTotal>0?'$'+sTotal.toFixed(2):'—'; sTotalEl.style.color=sTotal>0?'var(--text)':'var(--muted)'; }
-    ['TADA','Grab','Ryde','Gojek'].forEach(p=>{
+    const sTotalEl=document.getElementById('sess-total-'+i);
+    if(sTotalEl) sTotalEl.innerHTML=sTotal>0?'Total <b>$'+sTotal.toFixed(2)+'</b>':'';
+    ['TADA','Grab','Ryde','Others'].forEach(p=>{
       const el=block.querySelector(`.plat-box-val[data-plat="${p}"]`);
       if(!el) return;
       if(sd[p]>0){ el.textContent='$'+sd[p].toFixed(2); el.style.color='var(--text)'; }
@@ -2134,7 +2176,7 @@ function autoSaveEntry(){
 
   // Save driving day state — earnings/trips are auto-populated, just save petrol + sessions + notes
   const trips=getTrips().filter(t=>t.date===date);
-  let earnings={tada:0,grab:0,ryde:0,gojek:0,total:0};
+  let earnings={tada:0,grab:0,ryde:0,gojek:0,others:0,total:0};
   let distance=0;
   trips.forEach(t=>{
     const p=(t.platform||'').toLowerCase();
@@ -2142,10 +2184,11 @@ function autoSaveEntry(){
     else if(p==='grab') earnings.grab+=t.fare||0;
     else if(p==='ryde') earnings.ryde+=t.fare||0;
     else if(p==='gojek') earnings.gojek+=t.fare||0;
+    else if(p==='others') earnings.others+=t.fare||0;
     
     distance+=t.distanceKm||0;
   });
-  earnings.total=earnings.tada+earnings.grab+earnings.ryde+earnings.gojek;
+  earnings.total=earnings.tada+earnings.grab+earnings.ryde+earnings.gojek+earnings.others;
 
   const petrol=parseFloat(document.getElementById('e-petrol')?.value)||0;
   const sessions=[];
@@ -2184,7 +2227,7 @@ function saveEntry(){
   }
 
   const trips=getTrips().filter(t=>t.date===date);
-  let earnings={tada:0,grab:0,ryde:0,gojek:0,total:0};
+  let earnings={tada:0,grab:0,ryde:0,gojek:0,others:0,total:0};
   let distance=0;
 
   if(trips.length>0){
@@ -2194,10 +2237,11 @@ function saveEntry(){
       else if(p==='grab') earnings.grab+=t.fare||0;
       else if(p==='ryde') earnings.ryde+=t.fare||0;
     else if(p==='gojek') earnings.gojek+=t.fare||0;
+    else if(p==='others') earnings.others+=t.fare||0;
       
       distance+=t.distanceKm||0;
     });
-    earnings.total=earnings.tada+earnings.grab+earnings.ryde+earnings.gojek;
+    earnings.total=earnings.tada+earnings.grab+earnings.ryde+earnings.gojek+earnings.others;
   } else {
     // No trips recorded — earnings remain 0 (no manual input)
     earnings.total=0;
@@ -2280,11 +2324,11 @@ function renderSummary(){
   // K12 — Petrol Budget Variance (planned petrol - actual petrol)
   const k12=(days*petrolDay)-k4;
   const k12El=document.getElementById('k12');
-  if(k12El&&!ready){ k12El.textContent='—'; k12El.style.color='var(--muted)'; k12El.style.fontWeight='400'; }
+  if(k12El&&!ready){ k12El.textContent='—'; k12El.style.color=''; k12El.style.fontWeight='400'; }
   else if(k12El){
     k12El.textContent=(k12>=0?'+':'')+fmtMoney(k12);
-    k12El.style.color=k12<0?'var(--danger)':'var(--accent)';
-    k12El.style.fontWeight=k12<0?'700':'400';
+    k12El.style.color=k12<0?'var(--danger)':'';
+    k12El.style.fontWeight='';
   }
 }
 
@@ -2320,6 +2364,33 @@ function renderHistory(){
 
 function setHistMonth(y,m){ histMonth={y,m}; renderHistory(); }
 
+// History: Total · Card · Pay Now · Cash by platform for the month ("-" where nothing recorded)
+function renderPaySummary(monthTrips){
+  const el=document.getElementById('hist-pay-summary'); if(!el) return;
+  if(!monthTrips.length){ el.style.display='none'; return; }
+  const plats=['TADA','Grab','Ryde','Others'], pays=['Card','Pay Now','Cash'];
+  const pc={TADA:'var(--tada)',Grab:'var(--grab)',Ryde:'var(--ryde)',Others:'var(--others)'};
+  const cell=(list)=>{ return list.length?'$'+Math.round(list.reduce((a,t)=>a+(t.fare||0),0)).toLocaleString('en-SG'):'-'; };
+  const th='padding:6px 4px;font-size:10px;font-weight:700;color:var(--muted);text-align:right;letter-spacing:.03em';
+  const td='padding:6px 4px;font-size:12px;text-align:right;font-family:\'Space Mono\',monospace;color:var(--text)';
+  let rows='';
+  plats.forEach(p=>{
+    const pt=monthTrips.filter(t=>t.platform===p);
+    if(!pt.length) return;
+    rows+='<tr style="border-top:1px solid var(--border)"><td style="padding:6px 4px;font-size:12px;font-weight:700;color:'+pc[p]+'">'+p+'</td>'+
+      '<td style="'+td+';font-weight:700">'+cell(pt)+'</td>'+
+      pays.map(k=>'<td style="'+td+'">'+cell(pt.filter(t=>t.payment===k))+'</td>').join('')+'</tr>';
+  });
+  rows+='<tr style="border-top:1.5px solid var(--border)"><td style="padding:6px 4px;font-size:12px;font-weight:700;color:var(--text)">Total</td>'+
+    '<td style="'+td+';font-weight:700;color:var(--accent)">'+cell(monthTrips)+'</td>'+
+    pays.map(k=>'<td style="'+td+';font-weight:700">'+cell(monthTrips.filter(t=>t.payment===k))+'</td>').join('')+'</tr>';
+  el.innerHTML='<div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.06em;margin:0 2px 4px">PAYMENT BREAKDOWN</div>'+
+    '<table style="width:100%;border-collapse:collapse;table-layout:fixed"><thead><tr>'+
+    '<th style="'+th+';text-align:left;width:22%"></th><th style="'+th+'">Total</th><th style="'+th+'">Card</th><th style="'+th+'">Pay Now</th><th style="'+th+'">Cash</th>'+
+    '</tr></thead><tbody>'+rows+'</tbody></table>';
+  el.style.display='block';
+}
+
 function renderHistList(){
   const{y,m}=histMonth;
   const prefix=y+'-'+String(m+1).padStart(2,'0')+'-';
@@ -2331,12 +2402,12 @@ function renderHistList(){
 
   // Monthly platform summary from Trip Log
   const allMonthTrips=getTrips().filter(t=>t.date?.startsWith(prefix));
-  const mPlat={TADA:{earn:0,trips:0},Grab:{earn:0,trips:0},Ryde:{earn:0,trips:0},Gojek:{earn:0,trips:0}};
+  const mPlat={TADA:{earn:0,trips:0},Grab:{earn:0,trips:0},Ryde:{earn:0,trips:0},Others:{earn:0,trips:0}};
   allMonthTrips.forEach(t=>{ if(mPlat[t.platform]){mPlat[t.platform].earn+=t.fare||0;mPlat[t.platform].trips++;} });
   const mTotal=allMonthTrips.reduce((a,t)=>a+(t.fare||0),0);
   const platSumEl=document.getElementById('hist-plat-summary');
   if(platSumEl){
-    const pc={TADA:'var(--tada)',Grab:'var(--grab)',Ryde:'var(--ryde)',Gojek:'var(--gojek)'};
+    const pc={TADA:'var(--tada)',Grab:'var(--grab)',Ryde:'var(--ryde)',Gojek:'var(--gojek)',Others:'var(--others)'};
     const rows=Object.entries(mPlat).filter(([,v])=>v.trips>0).map(([p,v])=>
       `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border)">
         <span style="font-size:12px;font-weight:600;color:${pc[p]}">${p}</span>
@@ -2353,6 +2424,7 @@ function renderHistList(){
         </div>`;
     } else { platSumEl.style.display='none'; }
   }
+  renderPaySummary(allMonthTrips);
 
   for(let d=daysInMonth;d>=1;d--){
     const ds=prefix+String(d).padStart(2,'0');
@@ -2369,9 +2441,9 @@ function renderHistList(){
     const tripKm=dayTrips.reduce((a,t)=>a+(t.distanceKm||0),0);
 
     // Per-day platform breakdown
-    const dPlat={TADA:{earn:0,trips:0},Grab:{earn:0,trips:0},Ryde:{earn:0,trips:0},Gojek:{earn:0,trips:0}};
+    const dPlat={TADA:{earn:0,trips:0},Grab:{earn:0,trips:0},Ryde:{earn:0,trips:0},Others:{earn:0,trips:0}};
     dayTrips.forEach(t=>{ if(dPlat[t.platform]){dPlat[t.platform].earn+=t.fare||0;dPlat[t.platform].trips++;} });
-    const pc2={TADA:'var(--tada)',Grab:'var(--grab)',Ryde:'var(--ryde)',Gojek:'var(--gojek)'};
+    const pc2={TADA:'var(--tada)',Grab:'var(--grab)',Ryde:'var(--ryde)',Gojek:'var(--gojek)',Others:'var(--others)'};
     const platHtml=tripCount>0?Object.entries(dPlat).filter(([,v])=>v.trips>0)
       .map(([p])=>`<span class="ppill ppill-${p}">${p}</span>`).join(''):'';
     const platBreakdown=tripCount>0?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:3px">
@@ -2472,7 +2544,7 @@ function renderTrips(){
     btn.disabled=true; ac.style.display='block';
     document.getElementById('ap-addr').textContent=activeTrip.pickup?.addr||'Captured';
     document.getElementById('ap-town').textContent=activeTrip.pickup?.town||'';
-    const pc={'TADA':'tada','Grab':'grab','Ryde':'ryde','Gojek':'gojek'};
+    const pc={'TADA':'tada','Grab':'grab','Ryde':'ryde','Gojek':'gojek','Others':'others'};
     document.getElementById('active-plat').innerHTML=
       `<span class="ppill ppill-${activeTrip.platform}">${activeTrip.platform}</span>
        <span style="font-size:11px;color:var(--muted);margin-left:8px">${activeTrip.mode}</span>`;
@@ -2498,9 +2570,9 @@ function renderTrips(){
     // Platform earnings breakdown
     const platEl=document.getElementById('trip-plat-breakdown');
     if(platEl){
-      const platTotals={TADA:0,Grab:0,Ryde:0,Gojek:0};
+      const platTotals={TADA:0,Grab:0,Ryde:0,Others:0};
       trips.forEach(t=>{ if(platTotals[t.platform]!==undefined) platTotals[t.platform]+=t.fare||0; });
-      const platColors={TADA:'var(--tada)',Grab:'var(--grab)',Ryde:'var(--ryde)',Gojek:'var(--gojek)'};
+      const platColors={TADA:'var(--tada)',Grab:'var(--grab)',Ryde:'var(--ryde)',Gojek:'var(--gojek)',Others:'var(--others)'};
       platEl.innerHTML=Object.entries(platTotals).filter(([,v])=>v>0).map(([p,v])=>
         `<span style="font-size:11px;font-weight:600;color:${platColors[p]};background:rgba(0,0,0,.15);padding:2px 7px;border-radius:99px">${p} ${fmtMoney(v)}</span>`
       ).join('');
@@ -2531,7 +2603,7 @@ function renderTrips(){
   <div class="trip-card" onclick="showDetail('${t.id}')">
     <div style="display:flex;justify-content:space-between;align-items:flex-start">
       <div>
-        <div style="font-size:10px;color:var(--muted);margin-bottom:2px">Trip #${trips.length-i} &middot; Sess ${t.sessionNum||1}${t.stops===2?' &middot; 2 Stops':''}</div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:2px">Trip #${trips.length-i} &middot; Sess ${t.sessionNum||1}</div>
         <div style="display:flex;gap:6px;align-items:center">
           <span class="ppill ppill-${t.platform}">${t.platform}</span>
           <span style="font-size:10px;color:var(--muted)">${t.mode}</span>
@@ -2569,7 +2641,6 @@ function showDetail(id){
     <div style="display:flex;gap:6px;justify-content:center;margin-bottom:14px;flex-wrap:wrap">
       <span class="ppill ppill-${t.platform}">${t.platform}</span>
       <span style="font-size:11px;color:var(--muted);display:flex;align-items:center">${t.mode}</span>
-      ${t.stops===2?'<span style="font-size:11px;background:var(--border);color:var(--text);padding:2px 8px;border-radius:10px">2 Stops</span>':''}
     </div>
     <div style="margin-bottom:10px">
       <div style="font-size:10px;color:var(--blue);font-weight:600;margin-bottom:2px">📍 Pick up</div>
@@ -2626,7 +2697,7 @@ function deleteTrip(){
 // ── Start/End trip ────────────────────────────────
 function setPlatform(p,btn){
   tripPlatform=p;
-  const map={TADA:'on-tada',Grab:'on-grab',Ryde:'on-ryde',Gojek:'on-gojek'};
+  const map={TADA:'on-tada',Grab:'on-grab',Ryde:'on-ryde',Gojek:'on-gojek',Others:'on-others'};
   document.querySelectorAll('#plat-tog .tog').forEach(b=>b.className='tog');
   btn.className='tog '+map[p];
 }
@@ -2638,14 +2709,6 @@ function setMode(m,btn){
 }
 
 let tripSession = 1;
-let tripStops = 1;
-
-function setTripStops(n, btn){
-  tripStops = n;
-  document.querySelectorAll('#stops-tog .tog').forEach(b => b.classList.remove('on'));
-  btn.classList.add('on');
-}
-
 function setTripSession(n, btn){
   tripSession = n;
   document.querySelectorAll('#sess-tog .tog').forEach(b => b.classList.remove('on'));
@@ -2687,8 +2750,6 @@ function openStartSheet(){
   if(activeTrip){ toast('A trip is already in progress — end or cancel it first',3000); return; }
   if(tripViewDate&&tripViewDate!==fmtDate(new Date())){ toast('Switch to Today to start a trip',3000); return; }
   document.getElementById('start-gps').style.display='none';
-  tripStops = 1;
-  document.querySelectorAll('#stops-tog .tog').forEach((b,i)=>b.classList.toggle('on', i===0));
   // Default to highest session that has a start time entered
   let defaultSess = 1;
   for(let i=1; i<=3; i++){ if(sessTimeVals[`${i}-start`]) defaultSess=i; }
@@ -2738,7 +2799,6 @@ async function captureAndStart(){
     id:Date.now(), date:fmtDate(new Date()), platform:tripPlatform, mode:tripMode,
     startTime:new Date().toTimeString().slice(0,5), startTs:Date.now(),
     sessionNum: tripSession,
-    stops: tripStops,
     pickup:{lat,lng,...loc}
   };
   // Save straight away so the trip survives the app closing unexpectedly
@@ -2765,8 +2825,25 @@ function startTimer(){
   },1000);
 }
 
+// Payment type for the trip being ended — starts blank on purpose (a check before saving)
+let endPay=null;
+function setPay(v,btn){
+  endPay=v;
+  document.querySelectorAll('#pay-tog .tog').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('pay-tog').classList.remove('missing');
+  document.getElementById('pay-warn').style.display='none';
+}
+function resetPay(){
+  endPay=null;
+  document.querySelectorAll('#pay-tog .tog').forEach(b=>b.classList.remove('on'));
+  document.getElementById('pay-tog').classList.remove('missing');
+  document.getElementById('pay-warn').style.display='none';
+}
+
 async function openEndSheet(){
   document.getElementById('end-overlay').classList.add('open');
+  resetPay();
   document.getElementById('fare-inp').value='';
   document.getElementById('note-inp').value='';
   document.getElementById('note-area').classList.remove('open');
@@ -2824,18 +2901,23 @@ function toggleNote(){ document.getElementById('note-area').classList.toggle('op
 function saveTrip(){
   const fare=parseFloat(document.getElementById('fare-inp').value)||0;
   if(fare<=0){toast('Please enter the trip fare');return;}
+  if(!endPay){
+    document.getElementById('pay-tog').classList.add('missing');
+    document.getElementById('pay-warn').style.display='block';
+    toast('Choose Card, Pay Now or Cash first',2500);
+    return;
+  }
   const trip={
     id:activeTrip.id, date:activeTrip.date, platform:activeTrip.platform,
     mode:activeTrip.mode, startTime:activeTrip.startTime,
     endTime:new Date().toTimeString().slice(0,5),
     sessionNum: activeTrip.sessionNum||1,
-    stops: activeTrip.stops||1,
     startTs:activeTrip.startTs, endTs:Date.now(),
     durationMins:activeTrip._dur||Math.round((Date.now()-activeTrip.startTs)/60000),
     pickup:activeTrip.pickup,
     dropoff:activeTrip._drop||{addr:'—',town:'—',postal:'',lat:0,lng:0},
     distanceKm:parseFloat((activeTrip._dist||0).toFixed(2)),
-    fare, note:document.getElementById('note-inp').value
+    fare, payment:endPay, note:document.getElementById('note-inp').value
   };
   const trips=getTrips(); trips.push(trip); saveTrips(trips);
   clearInterval(timerInt); timerInt=null;
@@ -3239,7 +3321,7 @@ function exportAll(){
           [null], // Row 1 blank
           [null,'MY DRIVE LOG — Individual Trips'],
           [null,'Date','Trip #','Session','Platform','Mode','Fare ($)',
-           'Distance (km)','Duration','$/km','$/hr','# Stops','Pickup','Dropoff','Notes']
+           'Distance (km)','Duration','$/km','$/hr','Payment','Pickup','Dropoff','Notes']
         ];
         // Group trips by date to get trip numbers
         const byDate={};
@@ -3258,7 +3340,7 @@ function exportAll(){
             t.fare||0, t.distanceKm||0,
             fmtDur(t.durationMins)||'',
             perKm?+perKm:'', perHr?+perHr:'',
-            t.stops||1,
+            t.payment||'',
             t.pickup?.town||'', t.dropoff?.town||'',
             t.note||''
           ]);
@@ -3267,7 +3349,7 @@ function exportAll(){
         ws2['!cols']=[
           {wch:3},  // A blank
           {wch:12},{wch:7},{wch:9},{wch:9},{wch:8},{wch:10},
-          {wch:13},{wch:10},{wch:9},{wch:9},{wch:8},{wch:22},{wch:22},{wch:25}
+          {wch:13},{wch:10},{wch:9},{wch:9},{wch:10},{wch:22},{wch:22},{wch:25}
         ];
         XLSX.utils.book_append_sheet(wb,ws2,'Individual Trips');
 
@@ -4512,14 +4594,14 @@ function openEditTrip(){
   const t=trips.find(function(x){return String(x.id)===String(detailTripId);});
   if(!t) return;
   editTripVals={
-    plat:t.platform, mode:t.mode, sess:t.sessionNum||1, stops:t.stops||1,
+    plat:t.platform, mode:t.mode, sess:t.sessionNum||1, pay:t.payment||null,
     pickupAddr:null, dropoffAddr:null // only set when a new location is looked up
   };
   document.getElementById('edit-fare').value=(t.fare||0).toFixed(2);
   document.querySelectorAll('#edit-plat-tog .tog').forEach(function(b){b.classList.toggle('on',b.textContent===t.platform);});
   document.querySelectorAll('#edit-mode-tog .tog').forEach(function(b){b.classList.toggle('on',b.textContent===t.mode);});
+  document.querySelectorAll('#edit-pay-tog .tog').forEach(function(b){b.classList.toggle('on',b.textContent===t.payment);});
   document.querySelectorAll('#edit-sess-tog .tog').forEach(function(b,i){b.classList.toggle('on',i+1===(t.sessionNum||1));});
-  document.querySelectorAll('#edit-stops-tog .tog').forEach(function(b,i){b.classList.toggle('on',i+1===(t.stops||1));});
   // Timing
   setEditTime('start',t.startTime||'');
   setEditTime('end',t.endTime||'');
@@ -4554,9 +4636,9 @@ function editSetSess(n,btn){
   document.querySelectorAll('#edit-sess-tog .tog').forEach(function(b){b.classList.remove('on');});
   btn.classList.add('on');
 }
-function editSetStops(n,btn){
-  editTripVals.stops=n;
-  document.querySelectorAll('#edit-stops-tog .tog').forEach(function(b){b.classList.remove('on');});
+function editSetPay(v,btn){
+  editTripVals.pay=v;
+  document.querySelectorAll('#edit-pay-tog .tog').forEach(function(b){b.classList.remove('on');});
   btn.classList.add('on');
 }
 
@@ -4585,7 +4667,7 @@ async function saveEditTrip(){
   trips[idx].platform=editTripVals.plat||trips[idx].platform;
   trips[idx].mode=editTripVals.mode||trips[idx].mode;
   trips[idx].sessionNum=editTripVals.sess||trips[idx].sessionNum;
-  trips[idx].stops=editTripVals.stops||trips[idx].stops;
+  if(editTripVals.pay) trips[idx].payment=editTripVals.pay;
   // Save timing
   const st=document.getElementById('edit-start-time').dataset.v||'';
   const et=document.getElementById('edit-end-time').dataset.v||'';
