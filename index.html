@@ -30,7 +30,7 @@ function _mapsCallback(){
   --accent:#00D4AA; --blue:#3B82F6; --warn:#F59E0B; --danger:#EF4444;
   --yellow:#FFD60A; --text:#E6EDF3; --muted:#C8D0DC;
   --nav-h:70px;
-  --tada:#F97316; --grab:#00B14F; --ryde:#F2457C; --gojek:#38BDF8; --others:#A78BFA;
+  --tada:#F97316; --grab:#00B14F; --ryde:#F2457C; --pay-card:#60A5FA; --pay-now:#22D3EE; --pay-cash:#F59E0B; --gojek:#38BDF8; --others:#A78BFA;
   --r:12px;
 }
 body.light-mode{
@@ -47,6 +47,7 @@ body.light-mode{
   --tada:#B84800;
   --grab:#1A6B35;
   --ryde:#B8185A;
+  --pay-card:#1D4ED8; --pay-now:#0E7490; --pay-cash:#92400E;
   --gojek:#1A5A8A;
   --others:#5A3A9A;
   --blue:#1A5A8A;
@@ -194,7 +195,20 @@ textarea.inp{resize:none;height:80px}
 .tog.on-grab   {border-color:var(--grab);color:var(--grab);background:rgba(0,177,79,.08)}
 .tog.on-ryde   {border-color:var(--ryde);color:var(--ryde);background:rgba(242,69,124,.08)}
 .tog.on-gojek  {border-color:var(--gojek);color:var(--gojek);background:rgba(56,189,248,.08)}
-.pay-row.missing .tog{border-color:var(--danger)}
+.pay-row.missing .tog{border-color:var(--danger)!important}
+/* Payment buttons: each has its own colour; the chosen one is filled */
+.tog.pay-Card{color:var(--pay-card);border-color:rgba(96,165,250,.45)}
+.tog.pay-PayNow{color:var(--pay-now);border-color:rgba(34,211,238,.45)}
+.tog.pay-Cash{color:var(--pay-cash);border-color:rgba(245,158,11,.45)}
+.tog.pay-Card.on{background:var(--pay-card);border-color:var(--pay-card);color:#0D1117}
+.tog.pay-PayNow.on{background:var(--pay-now);border-color:var(--pay-now);color:#0D1117}
+.tog.pay-Cash.on{background:var(--pay-cash);border-color:var(--pay-cash);color:#0D1117}
+body.light-mode .tog.pay-Card{color:var(--pay-card);border-color:rgba(29,78,216,.5)}
+body.light-mode .tog.pay-PayNow{color:var(--pay-now);border-color:rgba(14,116,144,.5)}
+body.light-mode .tog.pay-Cash{color:var(--pay-cash);border-color:rgba(146,64,14,.5)}
+body.light-mode .tog.pay-Card.on{background:var(--pay-card);border-color:var(--pay-card);color:#FFFFFF}
+body.light-mode .tog.pay-PayNow.on{background:var(--pay-now);border-color:var(--pay-now);color:#FFFFFF}
+body.light-mode .tog.pay-Cash.on{background:var(--pay-cash);border-color:var(--pay-cash);color:#FFFFFF}
 .pay-warn{font-size:12px;font-weight:600;color:var(--danger);margin-top:6px}
 .tog.sess-save-btn{border-color:var(--accent);background:var(--accent);color:#0D1117;font-weight:700}
 .tog.on-others {border-color:var(--others);color:var(--others);background:rgba(167,139,250,.08)}
@@ -330,12 +344,13 @@ body.light-mode .kgrp.g4 .kpi-lbl{color:#1A1714} body.light-mode .kgrp.g4 .kpi-v
   display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;
   touch-action:manipulation;flex-shrink:0}
 body.light-mode .sess-toggle{border-color:var(--accent);color:var(--accent)}
-.date-arrow{width:46px;height:46px;flex-shrink:0;border-radius:10px;
+.date-arrow{width:56px;height:56px;flex-shrink:0;border-radius:10px;
   border:2px solid var(--accent);background:var(--surface);color:var(--accent);
-  font-size:30px;font-weight:700;line-height:1;padding:0 0 4px;
+  font-size:36px;font-weight:700;line-height:1;padding:0 0 4px;
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .date-arrow:active{background:var(--accent);color:#0D1117}
+body.light-mode .today-btn{color:#fff!important}
 
 /* ── TRIP CARD ───────────────────────────────────── */
 .trip-card{
@@ -546,6 +561,10 @@ body.light-mode .fuel-stat{background:var(--card)}
 .ai-row:last-child{border:none}
 .ai-key{color:var(--muted)}
 .ai-val{font-family:'Space Mono',monospace;color:var(--text)}
+#e-date::-webkit-date-and-time-value{text-align:center}
+#e-date::-webkit-datetime-edit-day-field,#e-date::-webkit-datetime-edit-month-field,#e-date::-webkit-datetime-edit-year-field,#e-date::-webkit-datetime-edit-text{color:var(--text)}
+#e-date::-webkit-datetime-edit{flex:0 0 auto;margin:0 auto}
+#e-date::-webkit-calendar-picker-indicator{position:absolute;inset:0;width:auto;height:auto;opacity:0;cursor:pointer}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -567,14 +586,16 @@ body.light-mode .fuel-stat{background:var(--card)}
   <!-- Card 1: Date / Day / Driving -->
   <div class="card">
     <div style="margin-bottom:12px">
-      <label class="lbl">Date</label>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <label class="lbl" style="margin:0">Date</label>
+        <button class="today-btn" onclick="goToToday()" style="background:var(--accent);border:none;border-radius:10px;padding:10px 22px;min-height:42px;font-size:15px;font-weight:700;color:#0D1117;cursor:pointer;touch-action:manipulation;letter-spacing:.3px">Today</button>
+      </div>
       <div style="display:flex;align-items:center;gap:10px">
         <button class="date-arrow" onclick="shiftDate(-1)" aria-label="Previous day">‹</button>
-        <input type="date" class="inp" id="e-date" style="font-family:'Space Mono',monospace;font-size:13px;flex:1;text-align:center">
+        <input type="date" class="inp" id="e-date" style="height:56px;font-family:'Space Mono',monospace;font-size:17px;font-weight:700;flex:1;min-width:0;text-align:center;text-align-last:center;position:relative">
         <button class="date-arrow" onclick="shiftDate(1)" aria-label="Next day">›</button>
-        <button onclick="goToToday()" style="background:var(--accent);border:none;border-radius:8px;padding:8px 10px;font-size:11px;font-weight:700;color:#0D1117;cursor:pointer;touch-action:manipulation;flex-shrink:0;letter-spacing:.3px">Today</button>
       </div>
-      <div class="inp" id="e-dow" style="color:var(--muted);font-family:'Space Mono',monospace;font-size:13px;display:flex;align-items:center;margin-top:6px;background:none;border:none;padding:0"></div>
+      <div id="e-dow" style="color:var(--text);font-size:20px;font-weight:800;text-align:center;margin-top:8px;letter-spacing:.3px"></div>
     </div>
     <label class="lbl">Driving Today?</label>
     <div class="tog-row">
@@ -1036,7 +1057,7 @@ body.light-mode .fuel-stat{background:var(--card)}
 
   <div class="set-section-title" style="margin-top:18px">App Info</div>
   <div class="card" style="margin-top:0">
-    <div class="ai-row"><span class="ai-key">Version</span><span class="ai-val">v3.0.16</span></div>
+    <div class="ai-row"><span class="ai-key">Version</span><span class="ai-val">v3.0.17</span></div>
     <div class="ai-row"><span class="ai-key">Storage</span><span class="ai-val">Local (phone)</span></div>
     <div class="ai-row"><span class="ai-key">Daily Entries</span><span class="ai-val" id="s-entries">0</span></div>
     <div class="ai-row"><span class="ai-key">Trips Recorded</span><span class="ai-val" id="s-trips">0</span></div>
@@ -1163,9 +1184,9 @@ body.light-mode .fuel-stat{background:var(--card)}
     </div>
     <label class="lbl" style="margin-top:12px">Payment</label>
     <div class="tog-row pay-row" id="pay-tog">
-      <button class="tog" type="button" onclick="setPay('Card',this)">Card</button>
-      <button class="tog" type="button" onclick="setPay('Pay Now',this)">Pay Now</button>
-      <button class="tog" type="button" onclick="setPay('Cash',this)">Cash</button>
+      <button class="tog pay-Card" type="button" onclick="setPay('Card',this)">Card</button>
+      <button class="tog pay-PayNow" type="button" onclick="setPay('Pay Now',this)">Pay Now</button>
+      <button class="tog pay-Cash" type="button" onclick="setPay('Cash',this)">Cash</button>
     </div>
     <div id="pay-warn" class="pay-warn" style="display:none">⚠ Choose Card, Pay Now or Cash before saving</div>
     <div class="note-tog" onclick="toggleNote()">
@@ -1243,9 +1264,9 @@ body.light-mode .fuel-stat{background:var(--card)}
     <div style="margin-bottom:12px">
       <label class="lbl">Payment</label>
       <div class="tog-row" id="edit-pay-tog">
-        <button class="tog" type="button" onclick="editSetPay('Card',this)">Card</button>
-        <button class="tog" type="button" onclick="editSetPay('Pay Now',this)">Pay Now</button>
-        <button class="tog" type="button" onclick="editSetPay('Cash',this)">Cash</button>
+        <button class="tog pay-Card" type="button" onclick="editSetPay('Card',this)">Card</button>
+        <button class="tog pay-PayNow" type="button" onclick="editSetPay('Pay Now',this)">Pay Now</button>
+        <button class="tog pay-Cash" type="button" onclick="editSetPay('Cash',this)">Cash</button>
       </div>
     </div>
     <!-- Trip Timing -->
@@ -4598,7 +4619,7 @@ function openEditTrip(){
     pickupAddr:null, dropoffAddr:null // only set when a new location is looked up
   };
   document.getElementById('edit-fare').value=(t.fare||0).toFixed(2);
-  document.querySelectorAll('#edit-plat-tog .tog').forEach(function(b){b.classList.toggle('on',b.textContent===t.platform);});
+  document.querySelectorAll('#edit-plat-tog .tog').forEach(function(b){ b.className='tog'+(b.textContent===t.platform?' on-'+b.textContent.toLowerCase():''); });
   document.querySelectorAll('#edit-mode-tog .tog').forEach(function(b){b.classList.toggle('on',b.textContent===t.mode);});
   document.querySelectorAll('#edit-pay-tog .tog').forEach(function(b){b.classList.toggle('on',b.textContent===t.payment);});
   document.querySelectorAll('#edit-sess-tog .tog').forEach(function(b,i){b.classList.toggle('on',i+1===(t.sessionNum||1));});
@@ -4623,8 +4644,8 @@ function openEditTrip(){
 
 function editSetPlat(p,btn){
   editTripVals.plat=p;
-  document.querySelectorAll('#edit-plat-tog .tog').forEach(function(b){b.classList.remove('on');});
-  btn.classList.add('on');
+  document.querySelectorAll('#edit-plat-tog .tog').forEach(function(b){ b.className='tog'; });
+  btn.className='tog on-'+p.toLowerCase();
 }
 function editSetMode(m,btn){
   editTripVals.mode=m;
