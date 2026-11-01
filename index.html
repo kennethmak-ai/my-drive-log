@@ -705,6 +705,23 @@ body.light-mode .date-box{background:var(--surface);border:2px solid var(--borde
       </button>
     </div>
   </div>
+
+  <!-- Petty Cash: cash taken from the cash wallet for own use (driving or rest day) -->
+  <div class="card">
+    <div class="card-label">Petty Cash</div>
+    <div style="display:flex;gap:10px;align-items:flex-end">
+      <div style="flex:0 0 38%">
+        <label class="lbl">Cash Taken ($)</label>
+        <input type="number" class="inp" id="e-petty" placeholder="0.00" step="0.01" min="0" inputmode="decimal" autocomplete="off"
+          style="font-family:'Space Mono',monospace" oninput="savePettyCash()">
+      </div>
+      <div style="flex:1;min-width:0">
+        <label class="lbl">What for (optional)</label>
+        <input type="text" class="inp" id="e-petty-note" placeholder="e.g. lunch, parking" maxlength="40" oninput="savePettyCash()">
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:6px">Taken from the cash wallet. Deducted from Cash in the History tab.</div>
+  </div>
   <div style="height:100vh"></div>
 </div>
 
@@ -1060,7 +1077,7 @@ body.light-mode .date-box{background:var(--surface);border:2px solid var(--borde
 
   <div class="set-section-title" style="margin-top:18px">App Info</div>
   <div class="card" style="margin-top:0">
-    <div class="ai-row"><span class="ai-key">Version</span><span class="ai-val">v3.0.17</span></div>
+    <div class="ai-row"><span class="ai-key">Version</span><span class="ai-val">v3.0.18</span></div>
     <div class="ai-row"><span class="ai-key">Storage</span><span class="ai-val">Local (phone)</span></div>
     <div class="ai-row"><span class="ai-key">Daily Entries</span><span class="ai-val" id="s-entries">0</span></div>
     <div class="ai-row"><span class="ai-key">Trips Recorded</span><span class="ai-val" id="s-trips">0</span></div>
@@ -2038,6 +2055,7 @@ function loadEntry(){
   for(let i=1;i<=3;i++){ delete sessTimeVals[i+'-start']; delete sessTimeVals[i+'-end']; }
   const data=getData(), entry=data[date];
   const trips=getTrips().filter(t=>t.date===date);
+  loadPettyCash(date);
 
   // Always auto-populate platform boxes from Trip Log — no manual input
   const td={TADA:0,Grab:0,Ryde:0,Gojek:0,Others:0};
@@ -2171,6 +2189,23 @@ function savePetrolNow(){
   // Also update the full entry immediately
   const data=getData();
   if(data[date]) { data[date].petrol=parseFloat(val)||0; data[date].estNet=(data[date].earnings?.total||0)-(parseFloat(val)||0); saveData(data); }
+}
+
+// ── PETTY CASH: own storage slot {date:{amt,note}} ──
+function getPetty(){ try{ return JSON.parse(localStorage.getItem('mdl_petty')||'{}')||{}; }catch(e){ return {}; } }
+function savePettyAll(o){ try{ localStorage.setItem('mdl_petty', JSON.stringify(o)); }catch(e){} }
+function savePettyCash(){
+  const date=document.getElementById('e-date')?.value; if(!date) return;
+  const amt=parseFloat(document.getElementById('e-petty')?.value)||0;
+  const note=(document.getElementById('e-petty-note')?.value||'').trim();
+  const o=getPetty();
+  if(amt>0||note) o[date]={amt:amt,note:note}; else delete o[date];
+  savePettyAll(o);
+}
+function loadPettyCash(date){
+  const r=getPetty()[date];
+  const a=document.getElementById('e-petty'), n=document.getElementById('e-petty-note');
+  if(a) a.value=r&&r.amt?r.amt:''; if(n) n.value=r?r.note||'':'';
 }
 
 function loadPetrolNow(date){
@@ -2390,9 +2425,11 @@ function renderHistory(){
 function setHistMonth(y,m){ histMonth={y,m}; renderHistory(); }
 
 // History: Total · Card · Pay Now · Cash by platform for the month ("-" where nothing recorded)
-function renderPaySummary(monthTrips){
+function renderPaySummary(monthTrips,prefix){
   const el=document.getElementById('hist-pay-summary'); if(!el) return;
-  if(!monthTrips.length){ el.style.display='none'; return; }
+  const petty=getPetty(), pDates=Object.keys(petty).filter(d=>prefix&&d.startsWith(prefix)&&petty[d].amt>0);
+  const pettyTot=pDates.reduce((a,d)=>a+petty[d].amt,0);
+  if(!monthTrips.length&&!pettyTot){ el.style.display='none'; return; }
   const plats=['TADA','Grab','Ryde','Others'], pays=['Card','Pay Now','Cash'];
   const pc={TADA:'var(--tada)',Grab:'var(--grab)',Ryde:'var(--ryde)',Others:'var(--others)'};
   const cell=(list)=>{ return list.length?'$'+Math.round(list.reduce((a,t)=>a+(t.fare||0),0)).toLocaleString('en-SG'):'-'; };
@@ -2406,13 +2443,25 @@ function renderPaySummary(monthTrips){
       '<td style="'+td+';font-weight:700">'+cell(pt)+'</td>'+
       pays.map(k=>'<td style="'+td+'">'+cell(pt.filter(t=>t.payment===k))+'</td>').join('')+'</tr>';
   });
+  const sum=list=>list.reduce((a,t)=>a+(t.fare||0),0);
+  const money=v=>(v<0?'−':'')+'$'+Math.abs(Math.round(v)).toLocaleString('en-SG');
+  const red='color:var(--danger)';
+  if(pettyTot>0){
+    rows+='<tr style="border-top:1px solid var(--border)"><td style="padding:6px 4px;font-size:12px;font-weight:700;'+red+'">Petty Cash</td>'+
+      '<td style="'+td+';font-weight:700;'+red+'">'+money(-pettyTot)+'</td><td style="'+td+'">-</td><td style="'+td+'">-</td>'+
+      '<td style="'+td+';'+red+'">'+money(-pettyTot)+'</td></tr>';
+  }
+  const netTot=sum(monthTrips)-pettyTot;
+  const payTot=k=>{ const l=monthTrips.filter(t=>t.payment===k); const v=sum(l)-(k==='Cash'?pettyTot:0);
+    return (!l.length&&!(k==='Cash'&&pettyTot>0))?'-':money(v); };
   rows+='<tr style="border-top:1.5px solid var(--border)"><td style="padding:6px 4px;font-size:12px;font-weight:700;color:var(--text)">Total</td>'+
-    '<td style="'+td+';font-weight:700;color:var(--accent)">'+cell(monthTrips)+'</td>'+
-    pays.map(k=>'<td style="'+td+';font-weight:700">'+cell(monthTrips.filter(t=>t.payment===k))+'</td>').join('')+'</tr>';
+    '<td style="'+td+';font-weight:700;color:'+(netTot<0?'var(--danger)':'var(--accent)')+'">'+money(netTot)+'</td>'+
+    pays.map(k=>'<td style="'+td+';font-weight:700">'+payTot(k)+'</td>').join('')+'</tr>';
   el.innerHTML='<div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.06em;margin:0 2px 4px">PAYMENT BREAKDOWN</div>'+
     '<table style="width:100%;border-collapse:collapse;table-layout:fixed"><thead><tr>'+
     '<th style="'+th+';text-align:left;width:22%"></th><th style="'+th+'">Total</th><th style="'+th+'">Card</th><th style="'+th+'">Pay Now</th><th style="'+th+'">Cash</th>'+
-    '</tr></thead><tbody>'+rows+'</tbody></table>';
+    '</tr></thead><tbody>'+rows+'</tbody></table>'+
+    (pettyTot>0?'<div style="font-size:10px;color:var(--muted);margin:4px 2px 0">Totals are after petty cash taken ('+pDates.length+' day'+(pDates.length!==1?'s':'')+').</div>':'');
   el.style.display='block';
 }
 
@@ -2449,7 +2498,7 @@ function renderHistList(){
         </div>`;
     } else { platSumEl.style.display='none'; }
   }
-  renderPaySummary(allMonthTrips);
+  renderPaySummary(allMonthTrips,prefix);
 
   for(let d=daysInMonth;d>=1;d--){
     const ds=prefix+String(d).padStart(2,'0');
@@ -3164,6 +3213,7 @@ function buildBackup(){
     fuel:getFuelRecords(),
     settings:settings,
     petrolSlots:petrolSlots,
+    petty:getPetty(),
     estDistance:localStorage.getItem('mdl_est_distance')||'',
     estOverrides:_getEstOverrides(),
     myrRate:localStorage.getItem('mdl_myr_rate')||'',
@@ -3249,6 +3299,7 @@ async function restoreBackup(input){
         localStorage.setItem('mdl_petrol_'+date, b.petrolSlots[date]);
       });
     }
+    if(b.petty&&typeof b.petty==='object') savePettyAll(b.petty);
     if(b.estDistance) localStorage.setItem('mdl_est_distance', b.estDistance);
     if(b.myrRate) localStorage.setItem('mdl_myr_rate', b.myrRate);
     if(b.estOverrides&&typeof b.estOverrides==='object') localStorage.setItem('mdl_est_overrides', JSON.stringify(b.estOverrides));
